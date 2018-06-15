@@ -2,18 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Department;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
     public function show()
     {
-        $data = json_decode('[{"id":13,"children":[{"id":14,"children":[{"id":15}]}]},{"id":16},{"id":17}]');
-//        return gettype($serialize);
-        $users = array_map('get_object_vars', $data);
+//        $departments = Department::with('allChildrenDepartments')->get();
+//
+//
+//
+//
+//        return view('department',compact('departments'));
 
-//       return ($users);
+        $category = new Department;
+        $items = $category->getCategoryInfo();
 
-        return view('department',['us'=>$users]);
+        return view('department',compact('items'));
+//        foreach ($items as $key => $item) {
+//            dump($item->name);
+//        }
     }
 }
