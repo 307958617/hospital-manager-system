@@ -12,26 +12,10 @@
 @section('content')
 <div class="container">
 
-    {{ $items }}
-
     <div id="xx">123</div>
     <div class="dd" id="nestable">
         <ol class="dd-list">
-            <li class="dd-item" data-id="13">
-                <div class="dd-handle ">Item 13</div>
-            </li>
-            <li class="dd-item" data-id="14">
-                <div class="dd-handle ">Item 14</div>
-            </li>
-            <li class="dd-item" data-id="15">
-                <div class="dd-handle ">Item 15</div>
-            </li>
-            <li class="dd-item" data-id="16">
-                <div class="dd-handle ">Item 16</div>
-            </li>
-            <li class="dd-item" data-id="17">
-                <div class="dd-handle ">Item 17</div>
-            </li>
+            {!! $datas !!}
         </ol>
     </div>
 </div>
@@ -39,14 +23,14 @@
 
 @section('js')
     <script type="text/javascript">
-        var data = [{"id":13,"children":[{"id":14,"children":[{"id":15},{"id":16}]}]},{"id":17}];
+
         jQuery(function($){
-            $('.dd').nestable('[{"id":13,"children":[{"id":14,"children":[{"id":15},{"id":16}]}]},{"id":17}]');
+            $('.dd').nestable();
+            $('#nestable2').nestable();
             $('#nestable').nestable().on('change', function(){
                 var r = $('.dd').nestable('serialize');
 //                console.log(r);
                 $("#xx").html(JSON.stringify(r));    //改变排序之后的数据
-                console.log(data)
             });
         });
         console.log()
