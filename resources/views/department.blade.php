@@ -12,26 +12,15 @@
 @section('content')
 <div class="container">
 
+<<<<<<< HEAD
     {{ $departments }}
 
+=======
+>>>>>>> 47a13c9db18145ee2e3043c163aefcad5cdb84cc
     <div id="xx">123</div>
     <div class="dd" id="nestable">
         <ol class="dd-list">
-            <li class="dd-item" data-id="13">
-                <div class="dd-handle ">Item 13</div>
-            </li>
-            <li class="dd-item" data-id="14">
-                <div class="dd-handle ">Item 14</div>
-            </li>
-            <li class="dd-item" data-id="15">
-                <div class="dd-handle ">Item 15</div>
-            </li>
-            <li class="dd-item" data-id="16">
-                <div class="dd-handle ">Item 16</div>
-            </li>
-            <li class="dd-item" data-id="17">
-                <div class="dd-handle ">Item 17</div>
-            </li>
+            {!! $datas !!}
         </ol>
     </div>
 </div>
@@ -39,8 +28,15 @@
 
 @section('js')
     <script type="text/javascript">
+<<<<<<< HEAD
         jQuery(function($){
             $('.dd').nestable();
+=======
+
+        jQuery(function($){
+            $('.dd').nestable();
+            $('#nestable2').nestable();
+>>>>>>> 47a13c9db18145ee2e3043c163aefcad5cdb84cc
             $('#nestable').nestable().on('change', function(){
                 var r = $('.dd').nestable('serialize');
 //                console.log(r);
