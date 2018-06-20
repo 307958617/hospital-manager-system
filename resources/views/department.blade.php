@@ -12,7 +12,7 @@
 @section('content')
 <div class="container">
 
-    {{ $items }}
+    {{ $departments }}
 
     <div id="xx">123</div>
     <div class="dd" id="nestable">
@@ -39,14 +39,12 @@
 
 @section('js')
     <script type="text/javascript">
-        var data = [{"id":13,"children":[{"id":14,"children":[{"id":15},{"id":16}]}]},{"id":17}];
         jQuery(function($){
-            $('.dd').nestable('[{"id":13,"children":[{"id":14,"children":[{"id":15},{"id":16}]}]},{"id":17}]');
+            $('.dd').nestable();
             $('#nestable').nestable().on('change', function(){
                 var r = $('.dd').nestable('serialize');
 //                console.log(r);
                 $("#xx").html(JSON.stringify(r));    //改变排序之后的数据
-                console.log(data)
             });
         });
         console.log()

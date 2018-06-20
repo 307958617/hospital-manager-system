@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Kalnoy\Nestedset\NestedSet;
 
 class CreateDepartmentsTable extends Migration
 {
@@ -16,10 +17,7 @@ class CreateDepartmentsTable extends Migration
         Schema::create('departments', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->comment('部门名称');
-            $table->string('description')->nullable(true)->comment('部门描述');
-            $table->unsignedInteger('pid')->default(0)->comment('上级部门id');
-            $table->string('manager')->nullable(true)->comment('部门主管');
-            $table->boolean('status')->default(0)->comment('部门启用状态');
+            NestedSet::columns($table);//这里就是添加的地方
             $table->timestamps();
         });
     }
@@ -32,5 +30,6 @@ class CreateDepartmentsTable extends Migration
     public function down()
     {
         Schema::dropIfExists('departments');
+        NestedSet::dropColumns($table);//这里就是添加的地方
     }
 }

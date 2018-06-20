@@ -16,10 +16,9 @@ class DepartmentController extends Controller
 //
 //        return view('department',compact('departments'));
 
-        $category = new Department;
-        $items = $category->getCategoryInfo();
+        $departments = Department::all()->toTree();
 
-        return view('department',compact('items'));
+        return view('department',compact('departments'));
 //        foreach ($items as $key => $item) {
 //            dump($item->name);
 //        }
