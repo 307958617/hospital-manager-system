@@ -9,8 +9,12 @@ class DepartmentController extends Controller
 {
     public function show()
     {
-        $departments = Department::all()->toTree();
+        return view('department');
+    }
 
-        return view('department',compact('departments'));
+    public function get()
+    {
+        $departments = Department::all()->toTree();
+        return response()->json(['data'=>$departments]);
     }
 }
