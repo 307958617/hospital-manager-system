@@ -17,6 +17,7 @@ window.Vue = require('vue');
 
 Vue.component('example-component', require('./components/ExampleComponent.vue'));
 Vue.component('department-component', require('./components/Departments/DepartmentComponent.vue'));
+Vue.component('department-tree', require('./components/Departments/DepartmentTree.vue'));
 
 const app = new Vue({
     el: '#app'

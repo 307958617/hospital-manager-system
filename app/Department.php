@@ -9,4 +9,5 @@ use Kalnoy\Nestedset\NodeTrait;
 class Department extends Model
 {
     use NodeTrait;
+    protected $fillable = ['name','order'];
 }

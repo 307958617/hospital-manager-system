@@ -20,3 +20,4 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/department', 'DepartmentController@show')->name('department');
 Route::get('/department/get', 'DepartmentController@get')->name('department.get');
+Route::post('/department/change', 'DepartmentController@change')->name('department.change');

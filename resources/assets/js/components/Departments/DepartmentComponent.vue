@@ -1,15 +1,17 @@
 <template>
-    <div class="dd">
+    <div class="dd" id="nestable">
         <ol class="dd-list">
-            <li v-for="Department in Departments" class="dd-item" :data-name="Department.name" :data-id="Department.id">
-                <div class="dd-handle ">{{ Department.name }}</div>
-            </li>
+            <department-tree v-for="Department in Departments" :key="Department.id" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
         </ol>
     </div>
 </template>
 
 <script>
+    import DepartmentTree from './DepartmentTree.vue'
     export default {
+        components: {
+            'department-tree': DepartmentTree
+        },
         mounted() {
             console.log('Department2.');
             this.getDepartments()

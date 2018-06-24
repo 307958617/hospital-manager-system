@@ -11,28 +11,8 @@
 
 @section('content')
 <div class="container">
-    <department-component></department-component>
-
     <div id="xx">123</div>
-    <div class="dd" id="nestable">
-        <ol class="dd-list">
-            <li class="dd-item" data-name="13号" data-id="13">
-                <div class="dd-handle ">Item 13</div>
-            </li>
-            <li class="dd-item" data-name="14号" data-id="14" >
-                <div class="dd-handle ">Item 14</div>
-            </li>
-            <li class="dd-item" data-name="15号" data-id="15" >
-                <div class="dd-handle ">Item 15</div>
-            </li>
-            <li class="dd-item"  data-name="16号" data-id="16">
-                <div class="dd-handle ">Item 16</div>
-            </li>
-            <li class="dd-item"  data-name="17号" data-id="17">
-                <div class="dd-handle ">Item 17</div>
-            </li>
-        </ol>
-    </div>
+    <department-component></department-component>
 </div>
 @endsection
 
@@ -43,9 +23,11 @@
             $('#nestable').nestable().on('change', function(){
                 var r = $('.dd').nestable('serialize');
 //                console.log(r);
+                $.post('/department/change',{'_token':'{{csrf_token()}}','tree':r},function(res){
+                    console.log(res)
+                });
                 $("#xx").html(JSON.stringify(r));    //改变排序之后的数据
             });
         });
-        console.log()
     </script>
 @endsection
