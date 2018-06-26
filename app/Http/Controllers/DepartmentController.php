@@ -7,11 +7,13 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
+    //显示界面
     public function show()
     {
         return view('department');
     }
 
+    //将分类以树结构显示出来
     public function get()
     {
         $departments = Department::orderBy('order','ASC')->get()->toTree();
@@ -19,6 +21,7 @@ class DepartmentController extends Controller
         return response()->json(['data'=>$departments]);
     }
 
+    //将修改后的分类信息保存到数据库
     public function change(Request $request)
     {
         $newTree = $request->get('tree');

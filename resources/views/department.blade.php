@@ -22,7 +22,7 @@
             $('.dd').nestable();
             $('#nestable').nestable().on('change', function(){
                 var r = $('.dd').nestable('serialize');
-//                console.log(r);
+                //将变换排序后的数据传递给后台的controller进行处理，并保存进入数据库。
                 $.post('/department/change',{'_token':'{{csrf_token()}}','tree':r},function(res){
                     console.log(res)
                 });

@@ -14,7 +14,7 @@
         },
         mounted() {
             console.log('Department2.');
-            this.getDepartments()
+            this.getDepartments();
         },
         data() {
             return {
