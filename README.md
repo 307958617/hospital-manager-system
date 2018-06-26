@@ -254,7 +254,7 @@
 
 > 实现编辑、删除某个科室的功能：
 ###### ①、如果需要实现展开或收拢科室列表需要做一下修改：
-####### 首先，修改DepartmentTree.vue文件：
+###### #首先，修改DepartmentTree.vue文件：
     <template>
         <li class="dd-item">
             <!--需要取消原来这个位置添加的两个按钮-->
@@ -290,7 +290,7 @@
             }
         }
     </script>
-####### 其次、修改Department.vue文件：
+###### #其次、修改DepartmentComponent.vue文件：
     <template>
         <div class="row">
             <!--显示科室列表-->
@@ -368,7 +368,7 @@
         }
     </script>
 ###### ②、如果要实现修改完成后统一保存功能:
-####### 首先、需要将department.blade.php里面的js上传代码删除，即不要@section('js')里面的代码了
+###### #首先、需要将department.blade.php里面的js上传代码删除，即不要@section('js')里面的代码了
     <script type="text/javascript">
         jQuery(function($){
             $('.dd').nestable();
@@ -382,7 +382,7 @@
             });
         });
     </script>
-####### 然后、修改DepartmentComponent.vue文件：
+###### #然后、修改DepartmentComponent.vue文件：
     添加保存按钮：
     <button type="button" class="btn btn-primary" @click="saveChange">保存修改</button>
     
@@ -394,7 +394,7 @@
             console.log('ok')
         })
     }
-####### 最后、在DepartmentTree.vue里面的mounted()方法里面添加：
+###### #最后、在DepartmentTree.vue里面的mounted()方法里面添加：
     mounted() {
         console.log('Component mounted.');
         //将初始化前移到此处
@@ -403,4 +403,4 @@
         this.expandAll();
     },
 ###### ③、实现增加科室功能：
-####### 首先、
+###### #首先、
