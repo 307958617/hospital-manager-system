@@ -17,17 +17,5 @@
 @endsection
 
 @section('js')
-    <script type="text/javascript">
-        jQuery(function($){
-            $('.dd').nestable();
-            $('#nestable').nestable().on('change', function(){
-                var r = $('.dd').nestable('serialize');
-                //将变换排序后的数据传递给后台的controller进行处理，并保存进入数据库。
-                $.post('/department/change',{'_token':'{{csrf_token()}}','tree':r},function(res){
-                    console.log(res)
-                });
-                $("#xx").html(JSON.stringify(r));    //改变排序之后的数据
-            });
-        });
-    </script>
+
 @endsection

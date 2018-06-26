@@ -69,7 +69,7 @@
 
 > npm run dev //新增或修改了vue代码后必须进行编译才能生效。
 
-##### 1、列出所有跟分类：
+##### 1、列出所有跟分类，并将拖动后的树结构保存到数据库：
 ###### ①、在resources/assets/js/components目录下创建Departments/DepartmentComponent.vue文件，内容如下：
     <template>
         <div class="dd" id="nestable">
@@ -246,3 +246,161 @@
             return ;
         }
     }
+##### 2、对DepartmentComponent.vue文件进行修改，重新排版：
+###### 功能实现要求如下：
+> 实现增加科室功能：
+
+> 实现展开或收拢科室列表,实现修改完成后统一保存功能：
+
+> 实现编辑、删除某个科室的功能：
+###### ①、如果需要实现展开或收拢科室列表需要做一下修改：
+####### 首先，修改DepartmentTree.vue文件：
+    <template>
+        <li class="dd-item">
+            <!--需要取消原来这个位置添加的两个按钮-->
+            <div class="dd-handle ">{{ Department.name }}</div>
+            <!--必须给这里的ol标签添加判断，不然多了这个ol标签，折叠按钮会出现显示不正常的情况-->
+            <ol class="dd-list" v-if="Department.children.length > 0">
+                <department-tree v-for="Department in Department.children" :key="Department.id" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+            </ol>
+        </li>
+    </template>
+    
+    <script>
+        //引入nestable.js
+        import nestable from './nestable'
+        export default {
+            props: ['Department'],
+            data() {
+                return {
+    
+                }
+            },
+            mounted() {
+                console.log('Component mounted.');
+                //注意，这里需要申明一开始列表的状态时全部展开状态。
+                this.expandAll()
+    
+            },
+            methods: {
+                //增加一个扩展所有列表的方法
+                expandAll() {
+                    $('.dd').nestable('expandAll');
+                },
+            }
+        }
+    </script>
+####### 其次、修改Department.vue文件：
+    <template>
+        <div class="row">
+            <!--显示科室列表-->
+            <div class="col-sm-7">
+                <div class="card">
+                    <div class="card-header">
+                        科室列表
+                        <div class="btn-group btn-group-sm pull-right">
+                        <!--增加相应的按钮及方法-->
+                            <button type="button" class="btn btn-success" @click="expandAll">展开所有</button>
+                            <button type="button" class="btn btn-success" @click="collapseAll">折叠所有</button>&nbsp;
+                            <button type="button" class="btn btn-primary">保存修改</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="dd" id="nestable">
+                            <ol class="dd-list">
+                                <department-tree v-for="Department in Departments" :key="Department.id" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--增加科室表单-->
+            <div class="col-sm-5">
+                <div class="card">
+                    <div class="card-header">新增科室</div>
+                    <div class="card-body">
+                        <input type="text" class="form-control" placeholder="">
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-block btn-success">增加科室</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <script>
+        import DepartmentTree from './DepartmentTree.vue'
+        //同样需要引入nestable
+        import nestable from './nestable'
+        export default {
+            components: {
+                'department-tree': DepartmentTree
+            },
+            mounted() {
+                console.log('Department2.');
+                this.getDepartments();
+            },
+            data() {
+                return {
+                    Departments:[]
+                }
+            },
+            methods: {
+                getDepartments() {
+                    axios.get('/department/get').then(res=> {
+                        console.log(res);
+                        this.Departments = res.data.data;
+                    }).catch(error=> {
+                        throw error
+                    })
+                },
+                //增加展开的方法
+                expandAll() {
+                    $('.dd').nestable('expandAll');
+                },
+                //增加收缩的方法
+                collapseAll() {
+                    $('.dd').nestable('collapseAll');
+                }
+    
+            }
+        }
+    </script>
+###### ②、如果要实现修改完成后统一保存功能:
+####### 首先、需要将department.blade.php里面的js上传代码删除，即不要@section('js')里面的代码了
+    <script type="text/javascript">
+        jQuery(function($){
+            $('.dd').nestable();
+            $('#nestable').nestable().on('change', function(){
+                var r = $('.dd').nestable('serialize');
+                //将变换排序后的数据传递给后台的controller进行处理，并保存进入数据库。
+                $.post('/department/change',{'_token':'{{csrf_token()}}','tree':r},function(res){
+                    console.log(res)
+                });
+                $("#xx").html(JSON.stringify(r));    //改变排序之后的数据
+            });
+        });
+    </script>
+####### 然后、修改DepartmentComponent.vue文件：
+    添加保存按钮：
+    <button type="button" class="btn btn-primary" @click="saveChange">保存修改</button>
+    
+    增加保存方法：
+    //保存修改后的树结构到数据库
+    saveChange() {
+        const r = $('.dd').nestable('serialize');
+        axios.post('/department/change',{'tree':r}).then(function (res) {
+            console.log('ok')
+        })
+    }
+####### 最后、在DepartmentTree.vue里面的mounted()方法里面添加：
+    mounted() {
+        console.log('Component mounted.');
+        //将初始化前移到此处
+        $('.dd').nestable();
+        //注意，这里需要申明一开始列表的状态时全部展开状态。
+        this.expandAll();
+    },
+###### ③、实现增加科室功能：
+####### 首先、
