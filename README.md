@@ -403,4 +403,36 @@
         this.expandAll();
     },
 ###### ③、实现增加科室功能：
-###### #首先、
+###### #首先、安装并使用vue-treeselect来实现选择上级科室:
+> 安装vue-treeselect ，执行：npm install --save @riophae/vue-treeselect
+
+> 在DepartmentComponent.vue文件里面引入vue-treeselect组件：
+    
+      // import the component
+      import Treeselect from '@riophae/vue-treeselect'
+      // import the styles
+      import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+      
+      components: {
+         'department-tree': DepartmentTree,
+         //申明引用组件
+         'treeselect':Treeselect
+      },
+      
+      data() {
+          return {
+              Departments:[],
+              //注意，这里必须要用自定义，不然显示不出来的
+              normalizer(node) {
+                  return {
+                      id: node.id,//指定id是什么字段
+                      label: node.name,//指定label是用的什么字段，即显示什么字段出来
+                  }
+              },
+          }
+      },
+> 然后即可在相应的位置使用了：
+
+    <treeselect placeholder="选择上级科室" :normalizer="normalizer" :options="Departments">
+    
+    

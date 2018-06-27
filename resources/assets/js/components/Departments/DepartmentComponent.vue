@@ -29,16 +29,11 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label for="email">选择上级科室:</label>
-                            <input type="email" class="form-control" id="email">
+                            <treeselect placeholder="选择上级科室" :normalizer="normalizer" :options="Departments"></treeselect>
                         </div>
                         <div class="form-group">
                             <label for="pwd">设置科室名称:</label>
-                            <input type="password" class="form-control" id="pwd">
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox"> Remember me
-                            </label>
+                            <input type="text" class="form-control" id="pwd">
                         </div>
                     </div>
                     <div class="card-footer">
@@ -52,25 +47,38 @@
 
 <script>
     import DepartmentTree from './DepartmentTree.vue'
+    //引入vue-treeselect
+    import Treeselect from '@riophae/vue-treeselect'
+    //引入vue-treeselect的样式
+    import '@riophae/vue-treeselect/dist/vue-treeselect.css'
     //同样需要引入nestable
     import nestable from './nestable'
     export default {
         components: {
-            'department-tree': DepartmentTree
+            'department-tree': DepartmentTree,
+            //申明引用组件
+            'treeselect':Treeselect
         },
         mounted() {
-            console.log('Department2.');
             this.getDepartments();
+            console.log('ss');
         },
         data() {
             return {
-                Departments:[]
+                Departments:[],
+                //注意，这里必须要用自定义，不然显示不出来的
+                normalizer(node) {
+                    return {
+                        id: node.id,//指定id是什么字段
+                        label: node.name,//指定label是用的什么字段，即显示什么字段出来
+                    }
+                },
             }
         },
         methods: {
             getDepartments() {
                 axios.get('/department/get').then(res=> {
-                    console.log(res);
+                    console.log(res.data.data);
                     this.Departments = res.data.data;
                 }).catch(error=> {
                     throw error
