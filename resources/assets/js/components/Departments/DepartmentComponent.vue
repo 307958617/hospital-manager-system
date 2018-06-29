@@ -23,17 +23,17 @@
         </div>
         <!--增加科室表单-->
         <div class="col-sm-5">
-            <form>
+            <form @submit.prevent="addDepartment">
                 <div class="card">
                     <div class="card-header">新增科室</div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label for="email">选择上级科室:</label>
-                            <treeselect placeholder="选择上级科室" :normalizer="normalizer" :options="Departments"></treeselect>
+                            <label>选择上级科室:</label>
+                            <treeselect v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
                         </div>
                         <div class="form-group">
-                            <label for="pwd">设置科室名称:</label>
-                            <input type="text" class="form-control" id="pwd">
+                            <label>设置科室名称:</label>
+                            <input v-model="departmentName" type="text" class="form-control">
                         </div>
                     </div>
                     <div class="card-footer">
@@ -66,6 +66,10 @@
         data() {
             return {
                 Departments:[],
+                //增加上级科室id属性
+                pid:null,
+                //增加新增科室名称属性
+                departmentName:'',
                 //注意，这里必须要用自定义，不然显示不出来的
                 normalizer(node) {
                     return {
@@ -95,8 +99,15 @@
             //保存修改后的树结构到数据库
             saveChange() {
                 const r = $('.dd').nestable('serialize');
-                axios.post('/department/change',{'tree':r}).then(function (res) {
-                    console.log('ok')
+                axios.post('/department/change',{'tree':r}).then((res)=>{
+                    console.log('调整科室布局成功')
+                })
+            },
+            //保存添加的科室到数据库
+            addDepartment() {
+                axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
+                    console.log(res.data.data);
+                    this.getDepartments();
                 })
             }
         }

@@ -12,6 +12,19 @@ class DepartmentController extends Controller
     {
         return view('department');
     }
+    //新增科室保存到数据库
+    public function add(Request $request)
+    {
+        $pid = $request->get('pid');
+        $name = $request->get('name');
+
+        $node = new Department(['name'=>$name,'order'=>0]);
+        if($pid) {
+            $node->parent_id = $pid;
+            $node->save();
+        }
+        $node->save();
+    }
 
     //将分类以树结构显示出来
     public function get()

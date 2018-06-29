@@ -403,7 +403,7 @@
         this.expandAll();
     },
 ###### ③、实现增加科室功能：
-###### #首先、安装并使用vue-treeselect来实现选择上级科室:
+###### 安装并使用vue-treeselect来实现选择上级科室:
 > 安装vue-treeselect ，执行：npm install --save @riophae/vue-treeselect
 
 > 在DepartmentComponent.vue文件里面引入vue-treeselect组件：
@@ -434,5 +434,65 @@
 > 然后即可在相应的位置使用了：
 
     <treeselect placeholder="选择上级科室" :normalizer="normalizer" :options="Departments">
+> 将数据保存到数据库：
     
+    1、在data里面新增两个属性：
+    //增加上级科室id属性
+    pid:null,
+    //增加新增科室名称属性
+    departmentName:'',
+    
+    2、在from表单里面绑定上面的两个属性：
+    <form @submit.prevent="addDepartment">
+        <div class="card">
+            <div class="card-header">新增科室</div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>选择上级科室:</label>
+                    //绑定pid属性
+                    <treeselect v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
+                </div>
+                <div class="form-group">
+                    <label>设置科室名称:</label>
+                    //绑定departmentName属性
+                    <input v-model="departmentName" type="text" class="form-control">
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">增加科室</button>
+            </div>
+        </div>
+    </form>
+    
+    3、增加保存方法：
+    //保存添加的科室到数据库
+    addDepartment() {
+        axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
+            console.log(res.data.data);
+            this.getDepartments();
+        })
+    }
+    
+    4、新增保存科室到数据的路由：
+    Route::post('/department/add', 'DepartmentController@add')->name('department.add');
+    
+    5、到控制器里面新增add方法：
+    //新增科室保存到数据库
+    public function add(Request $request)
+    {
+        $pid = $request->get('pid');
+        $name = $request->get('name');
+
+        $node = new Department(['name'=>$name,'order'=>0]);
+        if($pid) {//判断是否选择了上级科室，如果选了上级科，就将它的parent_id设置为上级科室的id
+            $node->parent_id = $pid;
+            $node->save();
+        }
+        $node->save();//如果没有选上级科室，默认就保存为跟科室
+    }
+    
+###### ④、实现增编辑科室和删除科室功能：
+> 首先、添加两个按钮到科室列表里面：
+    
+
     
