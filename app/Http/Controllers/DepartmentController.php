@@ -25,6 +25,26 @@ class DepartmentController extends Controller
         }
         $node->save();
     }
+    //编辑科室然后保存到数据库
+    public function edit(Request $request)
+    {
+        $pid = $request->get('pid');
+        $name = $request->get('name');
+        $id = $request->get('id');
+
+        $node = Department::find($id);
+
+        $node->parent_id = $pid;
+        $node->name = $name;
+        $node->save();
+    }
+
+    public function delete(Request $request)
+    {
+        $id = $request->get('id');
+        $node = Department::find($id);
+        $node->delete();
+    }
 
     //将分类以树结构显示出来
     public function get()

@@ -22,3 +22,5 @@ Route::get('/department', 'DepartmentController@show')->name('department');
 Route::get('/department/get', 'DepartmentController@get')->name('department.get');
 Route::post('/department/change', 'DepartmentController@change')->name('department.change');
 Route::post('/department/add', 'DepartmentController@add')->name('department.add');
+Route::post('/department/edit', 'DepartmentController@edit')->name('department.edit');
+Route::post('/department/delete', 'DepartmentController@delete')->name('department.delete');

@@ -491,8 +491,242 @@
         $node->save();//如果没有选上级科室，默认就保存为跟科室
     }
     
-###### ④、实现增编辑科室和删除科室功能：
+###### ④、实现编辑科室和删除科室功能：
 > 首先、添加两个按钮到科室列表里面：
     
+    <template>
+        <!--注意，这里添加一个dd-nodrag才能让下面添加的按钮生效-->
+        <li class="dd-item dd-nodrag">
+            <!--需要取消原来这个位置添加的两个按钮-->
+            <div class="dd-handle">
+    
+                {{ Department.name }}
+                <!--增加编辑和删除按钮，引入font-awesome-->
+                <span class="pull-right">
+                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                </span>
+            </div>
+            <!--必须给这里的ol标签添加判断，不然多了这个ol标签，折叠按钮会出现显示不正常的情况-->
+            <ol class="dd-list" v-if="Department.children.length > 0">
+                <department-tree v-for="Department in Department.children" :key="Department.id" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+            </ol>
+        </li>
+    </template>
+> 然后、引入模态框，实现点击编辑按钮弹出编辑科室的模态框，然后进行编辑：
+    
+    ①、引入模态框DepartmentModel.vue
+    
+    <template>
+        <transition name="modal">
+            <div class="modal-mask">
+                <div class="modal-wrapper">
+                    <div class="modal-container">
+    
+                        <div class="modal-header">
+                            <slot name="header">
+                                default header
+                              </slot>
+                        </div>
+    
+                        <div class="modal-body">
+                            <slot name="body">
+                                default body
+                              </slot>
+                        </div>
+    
+                        <div class="modal-footer">
+                            <slot name="footer">
+                                default footer
+                                <button class="modal-default-button" @click="$emit('close')">
+                                OK
+                              </button>
+                            </slot>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </template>
+    <!--设置模态框的显示样式-->
+    <style media="screen">
+        .modal-mask {
+            position: fixed;
+            z-index: 9998;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, .5);
+            display: table;
+            transition: opacity .3s ease;
+        }
+    
+        .modal-wrapper {
+            display: table-cell;
+            vertical-align: middle;
+        }
+    
+        .modal-container {
+            width: 300px;
+            margin: 0px auto;
+            padding: 20px 30px;
+            background-color: #fff;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+            transition: all .3s ease;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+    
+        .modal-header h3 {
+            margin-top: 0;
+            color: #42b983;
+        }
+    
+        .modal-body {
+            margin: 20px 0;
+        }
+    
+        .modal-default-button {
+            float: right;
+        }
+    
+        /*
+         * The following styles are auto-applied to elements with
+         * transition="modal" when their visibility is toggled
+         * by Vue.js.
+         *
+         * You can easily play with the modal transition by editing
+         * these styles.
+         */
+    
+        .modal-enter {
+            opacity: 0;
+        }
+    
+        .modal-leave-active {
+            opacity: 0;
+        }
+    
+        .modal-enter .modal-container,
+        .modal-leave-active .modal-container {
+            -webkit-transform: scale(1.1);
+            transform: scale(1.1);
+        }
+    </style>
+    
+    <script>
+    
+    </script>
+    
+    ②、注册DepartmentModel模态框,到app.js添加如下代码
+    Vue.component('department-model', require('./components/Departments/DepartmentModel.vue'));
+    
+    ③、修改DepartmentTree.vue，实现点击显示模态框,点击模态框取消按钮隐藏模态框
+    //这里需要引入Departments，vue-treeselect从才能使用
+    
+    <!--这里需要添加:Departments="Departments"进来从能让vue-treeselect起作用-->
+    <department-tree v-for="Department in Department.children" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
 
+    props: ['Department','Departments'],
+    
+    data() {
+        return {
+            //判断编辑科室的模态框是否显示，默认不显示
+            showEditDepartment:false,
+            //增加上级科室id属性
+            pid:null,
+            //增加新增科室名称属性
+            departmentName:'',
+            //注意，这里必须要用自定义，不然显示不出来的
+            normalizer(node) {
+                return {
+                    id: node.id,//指定id是什么字段
+                    label: node.name,//指定label是用的什么字段，即显示什么字段出来
+                }
+            },
+        }
+    },  
+    
+    //然后，给添加按钮一个点击事件，让实现变成显示，从而实现点击添加按钮显示出模态框
+    <i @click="showEditDepartment=true" class="fa fa-pencil-square-o" aria-hidden="true"></i>
+    
+    //再然后、引入模态框：
+    //首先、引入DepartmentModel
+        import DepartmentModel from './DepartmentModel.vue'
+        
+    //引入vue-treeselect
+    import Treeselect from '@riophae/vue-treeselect'
+    //引入vue-treeselect的样式
+    import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+        
+    //然后再使用 
+    <department-model v-if="showEditDepartment">
+        <h3 slot="header">编辑科室</h3>
+        <div slot="body">
+            <div class="form-group">
+                <label>选择上级科室:</label>
+                <treeselect v-model="pid" placeholder="不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
+            </div>
+            <div class="form-group">
+                <label>设置科室名称:</label>
+                <input v-model="departmentName" type="text" class="form-control">
+            </div>
+        </div>
+        <button @click="editDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+        <!--实现点击取消按钮，隐藏模态框-->
+        <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
+    </department-model>
+> 再然后、编写两个方法editDepartment，delDepartment：
+    
+    //增加编辑部门的方法
+    editDepartment() {
+        axios.post('/department/edit',{pid:this.pid,name:this.departmentName,id:this.Department.id}).then((res)=>{
+            console.log('修改成功');
+            //调用父组件的方法，实现添加新分类后马上显示出来，但是不要忘记到父组件里面添加这个方法@getDepartments="getDepartments"
+            //<department-tree v-for="Department in Department.children" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+            this.getDepartments()
+        })
+    },
+    //增加删除部门的方法
+    delDepartment() {
+        axios.post('/department/delete',{id:this.Department.id}).then((res)=>{
+            console.log('删除成功');
+            this.getDepartments()
+        })
+    },
+    //必须增加这个方法与父组件的名称一样这很重要，本组件递归调用才不会报错
+    getDepartments() {
+        this.$emit('getDepartments')
+    }
+    
+> 再再然后、新增两条路由对于上面的两个方法：
+
+    Route::post('/department/edit', 'DepartmentController@edit')->name('department.edit');
+    Route::post('/department/delete', 'DepartmentController@delete')->name('department.delete');
+
+> 最后，控制器添加两个对于的方法：
+    
+    //编辑科室然后保存到数据库
+    public function edit(Request $request)
+    {
+        $pid = $request->get('pid');
+        $name = $request->get('name');
+        $id = $request->get('id');
+
+        $node = Department::find($id);
+
+        $node->parent_id = $pid;
+        $node->name = $name;
+        $node->save();
+    }
+    
+    //删除科室
+    public function delete(Request $request)
+    {
+        $id = $request->get('id');
+        $node = Department::find($id);
+        $node->delete();
+    }
+    
     

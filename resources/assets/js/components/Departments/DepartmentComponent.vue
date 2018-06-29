@@ -15,7 +15,7 @@
                 <div class="card-body">
                     <div class="dd" id="nestable">
                         <ol class="dd-list">
-                            <department-tree v-for="Department in Departments" :key="Department.id" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+                            <department-tree v-for="Department in Departments" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
                         </ol>
                     </div>
                 </div>
