@@ -48208,7 +48208,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
 
 //引入nestable.js
 
@@ -48296,52 +48295,49 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c(
-    "div",
+    "li",
+    { staticClass: "dd-item dd-nodrag" },
     [
-      _c("li", { staticClass: "dd-item dd-nodrag" }, [
-        _c("div", { staticClass: "dd-handle" }, [
-          _vm._v(
-            "\n\n            " + _vm._s(_vm.Department.name) + "\n        "
-          ),
-          _vm._v(" "),
-          _c("span", { staticClass: "pull-right" }, [
-            _c("i", {
-              staticClass: "fa fa-pencil-square-o",
-              attrs: { "aria-hidden": "true" },
-              on: {
-                click: function($event) {
-                  _vm.showEditDepartment = true
-                }
-              }
-            }),
-            _vm._v(" "),
-            _c("i", {
-              staticClass: "fa fa-trash-o",
-              attrs: { "aria-hidden": "true" },
-              on: { click: _vm.delDepartment }
-            })
-          ])
-        ]),
+      _c("div", { staticClass: "dd-handle" }, [
+        _vm._v("\n\n        " + _vm._s(_vm.Department.name) + "\n    "),
         _vm._v(" "),
-        _vm.Department.children.length > 0
-          ? _c(
-              "ol",
-              { staticClass: "dd-list" },
-              _vm._l(_vm.Department.children, function(Department) {
-                return _c("department-tree", {
-                  key: Department.id,
-                  attrs: {
-                    Departments: _vm.Departments,
-                    Department: Department,
-                    "data-name": Department.name,
-                    "data-id": Department.id
-                  },
-                  on: { getDepartments: _vm.getDepartments }
-                })
-              })
-            )
-          : _vm._e()
+        _c("span", { staticClass: "pull-right" }, [
+          _c("i", {
+            staticClass: "fa fa-pencil-square-o",
+            attrs: { "aria-hidden": "true" },
+            on: {
+              click: function($event) {
+                _vm.showEditDepartment = true
+              }
+            }
+          }),
+          _vm._v(" "),
+          _c("i", {
+            staticClass: "fa fa-trash-o",
+            attrs: { "aria-hidden": "true" },
+            on: { click: _vm.delDepartment }
+          })
+        ])
       ]),
+      _vm._v(" "),
+      _vm.Department.children.length > 0
+        ? _c(
+            "ol",
+            { staticClass: "dd-list" },
+            _vm._l(_vm.Department.children, function(Department) {
+              return _c("department-tree", {
+                key: Department.id,
+                attrs: {
+                  Departments: _vm.Departments,
+                  Department: Department,
+                  "data-name": Department.name,
+                  "data-id": Department.id
+                },
+                on: { getDepartments: _vm.getDepartments }
+              })
+            })
+          )
+        : _vm._e(),
       _vm._v(" "),
       _vm.showEditDepartment
         ? _c("department-model", [

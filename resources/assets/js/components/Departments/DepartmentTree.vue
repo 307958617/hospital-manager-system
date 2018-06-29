@@ -1,23 +1,22 @@
 <template>
-    <div>
-        <!--注意，这里添加一个dd-nodrag从能让下面添加的按钮生效-->
-        <li class="dd-item dd-nodrag">
-            <!--需要取消原来这个位置添加的两个按钮-->
-            <div class="dd-handle">
+    <!--注意，这里添加一个dd-nodrag从能让下面添加的按钮生效-->
+    <li class="dd-item dd-nodrag">
+        <!--需要取消原来这个位置添加的两个按钮-->
+        <div class="dd-handle">
 
-                {{ Department.name }}
-            <!--增加编辑和删除按钮，引入font-awesome-->
-                <span class="pull-right">
-                    <i @click="showEditDepartment=true" class="fa fa-pencil-square-o" aria-hidden="true"></i>
-                    <i @click="delDepartment" class="fa fa-trash-o" aria-hidden="true"></i>
-                </span>
-            </div>
-            <!--必须给这里的ol标签添加判断，不然多了这个ol标签，折叠按钮会出现显示不正常的情况-->
-            <ol class="dd-list" v-if="Department.children.length > 0">
-                <!--这里需要添加:Departments="Departments"进来从能让vue-treeselect起作用-->
-                <department-tree v-for="Department in Department.children" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
-            </ol>
-        </li>
+            {{ Department.name }}
+        <!--增加编辑和删除按钮，引入font-awesome-->
+            <span class="pull-right">
+                <i @click="showEditDepartment=true" class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                <i @click="delDepartment" class="fa fa-trash-o" aria-hidden="true"></i>
+            </span>
+        </div>
+        <!--必须给这里的ol标签添加判断，不然多了这个ol标签，折叠按钮会出现显示不正常的情况-->
+        <ol class="dd-list" v-if="Department.children.length > 0">
+            <!--这里需要添加:Departments="Departments"进来从能让vue-treeselect起作用-->
+            <department-tree v-for="Department in Department.children" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+        </ol>
+
 
         <department-model v-if="showEditDepartment">
             <h3 slot="header">编辑科室</h3>
@@ -35,7 +34,7 @@
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
         </department-model>
-    </div>
+    </li>
 </template>
 
 <script>
