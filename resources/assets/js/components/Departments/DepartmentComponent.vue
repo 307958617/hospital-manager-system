@@ -9,13 +9,13 @@
                     <!--增加相应的按钮及方法-->
                         <button type="button" class="btn btn-success" @click="expandAll">展开所有</button>
                         <button type="button" class="btn btn-success" @click="collapseAll">折叠所有</button>&nbsp;
-                        <button type="button" class="btn btn-primary" @click="saveChange">保存修改</button>
+                        <button type="button" class="btn btn-primary" @click="saveChange">拖拽保存</button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="dd" id="nestable">
                         <ol class="dd-list">
-                            <department-tree v-for="Department in Departments" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+                            <department-tree v-for="Department in Departments" @getDepartments="getDepartments" :key="Department.id" :Department="Department" :Departments="Departments" :data-name="Department.name" :data-id="Department.id"></department-tree>
                         </ol>
                     </div>
                 </div>
@@ -29,7 +29,7 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label>选择上级科室:</label>
-                            <treeselect v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
+                            <treeselect @open="reloadOptions" v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
                         </div>
                         <div class="form-group">
                             <label>设置科室名称:</label>
@@ -61,7 +61,6 @@
         },
         mounted() {
             this.getDepartments();
-            console.log('ss');
         },
         data() {
             return {
@@ -100,16 +99,33 @@
             saveChange() {
                 const r = $('.dd').nestable('serialize');
                 axios.post('/department/change',{'tree':r}).then((res)=>{
-                    console.log('调整科室布局成功')
-                })
+                    console.log('调整科室布局成功');
+                });
             },
             //保存添加的科室到数据库
             addDepartment() {
                 axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
                     console.log(res.data.data);
+                    this.departmentName ='';
+                    //注意下面的拼接写法很重要哦！
+                    const li = $('li[data-id='+this.pid+']');
+                    //增加分类列表的时候给它的父级列表添加一个折叠按钮
+                    this.addClass(li);
                     this.getDepartments();
                 })
-            }
+            },
+            reloadOptions() {
+                console.log();
+//                this.setParent($("li[data-id=27]"))
+
+            },
+            addClass: function(li)
+            {
+                if(li.children('ol').length === 0) {
+                    li.prepend('<button data-action="collapse" type="button">Collapse</button>');
+                    li.prepend('<button data-action="expand" type="button" style="display: none">Expand</button>');
+                }
+            },
         }
     }
 </script>

@@ -97,13 +97,21 @@
             delDepartment() {
                 axios.post('/department/delete',{id:this.Department.id}).then((res)=>{
                     console.log('删除成功');
-                    this.getDepartments()
+                    const li = $('li[data-id='+this.pid+']');
+                    this.delClass(li);
+                    this.getDepartments();
                 })
             },
             //必须增加这个方法与父组件的名称一样这很重要，本组件递归调用才不会报错
             getDepartments() {
                 this.$emit('getDepartments')
-            }
+            },
+            delClass: function(li)
+            {
+                if(li.children('ol').children('li').length === 1) {
+                    li.children('[data-action="collapse"]').remove();
+                }
+            },
         }
     }
 </script>

@@ -728,5 +728,50 @@
         $node = Department::find($id);
         $node->delete();
     }
+###### ⑤、修复细节问题：即增加第一个子列表的时候，父列表不显示折叠按钮，删除最后一个子列表的时候，父列表又不取消折叠按钮的显示：
+    //下面时新增的时候：
+    addDepartment() {
+        axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
+            console.log(res.data.data);
+            this.departmentName ='';
+            
+            
+            //注意下面的拼接写法很重要哦！
+            const li = $('li[data-id='+this.pid+']');
+            //增加分类列表的时候给它的父级列表添加一个折叠按钮
+            this.addClass(li);
+            
+            
+            this.getDepartments();
+        })
+    },
+    //同时添加addClass方法，这时参考了nestable.js的源码来实现的
+    addClass: function(li)
+    {
+        if(li.children('ol').length === 0) {
+            li.prepend('<button data-action="collapse" type="button">Collapse</button>');
+            li.prepend('<button data-action="expand" type="button" style="display: none">Expand</button>');
+        }
+    },
+    
+    //下面时删除的时候：
+    delDepartment() {
+        axios.post('/department/delete',{id:this.Department.id}).then((res)=>{
+            console.log('删除成功');
+            
+            const li = $('li[data-id='+this.pid+']');
+            this.delClass(li);
+            
+            
+            this.getDepartments();
+        })
+    },
+    
+    delClass: function(li)
+    {
+        if(li.children('ol').children('li').length === 1) {
+            li.children('[data-action="collapse"]').remove();
+        }
+    },
     
     
