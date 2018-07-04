@@ -15,7 +15,7 @@
                 <div class="card-body">
                     <div class="dd" id="nestable">
                         <ol class="dd-list">
-                            <department-tree v-for="Department in Departments" @getDepartments="getDepartments" :key="Department.id" :Department="Department" :Departments="Departments" :data-name="Department.name" :data-id="Department.id"></department-tree>
+                            <department-tree v-for="Department in Departments" @getDepartments="getDepartments" :key="Department.id" :Department="Department" :treeselectLists="treeselectLists" :data-name="Department.name" :data-id="Department.id"></department-tree>
                         </ol>
                     </div>
                 </div>
@@ -29,7 +29,7 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label>选择上级科室:</label>
-                            <treeselect @open="reloadOptions" v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
+                            <treeselect @open="reloadOptions" v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="treeselectLists"></treeselect>
                         </div>
                         <div class="form-group">
                             <label>设置科室名称:</label>
@@ -65,6 +65,7 @@
         data() {
             return {
                 Departments:[],
+                treeselectLists:[],
                 //增加上级科室id属性
                 pid:null,
                 //增加新增科室名称属性
@@ -115,9 +116,8 @@
                 })
             },
             reloadOptions() {
-                console.log();
-//                this.setParent($("li[data-id=27]"))
-
+                const r = $('.dd').nestable('serialize');
+                this.treeselectLists = r;
             },
             addClass: function(li)
             {

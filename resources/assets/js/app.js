@@ -15,7 +15,6 @@ window.Vue = require('vue');
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('example-component', require('./components/ExampleComponent.vue'));
 Vue.component('department-component', require('./components/Departments/DepartmentComponent.vue'));
 Vue.component('department-tree', require('./components/Departments/DepartmentTree.vue'));
 Vue.component('department-model', require('./components/Departments/DepartmentModel.vue'));

@@ -14,17 +14,13 @@
         <!--必须给这里的ol标签添加判断，不然多了这个ol标签，折叠按钮会出现显示不正常的情况-->
         <ol class="dd-list" v-if="Department.children.length > 0">
             <!--这里需要添加:Departments="Departments"进来从能让vue-treeselect起作用-->
-            <department-tree v-for="Department in Department.children" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
+            <department-tree v-for="Department in Department.children" @getDepartments="getDepartments" :key="Department.id" :Department="Department" :data-name="Department.name" :data-id="Department.id" :data-pid="Department.parent_id"></department-tree>
         </ol>
 
 
         <department-model v-if="showEditDepartment">
             <h3 slot="header">编辑科室</h3>
             <div slot="body">
-                <div class="form-group">
-                    <label>选择上级科室:</label>
-                    <treeselect v-model="pid" placeholder="不选默认为顶级科室" :normalizer="normalizer" :options="Departments"></treeselect>
-                </div>
                 <div class="form-group">
                     <label>设置科室名称:</label>
                     <input v-model="departmentName" type="text" class="form-control">
@@ -42,32 +38,19 @@
     import nestable from './nestable'
     //引入DepartmentModel
     import DepartmentModel from './DepartmentModel.vue'
-    //引入vue-treeselect
-    import Treeselect from '@riophae/vue-treeselect'
-    //引入vue-treeselect的样式
-    import '@riophae/vue-treeselect/dist/vue-treeselect.css'
     export default {
-        props: ['Department','Departments'],
+        props: ['Department'],
         components:{
             'department-model':DepartmentModel,  //引入DepartmentModel
-            //申明引用组件
-            'treeselect':Treeselect
         },
         data() {
             return {
+                pid:null,
                 //判断编辑科室的模态框是否显示，默认不显示
                 showEditDepartment:false,
-                //增加上级科室id属性
-                pid:null,
                 //增加新增科室名称属性
                 departmentName:'',
                 //注意，这里必须要用自定义，不然显示不出来的
-                normalizer(node) {
-                    return {
-                        id: node.id,//指定id是什么字段
-                        label: node.name,//指定label是用的什么字段，即显示什么字段出来
-                    }
-                },
             }
         },
         mounted() {
@@ -88,6 +71,7 @@
             editDepartment() {
                 axios.post('/department/edit',{pid:this.pid,name:this.departmentName,id:this.Department.id}).then((res)=>{
                     console.log('修改成功');
+                    this.showEditDepartment = false;
                     //调用父组件的方法，实现添加新分类后马上显示出来，但是不要忘记到父组件里面添加这个方法@getDepartments="getDepartments"
                     //<department-tree v-for="Department in Department.children" @getDepartments="getDepartments" :key="Department.id" :Departments="Departments" :Department="Department" :data-name="Department.name" :data-id="Department.id"></department-tree>
                     this.getDepartments()
@@ -111,7 +95,7 @@
                 if(li.children('ol').children('li').length === 1) {
                     li.children('[data-action="collapse"]').remove();
                 }
-            },
+            }
         }
     }
 </script>
