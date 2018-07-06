@@ -8,9 +8,25 @@ use Illuminate\Http\Request;
 class DepartmentController extends Controller
 {
     //显示界面
-    public function show()
+    public function show_org()
     {
-        return view('department');
+        return view('department/organization');
+    }
+
+    public function get_org()
+    {
+        $departments = Department::all();
+        return response()->json(['data'=> $departments]);
+    }
+
+    public function show_departments()
+    {
+        return view('department/departments');
+    }
+
+    public function show_users()
+    {
+        return view('department/users');
     }
     //新增科室保存到数据库
     public function add(Request $request)

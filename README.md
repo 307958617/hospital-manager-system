@@ -774,4 +774,5 @@
         }
     },
     
-    
+# [Vue-easyTable](https://github.com/huangshuwei/vue-easytable)的使用
+

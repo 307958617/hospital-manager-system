@@ -37,8 +37,16 @@
                     <ul class="navbar-nav mr-auto">
                         @guest
                         @else
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('department') }}">部门管理</a>
+                        <!-- Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                    部门及人员
+                                </a>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{{ route('show_departments') }}">部门设置</a>
+                                    <a class="dropdown-item" href="{{ route('show_users') }}">人员设置</a>
+                                    <a class="dropdown-item" href="{{ route('show_org') }}">组织机构设置</a>
+                                </div>
                             </li>
                         @endguest
                     </ul>

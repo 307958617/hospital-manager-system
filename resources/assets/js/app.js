@@ -9,6 +9,12 @@ require('./bootstrap');
 
 window.Vue = require('vue');
 
+
+// 引入样式
+import 'vue-easytable/libs/themes-base/index.css'
+// 导入 table 和 分页组件
+import {VTable,VPagination} from 'vue-easytable'
+
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -18,6 +24,11 @@ window.Vue = require('vue');
 Vue.component('department-component', require('./components/Departments/DepartmentComponent.vue'));
 Vue.component('department-tree', require('./components/Departments/DepartmentTree.vue'));
 Vue.component('department-model', require('./components/Departments/DepartmentModel.vue'));
+Vue.component('department-lists', require('./components/Departments/DepartmentLists.vue'));
+Vue.component('department-users', require('./components/Departments/DepartmentUsers.vue'));
+
+Vue.component(VTable.name, VTable);
+Vue.component(VPagination.name, VPagination);
 
 const app = new Vue({
     el: '#app'
