@@ -21,6 +21,10 @@
         "vue-easytable": "^1.7.1"
     },
     "dependencies": {
-        "@riophae/vue-treeselect": "0.0.30"
+        "@handsontable-pro/vue": "^2.0.0",
+        "@handsontable/vue": "^2.0.0",
+        "@riophae/vue-treeselect": "0.0.30",
+        "handsontable": "^4.0.0",
+        "handsontable-pro": "^4.0.0"
     }
 }
