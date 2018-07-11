@@ -1,7 +1,29 @@
 <template>
-    <div id="hot-preview">
-        <HotTable :settings="settings"></HotTable>
-        <pagination :limit="2" :data="laravelData" @pagination-change-page="getResults"></pagination>
+    <div>
+        <div id="hot-preview">
+            <HotTable :settings="settings"></HotTable>
+            <pagination :limit="2" :data="laravelData" @pagination-change-page="getResults"></pagination>
+        </div>
+
+
+
+
+        <div>
+            <span class="custom-control-inline">
+                <select class="custom-select" v-model="pagesize" v-on:change="showPage(pageCurrent,$event,true)">
+                    <option v-for="item in arrPageSize" value="item">{{item}}</option>
+                </select>
+            </span>
+            <span class="custom-control-inline">
+                <ul class="pagination">
+                    <li v-for="item in pageCount+1" v-if="item===1" v-on:click="showPage(1,$event)" class="page-item"><a class="page-link" href="#">首页</a></li>
+                    <li v-for="item in pageCount+1" v-if="item===1" v-on:click="showPage(pageCurrent-1,$event)" class="page-item"><a class="page-link" href="#">上一页</a></li>
+                    <li v-for="item in pageCount+1" v-if="item===1" v-on:click="showPage(item,$event)" class="page-item"><a class="page-link" href="#">{{item}}</a></li>
+                    <li v-for="item in pageCount+1" v-if="item===1&&item<showPagesStart-1" class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                </ul>
+            </span>
+
+        </div>
     </div>
 </template>
 
@@ -18,6 +40,32 @@
         },
         data() {
             return {
+
+                //分页大小
+                pagesize: 10,
+                //分页数
+                arrPageSize: [10, 20, 30, 40],
+                //当前分页数
+                pageCount: 20,
+                //当前页面
+                pageCurrent: 1,
+                //开始显示的分页按钮
+                showPagesStart: 1,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 // Our data object that holds the Laravel paginator data
                 laravelData: {},
                 settings: {
@@ -55,6 +103,17 @@
             };
         },
         methods: {
+            showPage(pageIndex, $event, forceRefresh) {
+                console.log(pageIndex)
+            },
+
+
+
+
+
+
+
+
             getResults(page = 1) {
                 axios.get('/department/org/get?page='+ page).then(res=> {
                     this.laravelData = res.data.data;
