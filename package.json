@@ -25,6 +25,8 @@
         "@handsontable/vue": "^2.0.0",
         "@riophae/vue-treeselect": "0.0.30",
         "handsontable": "^4.0.0",
-        "handsontable-pro": "^4.0.0"
+        "handsontable-pro": "^4.0.0",
+        "laravel-vue-pagination": "^1.2.0",
+        "vue-pagination-bootstrap": "^1.0.3"
     }
 }

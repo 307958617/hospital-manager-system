@@ -23,6 +23,7 @@ Vue.component('department-tree', require('./components/Departments/DepartmentTre
 Vue.component('department-model', require('./components/Departments/DepartmentModel.vue'));
 Vue.component('department-lists', require('./components/Departments/DepartmentLists.vue'));
 Vue.component('department-users', require('./components/Departments/DepartmentUsers.vue'));
+Vue.component('pagination', require('laravel-vue-pagination'));
 
 
 const app = new Vue({
