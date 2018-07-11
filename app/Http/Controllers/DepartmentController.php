@@ -15,7 +15,7 @@ class DepartmentController extends Controller
 
     public function get_org()
     {
-        $departments = Department::select(['id','name','created_at'])->paginate(20);
+        $departments = Department::select(['id','name','created_at'])->get();
         return response()->json(['data'=> $departments]);
     }
 
