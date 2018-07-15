@@ -13,10 +13,15 @@ class DepartmentController extends Controller
         return view('department/organization');
     }
 
-    public function get_org()
+    public function get_org(Request $request)
     {
-        $departments = Department::select(['id','name','created_at'])->get();
-        return response()->json(['data'=> $departments]);
+        $filters = $request->get('filters');
+        if($filters) {
+            $departments = Department::select(['id','name','created_at'])->where($filters)->get();
+        }else {
+            $departments = Department::select(['id','name','created_at'])->get();
+        }
+        return response()->json(['data'=> $departments,'fil'=>$filters]);
     }
 
     public function show_departments()
