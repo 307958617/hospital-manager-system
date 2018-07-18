@@ -1,160 +1,101 @@
 <template>
-    <div>
-        <v-table is-horizontal-resize style="width:100%" :columns="columns" :table-data="tableData" :filter-method="filterMethod"></v-table>
+    <div class="ui container">
+        <div class="vuetable-pagination ui basic segment grid">
+            <vuetable-pagination-info ref="paginationInfoTop" :infoTemplate="infoTemplate">
 
-        <department-model v-if="showEditDepartment">
-            <h3 slot="header">高级过滤</h3>
-            <div slot="body">
-                <div v-for="single in allFilter">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-success">选择过滤条件</button>
-                        <select class="btn btn-outline-success" v-model="single[0]">
-                            <option v-for="column in columns" v-bind:value="column.field">{{ column.title }}</option>
-                        </select>
-                        <select class="btn btn-outline-success" v-model="single[1]">
-                            <option v-for="option in options" v-bind:value="option.value">{{option.text}}</option>
-                        </select>
-                        <input type="text" class="btn btn-outline-success" placeholder="输入条件" v-model="single[2]">
-                    </div>
-                    <button @click="delFilter(single)" v-if="allFilter.length > 1" type="button" class="btn btn-danger"><i class="fa fa-minus" aria-hidden="true"></i></button>
-                </div>
-            </div>
+            </vuetable-pagination-info>
+            <vuetable-pagination ref="paginationTop"
+                                 @vuetable-pagination:change-page="onChangePage"
+            >
+            </vuetable-pagination>
+        </div>
+        <vuetable ref="vuetable"
+                  api-url="https://vuetable.ratiw.net/api/users"
+                  :fields="fields"
+                  :multi-sort="true"
+                  pagination-path=""
+                  :per-page="20"
+                  @vuetable:pagination-data="onPaginationData"
+        ></vuetable>
+        <div class="vuetable-pagination ui basic segment grid">
+            <vuetable-pagination-info ref="paginationInfo" :infoTemplate="infoTemplate">
 
-            <button @click="addFilter" type="button" class="btn btn-sm btn-success" slot="footer"><i class="fa fa-plus" aria-hidden="true"></i></button>
-            <button @click="chaxun" class="btn btn-sm btn-success" slot="footer">查询</button>
-            <!--实现点击取消按钮，隐藏模态框-->
-            <button class="btn btn-sm btn-default" slot="footer" @click="closeModel">退出</button>
-        </department-model>
-
-
-
-        <div class="btn-group">
-            <button class="btn btn-success" @click="openModel">高级筛选</button>
-            <button class="btn btn-primary" @click="clearFilter">清除筛选</button>
+            </vuetable-pagination-info>
+            <vuetable-pagination ref="pagination"
+                                 @vuetable-pagination:change-page="onChangePage"
+            >
+            </vuetable-pagination>
         </div>
     </div>
 </template>
 
-
 <script>
-    import DepartmentModel from './DepartmentModel.vue'
-    export default{
+    import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
+    import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
+    import VuetablePaginationInfo from 'vuetable-2/src/components/VuetablePaginationInfo.vue'
+    import accounting from 'accounting'
+    import moment from 'moment'
+    export default {
         components: {
-            'department-model':DepartmentModel,
+            Vuetable,
+            VuetablePagination,
+            VuetablePaginationInfo
         },
-        data(){
+        data() {
             return {
-                showEditDepartment:false,
-                allFilter:[],
-                singleFilter:[],
-                // define default value
-                selectedColumn: '',
-                selectedSymbol:'',
-                selectedCondition:'',
-
-                // define options
-                options: [
-                    {text: '大于', value: '>'},
-                    {text: '大于等于', value: '>='},
-                    {text: '等于', value: '=' },
-                    {text: '小于', value: '<' },
-                    {text: '小于等于', value: '<=' },
-                    {text: '不等于', value: '<>'},
-                    {text: '包含', value: 'like' },
-                    {text: '左配', value: 'left' }
-                ],
-
-
-
-
-
-
-                dumpData: [],
-                tableData: [],
-                columns: [
-                    {field: 'id', title: 'ID', width: 50, titleAlign: 'center',columnAlign:'center',isResize:true,isFrozen:true},
-                    {field: 'name', title: '名称', width: 80, titleAlign: 'center',columnAlign:'center',isResize:true,
-                        filterMultiple: true,
-                        filters: [{
-                            label: '外一科',
-                            value: '外一科',
-                        }, {
-                            label: '外二科',
-                            value: '外二科',
-                        }, {
-                            label: '内一科',
-                            value: '内一科',
-                        }]
+                fields: [
+                    {
+                        name: '__checkbox',   // <----
+                        titleClass: 'center aligned',
+                        dataClass: 'center aligned'
                     },
-                    {field: 'created_at', title: '创建时间', width: 150, titleAlign: 'center',columnAlign:'center',isResize:true},
-                ]
+                    {
+                        name: '__handle',   // <----
+                        dataClass: 'center aligned'
+                    },
+                    {name: '__sequence',title: '',titleClass: 'center aligned',dataClass: 'right aligned'},
+                    {name:'name',sortField:'name',titleClass: 'text-center', dataClass: 'text-left'},
+                    {name:'nickname',sortField:'nickname',callback:'upperCase'},
+                    'email',
+                    'birthdate',
+                    {name:'address.line1',title:'<i class="grey mail outline icon"></i>Address1'},
+                    {name:'address.line2',title:'Address2'},
+                    'address.zipcode',
+                    {name:'gender',callback:'genderLabel'},
+                    {name:'salary',callback: 'formatNumber'},
+                    {name:'birthdate',callback: 'formatDate|YYYY-MM-DD'}
+                ],
+                infoTemplate:"从 {from} 到 {to} 共 {total} 条",
+                selectedTo:[]
             }
         },
         methods: {
-
-            // 数据筛选
-            filterMethod(filters){
-
-                let tableData = this.dumpData;
-
-                // filter name
-                if (Array.isArray(filters.name)){
-
-                    tableData = tableData.filter(item => filters.name.indexOf(item.name) > -1);
-                }
-
-                this.tableData = tableData;
+            upperCase(value) {
+                return value.toUpperCase()
             },
+            genderLabel(value) {
+                return value === 'M'
+                ? '<span class="ui teal label" style="width: 62px"><i class="large man icon"></i>男</span>'
+                : '<span class="ui pink label" style="width: 62px"><i class="large woman icon"></i>女</span>'
+            },
+            formatNumber(value) {
+                return accounting.format(value,2,',')
+            },
+            formatDate(value,fmt = 'DD-MM-YYYY') {
+                return value === null
+                ? ''
+                : moment(value,'YYYY-MM-DD').format(fmt)
+            },
+            onPaginationData (paginationData) {
+                this.$refs.paginationTop.setPaginationData(paginationData);
+                this.$refs.paginationInfoTop.setPaginationData(paginationData);
 
-            getTableData(){
-                axios.post('/department/org/get').then(res => {
-                    this.dumpData = res.data.data;
-                    this.tableData = res.data.data;
-                });
+                this.$refs.pagination.setPaginationData(paginationData);
+                this.$refs.paginationInfo.setPaginationData(paginationData);
             },
-
-            openModel() {
-                this.showEditDepartment = true;
-                this.allFilter.push(this.singleFilter)
-            },
-            closeModel() {
-                this.showEditDepartment=false;
-                this.singleFilter = [];
-                this.allFilter = []
-            },
-            clearFilter() {
-                this.allFilter = [];
-                this.getTableData();
-            },
-            chaxun() {
-                this.allFilter.forEach(function (singleFilter) {
-                    if(singleFilter[1] === 'like') {
-                        singleFilter[2] = '%'+singleFilter[2]+'%'
-                    }
-                    if(singleFilter[1] === 'left') {
-                        singleFilter[1] = 'like';
-                        singleFilter[2] = singleFilter[2]+'%'
-                    }
-                });
-                axios.post('/department/org/get',{filters:this.allFilter}).then(res => {
-                    this.dumpData = res.data.data;
-                    this.tableData = res.data.data;
-                    this.showEditDepartment = false;
-                    this.singleFilter = [];
-                    this.allFilter = []
-                });
-            },
-            addFilter() {
-                this.singleFilter = [];
-                this.allFilter.push(this.singleFilter);
-            },
-            delFilter(single) {
-                this.allFilter.splice(this.allFilter.indexOf(single),1)
+            onChangePage (page) {
+                this.$refs.vuetable.changePage(page)
             }
-        },
-
-        mounted(){
-            this.getTableData();
         }
     }
 </script>

@@ -19,7 +19,7 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/department/org', 'DepartmentController@show_org')->name('show_org');
-Route::post('/department/org/get', 'DepartmentController@get_org')->name('get_org');
+Route::get('/department/org/get', 'DepartmentController@get_org')->name('get_org');
 Route::get('/department/departments', 'DepartmentController@show_departments')->name('show_departments');
 Route::get('/department/users', 'DepartmentController@show_users')->name('show_users');
 Route::get('/department/get', 'DepartmentController@get')->name('department.get');

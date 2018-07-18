@@ -11,6 +11,7 @@
     },
     "devDependencies": {
         "axios": "^0.18",
+        "babel-preset-stage-2": "^6.24.1",
         "bootstrap": "^4.0.0",
         "cross-env": "^5.1",
         "jquery": "^3.2",
@@ -18,16 +19,20 @@
         "lodash": "^4.17.4",
         "popper.js": "^1.12",
         "vue": "^2.5.7",
-        "vue-easytable": "^1.7.1"
+        "vue-easytable": "^1.7.1",
+        "vuetable-2": "^1.7.5"
     },
     "dependencies": {
         "@handsontable-pro/vue": "^2.0.0",
         "@handsontable/vue": "^2.0.0",
         "@riophae/vue-treeselect": "0.0.30",
+        "accounting": "^0.4.1",
         "font-awesome": "^4.7.0",
         "handsontable": "^4.0.0",
         "handsontable-pro": "^4.0.0",
         "laravel-vue-pagination": "^1.2.0",
+        "moment": "^2.22.2",
+        "semantic-ui": "^2.3.3",
         "vue-pagination-bootstrap": "^1.0.3"
     }
 }
