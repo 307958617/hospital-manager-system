@@ -8,6 +8,9 @@
 require('./bootstrap');
 
 window.Vue = require('vue');
+import VueEvents from 'vue-events'
+
+Vue.use(VueEvents);
 
 // 引入font-awesome
 import 'font-awesome/css/font-awesome.min.css'
@@ -23,6 +26,8 @@ Vue.component('department-tree', require('./components/Departments/DepartmentTre
 Vue.component('department-model', require('./components/Departments/DepartmentModel.vue'));
 Vue.component('department-lists', require('./components/Departments/DepartmentLists.vue'));
 Vue.component('department-users', require('./components/Departments/DepartmentUsers.vue'));
+Vue.component('my-detail-row', require('./components/Departments/DetailRow.vue'));
+Vue.component('filter-bar', require('./components/Departments/FilterBar.vue'));
 Vue.component('pagination', require('laravel-vue-pagination'));
 
 

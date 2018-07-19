@@ -1,26 +1,18 @@
 <template>
     <div class="ui container">
-        <div class="vuetable-pagination ui basic segment grid">
-            <vuetable-pagination-info ref="paginationInfoTop" :infoTemplate="infoTemplate">
-
-            </vuetable-pagination-info>
-            <vuetable-pagination ref="paginationTop"
-                                 @vuetable-pagination:change-page="onChangePage"
-            >
-            </vuetable-pagination>
-        </div>
+        <input type="text" v-model="page"  @keyup.enter="gotoPage(page)">
         <vuetable ref="vuetable"
-                  api-url="https://vuetable.ratiw.net/api/users"
+                  :api-mode="false"
                   :fields="fields"
                   :multi-sort="true"
-                  pagination-path=""
-                  :per-page="20"
+                  :per-page="perPage"
+                  :page="page"
+                  :data-manager="dataManager"
+                  pagination-path="pagination"
                   @vuetable:pagination-data="onPaginationData"
+
         ></vuetable>
         <div class="vuetable-pagination ui basic segment grid">
-            <vuetable-pagination-info ref="paginationInfo" :infoTemplate="infoTemplate">
-
-            </vuetable-pagination-info>
             <vuetable-pagination ref="pagination"
                                  @vuetable-pagination:change-page="onChangePage"
             >
@@ -32,70 +24,80 @@
 <script>
     import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
     import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
-    import VuetablePaginationInfo from 'vuetable-2/src/components/VuetablePaginationInfo.vue'
-    import accounting from 'accounting'
-    import moment from 'moment'
     export default {
         components: {
             Vuetable,
-            VuetablePagination,
-            VuetablePaginationInfo
+            VuetablePagination
         },
         data() {
             return {
+                perPage:5,
+                page:'1',
+                data: [],
                 fields: [
                     {
                         name: '__checkbox',   // <----
                         titleClass: 'center aligned',
                         dataClass: 'center aligned'
                     },
-                    {
-                        name: '__handle',   // <----
-                        dataClass: 'center aligned'
-                    },
-                    {name: '__sequence',title: '',titleClass: 'center aligned',dataClass: 'right aligned'},
-                    {name:'name',sortField:'name',titleClass: 'text-center', dataClass: 'text-left'},
-                    {name:'nickname',sortField:'nickname',callback:'upperCase'},
-                    'email',
-                    'birthdate',
-                    {name:'address.line1',title:'<i class="grey mail outline icon"></i>Address1'},
-                    {name:'address.line2',title:'Address2'},
-                    'address.zipcode',
-                    {name:'gender',callback:'genderLabel'},
-                    {name:'salary',callback: 'formatNumber'},
-                    {name:'birthdate',callback: 'formatDate|YYYY-MM-DD'}
+                    {name:'id',sortField:'id'},
+                    {name:'name'},
+                    {name:'created_at'},
                 ],
-                infoTemplate:"从 {from} 到 {to} 共 {total} 条",
-                selectedTo:[]
             }
         },
+        watch: {
+            data(newVal, oldVal) {
+                this.$refs.vuetable.refresh();
+            }
+        },
+        mounted() {
+            axios.get('/department/org/get').then(res=> {
+                this.data = res.data.data
+            });
+        },
         methods: {
-            upperCase(value) {
-                return value.toUpperCase()
-            },
-            genderLabel(value) {
-                return value === 'M'
-                ? '<span class="ui teal label" style="width: 62px"><i class="large man icon"></i>男</span>'
-                : '<span class="ui pink label" style="width: 62px"><i class="large woman icon"></i>女</span>'
-            },
-            formatNumber(value) {
-                return accounting.format(value,2,',')
-            },
-            formatDate(value,fmt = 'DD-MM-YYYY') {
-                return value === null
-                ? ''
-                : moment(value,'YYYY-MM-DD').format(fmt)
-            },
             onPaginationData (paginationData) {
-                this.$refs.paginationTop.setPaginationData(paginationData);
-                this.$refs.paginationInfoTop.setPaginationData(paginationData);
-
                 this.$refs.pagination.setPaginationData(paginationData);
-                this.$refs.paginationInfo.setPaginationData(paginationData);
             },
             onChangePage (page) {
-                this.$refs.vuetable.changePage(page)
-            }
+                this.$refs.vuetable.changePage(page);
+            },
+            gotoPage(page) {
+                this.$refs.vuetable.gotoPage(page);
+                let a = $("a.item");
+                a.addClass("active");
+
+                console.log(a)
+            },
+            dataManager(sortOrder, pagination) {
+                if (this.data.length < 1) return;
+
+                let local = this.data;
+                console.log(sortOrder);
+                // sortOrder can be empty, so we have to check for that as well
+                if (sortOrder.length > 0) {
+                    console.log("orderBy:", sortOrder[0].sortField, sortOrder[0].direction);
+                    local = _.orderBy(
+                        local,
+                        sortOrder[0].sortField,
+                        sortOrder[0].direction
+                    );
+                }
+
+                pagination = this.$refs.vuetable.makePagination(
+                    local.length,
+                    this.perPage
+                );
+//                console.log('pagination:', pagination);
+                let from = pagination.from - 1;
+                let to = from + this.perPage;
+
+                return {
+                    pagination: pagination,
+                    data: _.slice(local, from, to)
+                };
+            },
         }
     }
 </script>
