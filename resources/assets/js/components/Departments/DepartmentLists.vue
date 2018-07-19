@@ -1,12 +1,10 @@
 <template>
     <div class="ui container">
-        <input type="text" v-model="page"  @keyup.enter="gotoPage(page)">
+        <input type="text" v-model="current_page"  @keyup.enter="jumpToPage(current_page)">
         <vuetable ref="vuetable"
                   :api-mode="false"
                   :fields="fields"
                   :multi-sort="true"
-                  :per-page="perPage"
-                  :page="page"
                   :data-manager="dataManager"
                   pagination-path="pagination"
                   @vuetable:pagination-data="onPaginationData"
@@ -31,8 +29,8 @@
         },
         data() {
             return {
-                perPage:5,
-                page:'1',
+                perPage:2,
+                current_page:1,
                 data: [],
                 fields: [
                     {
@@ -63,12 +61,8 @@
             onChangePage (page) {
                 this.$refs.vuetable.changePage(page);
             },
-            gotoPage(page) {
-                this.$refs.vuetable.gotoPage(page);
-                let a = $("a.item");
-                a.addClass("active");
-
-                console.log(a)
+            jumpToPage(current_page) {
+                this.$refs.vuetable.changePage(parseInt(current_page));
             },
             dataManager(sortOrder, pagination) {
                 if (this.data.length < 1) return;
@@ -87,9 +81,10 @@
 
                 pagination = this.$refs.vuetable.makePagination(
                     local.length,
-                    this.perPage
+                    this.perPage,
                 );
-//                console.log('pagination:', pagination);
+                this.current_page = pagination.current_page;
+                console.log('pagination:', pagination);
                 let from = pagination.from - 1;
                 let to = from + this.perPage;
 
