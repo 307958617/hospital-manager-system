@@ -28,7 +28,6 @@ Vue.component('department-lists', require('./components/Departments/DepartmentLi
 Vue.component('department-users', require('./components/Departments/DepartmentUsers.vue'));
 Vue.component('my-detail-row', require('./components/Departments/DetailRow.vue'));
 Vue.component('filter-bar', require('./components/Departments/FilterBar.vue'));
-Vue.component('pagination', require('laravel-vue-pagination'));
 
 
 const app = new Vue({
