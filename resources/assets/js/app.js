@@ -8,12 +8,10 @@
 require('./bootstrap');
 
 window.Vue = require('vue');
-import VueEvents from 'vue-events'
-
-Vue.use(VueEvents);
 
 // 引入font-awesome
 import 'font-awesome/css/font-awesome.min.css'
+import 'datatables.net-bs4/css/dataTables.bootstrap4.css'
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

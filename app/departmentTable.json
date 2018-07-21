@@ -1,0 +1,57 @@
+{
+  "routePrefix": "departments.table",
+  "readSuffix": "data",
+  "name": "Enso Vue Datatable Example",
+  "icon": ["fab", "vuejs"],
+  "crtNo": true,
+  "buttons": [
+    {
+      "type": "global",
+      "icon": "file-excel",
+      "class": "is-outlined",
+      "event": "excel",
+      "label": "Excel"
+    },
+    {
+      "type": "global",
+      "icon": "plus",
+      "class": "is-success",
+      "event": "create",
+      "label": "Create"
+    },
+    {
+      "type": "row",
+      "icon": "pencil-alt",
+      "class": "is-warning",
+      "event": "edit"
+    },
+    {
+      "type": "row",
+      "icon": "trash-alt",
+      "class": "is-danger",
+      "event": "destroy",
+      "confirmation" : true,
+      "message" : "This is your custom confirmation. Are you sure?"
+    }
+  ],
+  "columns": [
+    {
+      "label": "Name",
+      "name": "name",
+      "data": "departments.name",
+      "meta": [
+        "searchable",
+        "sortable"
+      ]
+    }, {
+      "label": "Created_At",
+      "name": "created_at",
+      "data": "departments.created_at",
+      "meta": [
+        "searchable",
+        "sortable",
+        "clickable"
+      ]
+    }
+  ]
+}
