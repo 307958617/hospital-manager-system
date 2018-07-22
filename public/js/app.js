@@ -68397,6 +68397,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     name: 'dataTable',
@@ -68423,29 +68425,38 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     methods: {
         initDataTable: function initDataTable() {
             $('#dataTable').DataTable({
-                "language": {
+                language: {
                     "lengthMenu": "每页 _MENU_ 条记录",
                     "zeroRecords": "没有找到记录",
                     "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
                     "infoEmpty": "无记录",
                     "sSearch": "搜索:"
-                }
+                },
+                stateSave: true
             });
         },
         getDepartments: function getDepartments() {
             return axios.get('/department/org/get');
         },
         selectDepartment: function selectDepartment(department, e) {
-            if (e.currentTarget.className === 'selected table-info') {
+            if (e.currentTarget.className.indexOf('selected table-info') !== -1) {
                 this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id), 1);
-                console.log(this.selectedDepartmentId);
             } else {
                 this.selectedDepartmentId.push(department.id);
             }
+            console.log(this.selectedDepartmentId);
         },
         delt: function delt() {
             var table = $('#dataTable').DataTable();
             table.rows('.selected').remove().draw(false);
+            this.selectedDepartmentId = [];
+        },
+        selectAll: function selectAll() {
+            this.selectedDepartmentId = this.departments.map(function (department) {
+                return department.id;
+            });
+        },
+        unSelect: function unSelect() {
             this.selectedDepartmentId = [];
         }
     }
@@ -68471,6 +68482,32 @@ var render = function() {
         }
       },
       [_vm._v("删除")]
+    ),
+    _vm._v(" "),
+    _c(
+      "button",
+      {
+        staticClass: "btn btn-primary",
+        on: {
+          click: function($event) {
+            _vm.selectAll()
+          }
+        }
+      },
+      [_vm._v("全选")]
+    ),
+    _vm._v(" "),
+    _c(
+      "button",
+      {
+        staticClass: "btn btn-outline-dark",
+        on: {
+          click: function($event) {
+            _vm.unSelect()
+          }
+        }
+      },
+      [_vm._v("不选")]
     ),
     _vm._v(" "),
     _c(
