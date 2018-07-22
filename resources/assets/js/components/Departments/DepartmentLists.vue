@@ -1,19 +1,28 @@
 <template>
     <div class="container">
-        <table id="dataTable" class="table table-bordered">
+        <button class="btn btn-danger" @click="delt()">删除</button>
+        <table id="dataTable" class="table table-bordered table-striped table-hover">
             <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Created_At</th>
+                </tr>
+            </thead>
+            <tfoot>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Created_At</th>
             </tr>
-            </thead>
+            </tfoot>
+
             <tbody>
-            <tr v-for="department in departments">
-                <td>{{ department.id }}</td>
-                <td>{{ department.name }}</td>
-                <td>{{ department.created_at }}</td>
-            </tr>
+                <tr v-for="department in departments" @click="selectDepartment(department,$event)" :class="selectedDepartmentId.indexOf(department.id) !== -1?'selected table-info':''">
+                    <td>{{ department.id }}</td>
+                    <td>{{ department.name }}</td>
+                    <td>{{ department.created_at }}</td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -25,7 +34,8 @@
         name:'dataTable',
         data() {
             return {
-                departments:[]
+                departments:[],
+                selectedDepartmentId:[]
             }
         },
         mounted() {
@@ -35,22 +45,38 @@
                     this.departments = response.data.data
                 }).then(() => {
                     // execute the call to render the table, now that you have the data you need
-                    $('#dataTable').DataTable({
-                        "language": {
-                            "lengthMenu": "每页 _MENU_ 条记录",
-                            "zeroRecords": "没有找到记录",
-                            "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
-                            "infoEmpty": "无记录",
-                            "infoFiltered": "(从 _MAX_ 条记录过滤)",
-                            "sSearch": "搜索:",
-                        }
-                    })
+                    this.initDataTable()
                 })
             })
         },
         methods: {
+            initDataTable() {
+                $('#dataTable').DataTable({
+                    "language": {
+                        "lengthMenu": "每页 _MENU_ 条记录",
+                        "zeroRecords": "没有找到记录",
+                        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                        "infoEmpty": "无记录",
+                        "sSearch": "搜索:",
+                    }
+                })
+            },
             getDepartments() {
                return axios.get('/department/org/get')
+            },
+            selectDepartment(department,e) {
+                if(e.currentTarget.className === 'selected table-info') {
+                    this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id),1);
+                    console.log(this.selectedDepartmentId)
+                }else {
+                    this.selectedDepartmentId.push(department.id) ;
+                }
+
+            },
+            delt() {
+                let table = $('#dataTable').DataTable();
+                table.rows('.selected').remove().draw( false );
+                this.selectedDepartmentId = []
             }
         }
     }
