@@ -1,32 +1,90 @@
 <template>
     <div class="container">
-        <button class="btn btn-danger" @click="delt()">删除</button>
-        <button class="btn btn-primary" @click="selectAll()">全选</button>
-        <button class="btn btn-outline-dark" @click="unSelect()">不选</button>
-        <table id="dataTable" class="table table-bordered table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Created_At</th>
-                </tr>
-            </thead>
-            <tfoot>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Created_At</th>
-            </tr>
-            </tfoot>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-header "><h4>Active</h4></div>
+                    <div class="card-body">
+                        <div class="form-inline">
+                            <button class="btn btn-sm btn-outline-success"><i class="fa fa-check" aria-hidden="true"></i></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-danger"><i class="fa fa-times" aria-hidden="true"></i></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-warning "><i class="fa fa-power-off" aria-hidden="true"></i></button>&nbsp;
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-header "><h4>Name</h4></div>
+                    <div class="card-body">
+                        <div class="input-group-sm">
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-header "><h4>Created_At</h4></div>
+                    <div class="card-body">
+                        <div class="form-inline">
+                            <button class="btn btn-sm btn-outline-success"><i class="fa fa-check" aria-hidden="true"></i></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-danger"><i class="fa fa-times" aria-hidden="true"></i></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-warning"><i class="fa fa-power-off" aria-hidden="true"></i></button>&nbsp;
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-header "><h4>Active</h4></div>
+                    <div class="card-body">
+                        <div class="form-inline">
+                            <button class="btn btn-sm btn-outline-success"><i class="fa fa-check" aria-hidden="true"></i></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-danger"><i class="fa fa-times" aria-hidden="true"></i></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-warning"><i class="fa fa-power-off" aria-hidden="true"></i></button>&nbsp;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="card dataTable">
+            <div class="card-body">
+                <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
+                <div class="btn-group pull-right">
+                    <button class="btn btn-danger" @click="delt()">删除</button>&nbsp;
+                    <button class="btn btn-primary" @click="selectAll()">全选</button>&nbsp;
+                    <button class="btn btn-outline-dark" @click="unSelect()">不选</button>
+                </div>
+                <br><br>
+                <table id="dataTable" class="table table-bordered table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Created_At</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Created_At</th>
+                    </tr>
+                    </tfoot>
 
-            <tbody>
-                <tr v-for="department in departments" @click="selectDepartment(department,$event)" :class="selectedDepartmentId.indexOf(department.id) !== -1?'selected table-info':''">
-                    <td>{{ department.id }}</td>
-                    <td>{{ department.name }}</td>
-                    <td>{{ department.created_at }}</td>
-                </tr>
-            </tbody>
-        </table>
+                    <tbody>
+                    <tr v-for="department in departments" @click="selectDepartment(department,$event)" :class="selectedDepartmentId.indexOf(department.id) !== -1?'selected table-info':''">
+                        <td>{{ department.id }}</td>
+                        <td>{{ department.name }}</td>
+                        <td>{{ department.created_at }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 </template>
@@ -90,3 +148,9 @@
         }
     }
 </script>
+
+<style>
+    .card-body{padding: 5px;}
+    .card-header{padding: 6px}
+    .form-inline .btn{width: 32%}
+</style>
