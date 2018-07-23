@@ -16,7 +16,7 @@
                     <div class="card-header "><h4>Name</h4></div>
                     <div class="card-body">
                         <div class="input-group-sm">
-                            <input type="text" class="form-control">
+                            <input type="text" v-model="search.name" class="form-control" @input="searchName">
                         </div>
                     </div>
                 </div>
@@ -25,8 +25,8 @@
                 <div class="card text-center">
                     <div class="card-header "><h4>Created_At</h4></div>
                     <div class="card-body">
-                        <vue-datepicker-local v-model="startTime" format="YYYY-MM-DD HH:mm:ss" />--
-                        <vue-datepicker-local v-model="endTime" format="YYYY-MM-DD HH:mm:ss" />
+                        <vue-datepicker-local v-model="search.startTime" @input="searchCreatedTime" clearable format="YYYY-MM-DD HH:mm:ss" />--
+                        <vue-datepicker-local v-model="search.endTime" @input="searchCreatedTime" clearable format="YYYY-MM-DD HH:mm:ss" />
                     </div>
                 </div>
             </div>
@@ -82,6 +82,7 @@
 
 <script>
     import VueDatepickerLocal from 'vue-datepicker-local'
+    import moment from 'moment'
     export default {
         components:{
             VueDatepickerLocal
@@ -91,8 +92,13 @@
             return {
                 departments:[],
                 selectedDepartmentId:[],
-                startTime: new Date(),
-                endTime:new Date()
+                searchData:[],
+                search:{
+                    name:'',
+                    startTime: '',
+                    endTime:''
+                },
+
               }
         },
         mounted() {
@@ -102,9 +108,27 @@
                     this.departments = response.data.data
                 }).then(() => {
                     // execute the call to render the table, now that you have the data you need
-                    this.initDataTable()
+                    this.initDataTable();
+                    this.searchData = this.departments
                 })
-            })
+            });
+
+            $.fn.dataTable.ext.search.push(
+                function (settings,data,dataIndex) {
+                    let startTime = parseInt(moment(this.search.startTime).valueOf(),10);
+                    let endTime = parseInt(moment(this.search.endTime).valueOf(),10);
+                    let time = parseFloat(moment(data[2]).valueOf()) || 0;
+                    console.log(data[1] + time);
+                    if ( ( isNaN( startTime ) && isNaN( endTime ) ) ||
+                        ( isNaN( startTime ) && time <= endTime ) ||
+                        ( startTime <= time   && isNaN( endTime ) ) ||
+                        ( startTime <= time   && time <= endTime ) )
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            );
         },
         methods: {
             initDataTable() {
@@ -112,11 +136,11 @@
                     language: {
                         "lengthMenu": "每页 _MENU_ 条记录",
                         "zeroRecords": "没有找到记录",
-                        "info": "第 _PAGE_ 页 ( 总共 _PAGES_ 页 )",
+                        "info": "第 _PAGE_ 页 / 总 _PAGES_ 页，共 _TOTAL_ 条数据",
                         "infoEmpty": "无记录",
                         "sSearch": "搜索:",
                     },
-                    stateSave:true,
+                    stateSave:false,
                 })
             },
             getDepartments() {
@@ -137,10 +161,49 @@
                 this.selectedDepartmentId = []
             },
             selectAll() {
-                this.selectedDepartmentId = this.departments.map((department)=>{return department.id});
+                this.selectedDepartmentId = this.searchData.map((department)=>{return parseInt(department.id)});
+                console.log(this.selectedDepartmentId)
             },
             unSelect() {
                 this.selectedDepartmentId = []
+            },
+            searchName() {
+                this.searchData = [];
+                let table = $('#dataTable').DataTable();
+                let name = this.search.name;
+                table.column(1).search(name).draw();
+                let filteredData = table.rows().data().filter(function(value,index) {
+                    if(value[1].indexOf(name) !== -1) {
+                        return true
+                    }
+                });
+                this.getSearchData(filteredData)
+            },
+
+            searchCreatedTime() {
+                let table = $('#dataTable').DataTable();
+                this.searchData = [];
+//                table.column(2).search(time).draw();
+
+                table.draw();
+
+                let filteredData = table.rows().data().filter(function(value,index) {
+                    if(moment(value[2]).valueOf() >= startTime) {
+                        return true
+                    }
+                });
+                this.getSearchData(filteredData)
+            },
+            getSearchData(filteredData) {
+                let table = $('#dataTable').DataTable();
+                let length = filteredData.length;
+                for (let i=0;i < length;i++) {
+                    let id = table.rows().data()[i][0];
+                    let name = table.rows().data()[i][1];
+                    let created_at = table.rows().data()[i][2];
+                    let single = {id:id,name:name,created_at:created_at};
+                    this.searchData.push(single)
+                }
             }
         }
     }
