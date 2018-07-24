@@ -34,9 +34,9 @@
                 <div class="card text-center">
                     <div class="card-header "><h4>Active</h4></div>
                     <div class="card-body">
-                        <button class="btn btn-sm btn-outline-success"><i class="fa fa-check" aria-hidden="true"></i></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-danger"><i class="fa fa-times" aria-hidden="true"></i></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-warning "><i class="fa fa-power-off" aria-hidden="true"></i></button>&nbsp;
+                        <button class="btn btn-sm btn-outline-success"><i class="fa fa-check" aria-hidden="true"></i></button>
+                        <button class="btn btn-sm btn-outline-danger"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        <button class="btn btn-sm btn-outline-warning "><i class="fa fa-power-off" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>
@@ -45,9 +45,9 @@
         <div class="card dataTable">
             <div class="card-body">
                 <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
-                <div class="btn-group pull-right">
-                    <button class="btn btn-danger" @click="delt()">删除</button>&nbsp;
-                    <button class="btn btn-primary" @click="selectAll()">全选</button>&nbsp;
+                <div class="btn-group pull-right dataTableButtons">
+                    <button class="btn btn-danger" @click="delt()">删除</button>
+                    <button class="btn btn-primary" @click="selectAll()">全选</button>
                     <button class="btn btn-outline-dark" @click="unSelect()">不选</button>
                 </div>
                 <br><br>
@@ -115,7 +115,19 @@
         },
         methods: {
             initDataTable() {
-                $('#dataTable').DataTable({
+                let table = $('#dataTable').DataTable({
+//                    dom:'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'collection',
+                            text: '更多',
+                            buttons: [
+                                'copy','excel','print','columnsToggle'
+                            ],
+                            fade: true
+                        },
+
+                    ],
                     language: {
                         "lengthMenu": "每页 _MENU_ 条记录",
                         "zeroRecords": "没有找到记录",
@@ -125,7 +137,9 @@
                         "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
                     },
                     stateSave:false
-                })
+                });
+                //将自动生成的按钮放到指定的位置
+                table.buttons().container().appendTo($('.dataTableButtons'))
             },
             getDepartments() {
                return axios.get('/department/org/get')

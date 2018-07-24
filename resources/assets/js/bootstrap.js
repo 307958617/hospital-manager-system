@@ -13,6 +13,10 @@ try {
 
     require('bootstrap');
     require( 'datatables.net-bs4' );
+    require('datatables.net-buttons-bs4');
+    require('datatables.net-buttons/js/buttons.colVis');
+    require('./buttons.print.min');
+    require('./buttons.html5.min');
 } catch (e) {}
 
 /**
