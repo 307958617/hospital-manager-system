@@ -16,7 +16,7 @@
                     <div class="card-header "><h4>Name</h4></div>
                     <div class="card-body">
                         <div class="input-group-sm">
-                            <input type="text" v-model="search.name" class="form-control" @input="searchName">
+                            <input type="text" v-model="search.name" class="form-control" @input="searchAndFilterData">
                         </div>
                     </div>
                 </div>
@@ -25,8 +25,8 @@
                 <div class="card text-center">
                     <div class="card-header "><h4>Created_At</h4></div>
                     <div class="card-body">
-                        <vue-datepicker-local v-model="search.startTime" @input="searchCreatedTime" clearable format="YYYY-MM-DD HH:mm:ss" />--
-                        <vue-datepicker-local v-model="search.endTime" @input="searchCreatedTime" clearable format="YYYY-MM-DD HH:mm:ss" />
+                        <vue-datepicker-local v-model="search.startTime" @input="searchAndFilterData" clearable format="YYYY-MM-DD HH:mm:ss" />--
+                        <vue-datepicker-local v-model="search.endTime" @input="searchAndFilterData" clearable format="YYYY-MM-DD HH:mm:ss" />
                     </div>
                 </div>
             </div>
@@ -112,23 +112,6 @@
                     this.searchData = this.departments
                 })
             });
-
-            $.fn.dataTable.ext.search.push(
-                function (settings,data,dataIndex) {
-                    let startTime = parseInt(moment(this.search.startTime).valueOf(),10);
-                    let endTime = parseInt(moment(this.search.endTime).valueOf(),10);
-                    let time = parseFloat(moment(data[2]).valueOf()) || 0;
-                    console.log(data[1] + time);
-                    if ( ( isNaN( startTime ) && isNaN( endTime ) ) ||
-                        ( isNaN( startTime ) && time <= endTime ) ||
-                        ( startTime <= time   && isNaN( endTime ) ) ||
-                        ( startTime <= time   && time <= endTime ) )
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-            );
         },
         methods: {
             initDataTable() {
@@ -139,8 +122,9 @@
                         "info": "第 _PAGE_ 页 / 总 _PAGES_ 页，共 _TOTAL_ 条数据",
                         "infoEmpty": "无记录",
                         "sSearch": "搜索:",
+                        "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
                     },
-                    stateSave:false,
+                    stateSave:false
                 })
             },
             getDepartments() {
@@ -152,7 +136,7 @@
                 }else {
                     this.selectedDepartmentId.push(department.id) ;
                 }
-                console.log(this.selectedDepartmentId)
+//                console.log(this.selectedDepartmentId)
 
             },
             delt() {
@@ -167,43 +151,79 @@
             unSelect() {
                 this.selectedDepartmentId = []
             },
-            searchName() {
-                this.searchData = [];
-                let table = $('#dataTable').DataTable();
-                let name = this.search.name;
-                table.column(1).search(name).draw();
-                let filteredData = table.rows().data().filter(function(value,index) {
-                    if(value[1].indexOf(name) !== -1) {
-                        return true
-                    }
-                });
-                this.getSearchData(filteredData)
-            },
+//            这个方法只适合单独查询某条记录有用，不能多条件查询
+//            searchName() {
+//                let table = $('#dataTable').DataTable();
+//                let name = this.search.name;
+//                table.column(1).search(name).draw();
+//                let filteredName = table.rows().data().filter(function(value,index) {
+//                    if(value[1].indexOf(name) !== -1) {
+//                        return true
+//                    }
+//                });
+//                this.getSearchData(filteredName);
+//            },
 
-            searchCreatedTime() {
+            searchAndFilterData() {
                 let table = $('#dataTable').DataTable();
-                this.searchData = [];
+                $.fn.dataTable.ext.search.pop();
 //                table.column(2).search(time).draw();
+//              下面是查询字段格式化
+                let startTime = moment(this.search.startTime).valueOf();
+                let endTime = moment(this.search.endTime).valueOf();
+                let name = this.search.name;
+//              下面时查找方法用于显示到当前表
+                $.fn.dataTable.ext.search.push(
+                    function (settings,data,dataIndex) {
+//                      设置实际需要获得到的字段
+                        let needTime = moment(data[2]).valueOf();
+                        let needName = data[1];
+//                        console.log(data[1] + time);
+                        if (
+                                ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
+                                ( isNaN( startTime ) && needTime <= endTime && (needName.indexOf(name) !== -1) ) ||
+                                ( startTime <= needTime   && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
+                                ( startTime <= needTime   && needTime <= endTime && (needName.indexOf(name) !== -1) )
 
+                        )
+                        {
+                            return true;
+                        }
+                        return false;
+                    }
+                );
+//              用查询后的数据重新绘制表格
                 table.draw();
-
-                let filteredData = table.rows().data().filter(function(value,index) {
-                    if(moment(value[2]).valueOf() >= startTime) {
-                        return true
+//              用filter获取查询后的结果
+                let filteredTime = table.rows().data().filter(function(value,index) {
+//                  设置实际需要获得到的字段
+                    let needTime = moment(value[2]).valueOf();
+                    let needName = value[1];
+                    if (
+                        ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
+                        ( isNaN( startTime ) && needTime <= endTime && (needName.indexOf(name) !== -1) ) ||
+                        ( startTime <= needTime   && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
+                        ( startTime <= needTime   && needTime <= endTime && (needName.indexOf(name) !== -1) )
+                    )
+                    {
+                        return true;
                     }
                 });
-                this.getSearchData(filteredData)
+                this.getSearchData(filteredTime);
             },
             getSearchData(filteredData) {
-                let table = $('#dataTable').DataTable();
                 let length = filteredData.length;
+                this.searchData = [];
                 for (let i=0;i < length;i++) {
-                    let id = table.rows().data()[i][0];
-                    let name = table.rows().data()[i][1];
-                    let created_at = table.rows().data()[i][2];
+                    let id = filteredData[i][0];
+                    let name = filteredData[i][1];
+                    let created_at = filteredData[i][2];
                     let single = {id:id,name:name,created_at:created_at};
+//                    console.log(single);
                     this.searchData.push(single)
                 }
+//                console.log(filteredData);
+                console.log(this.searchData);
             }
         }
     }
