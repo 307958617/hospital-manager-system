@@ -77,6 +77,7 @@
                 </table>
             </div>
         </div>
+        <div class="output">ss</div>
     </div>
 </template>
 
@@ -92,7 +93,7 @@
             return {
                 departments:[],
                 selectedDepartmentId:[],
-                searchData:[],
+                searchedData:[],
                 search:{
                     name:'',
                     startTime: '',
@@ -109,64 +110,14 @@
                 }).then(() => {
                     // execute the call to render the table, now that you have the data you need
                     this.initDataTable();
-                    this.searchData = this.departments
+                    this.searchedData = this.departments
                 })
             });
         },
         methods: {
             initDataTable() {
                 let table = $('#dataTable').DataTable({
-//                    "dom":'Bfrtip',
-                    "buttons": {
-                        "buttons": [
-                            {
-                                text: 'Alert',
-                                action: function ( e, dt, node, config ) {
-                                    alert( 'Activated!' );
-                                    this.disable(); // disable button
-                                }
-                            },
-                            {   extend:'copy',
-                                className:'btn btn-sm btn-success',
-                                exportOptions: {
-                                    modifier: {
-//                                        search:'applied'
-//                                        selected:true,
-                                    },
-
-                                }
-                            },
-                            {   extend:'excel',
-                                className:'btn btn-sm',
-                                title:'部门管理',
-                                exportOptions: {
-                                    modifier: {
-//                                        search:'applied',
-//                                        order: 'applied'
-                                        selected:true
-                                    }
-                                }
-                            },
-                            {   extend:'print',
-                                className:'btn btn-sm',
-                                exportOptions: {
-                                    modifier: {
-//                                        search:'applied'
-                                        selected:true
-                                    }
-                                }
-                            },
-                            {
-                                extend: 'collection',
-                                text: '<i class="fa fa-eye"></i>',
-                                buttons: [
-                                    'columnsToggle'
-                                ],
-                                className:'btn btn-sm'
-                            },
-                        ],
-                    },
-                    "language": {
+                    language: {
                         "sLengthMenu": "_MENU_",
                         "zeroRecords": "没有找到记录",
                         "info": "第 _PAGE_ 页 / 总 _PAGES_ 页，共 _TOTAL_ 条数据",
@@ -174,33 +125,66 @@
                         "sSearch": "搜索:",
                         "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
                     },
-                    "stateSave":false
+                    stateSave:false,
+                });
+                this.initDataTableButtons(table);
+                this.initDataTableSelect(table);
+            },
+            initDataTableButtons(table) {
+                new $.fn.dataTable.Buttons( table, {
+                    buttons: [
+                        'copy',
+                        'excel',
+                        'pdf',
+                        { extend:'print', text:'<i class="fa fa-print"></i>',attr:{title:'打印全部或选中数据',id: 'copyButton'},key:{ key:'p',ctrlKey:true } },
+                        {
+                            text: 'Copy to div',
+                            action: function ( e, dt, node, config ) {
+                                // Copy an array based DataTables' data to another element
+                                $('.output').html( dt.data().map( function (row) {
+                                    return row.join(' | ' );
+                                } ).join('<br>'));
+                            }
+                        }
+                    ]
                 });
                 //将自动生成的按钮放到指定的位置
 //                table.buttons().container().appendTo($('.dataTableButtons'));
                 table.buttons().container().appendTo($('.dataTables_length>label'));
-                table.rows( {page:'current'} ).data();
-                let rows = table.rows( '.selected .table-info' );
+            },
+            initDataTableSelect(table) {
+                table.select.style('os');
+                table.select.items('row')
             },
             getDepartments() {
                return axios.get('/department/org/get')
             },
             selectDepartment(department,e) {
-                if(e.currentTarget.className.indexOf('selected table-info') !== -1) {
-                    this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id),1);
-                }else {
-                    this.selectedDepartmentId.push(department.id) ;
-                }
-//                console.log(this.selectedDepartmentId)
+//                if(e.currentTarget.className.indexOf('selected table-info') !== -1) {
+//                    this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id),1);
+//                }else {
+//                    this.selectedDepartmentId.push(department.id) ;
+//                }
+//                console.log(this.selectedDepartmentId);
+
+                console.log($(e.currentTarget).parent().children('.selected').addClass('table-info'));
+
+                let table = $('#dataTable').DataTable();
+                let rows = table.rows('.selected').data().map( function (rowData) {
+                    return rowData[0];
+                });
+                this.selectedDepartmentId = rows;
+//                console.log(this.selectedDepartmentId);
+//                console.log(this.selectedDepartmentId[0]);
 
             },
             delt() {
                 let table = $('#dataTable').DataTable();
-                table.rows('.selected').remove().draw( false );
+                table.rows({selected:true}).remove().draw( false );
                 this.selectedDepartmentId = []
             },
             selectAll() {
-                this.selectedDepartmentId = this.searchData.map((department)=>{return parseInt(department.id)});
+                this.selectedDepartmentId = this.searchedData.map((department)=>{return parseInt(department.id)});
                 console.log(this.selectedDepartmentId)
             },
             unSelect() {
@@ -250,7 +234,7 @@
 //              用查询后的数据重新绘制表格
                 table.draw();
 //              用filter获取查询后的结果
-                let filteredTime = table.rows().data().filter(function(value,index) {
+                let filteredData = table.rows().data().filter(function(value,index) {
 //                  设置实际需要获得到的字段
                     let needTime = moment(value[2]).valueOf();
                     let needName = value[1];
@@ -264,18 +248,18 @@
                         return true;
                     }
                 });
-                this.getSearchData(filteredTime);
+                this.getSearchedData(filteredData);
             },
-            getSearchData(filteredData) {
+            getSearchedData(filteredData) {
                 let length = filteredData.length;
-                this.searchData = [];
+                this.searchedData = [];
                 for (let i=0;i < length;i++) {
                     let id = filteredData[i][0];
                     let name = filteredData[i][1];
                     let created_at = filteredData[i][2];
                     let single = {id:id,name:name,created_at:created_at};
 //                    console.log(single);
-                    this.searchData.push(single)
+                    this.searchedData.push(single)
                 }
 //                console.log(filteredData);
                 console.log(this.searchData);

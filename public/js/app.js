@@ -87046,6 +87046,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
 
 
 
@@ -87058,7 +87059,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return {
             departments: [],
             selectedDepartmentId: [],
-            searchData: [],
+            searchedData: [],
             search: {
                 name: '',
                 startTime: '',
@@ -87077,7 +87078,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }).then(function () {
                 // execute the call to render the table, now that you have the data you need
                 _this.initDataTable();
-                _this.searchData = _this.departments;
+                _this.searchedData = _this.departments;
             });
         });
     },
@@ -87085,49 +87086,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     methods: {
         initDataTable: function initDataTable() {
             var table = $('#dataTable').DataTable({
-                //                    "dom":'Bfrtip',
-                "buttons": {
-                    "buttons": [{
-                        text: 'Alert',
-                        action: function action(e, dt, node, config) {
-                            alert('Activated!');
-                            this.disable(); // disable button
-                        }
-                    }, { extend: 'copy',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            modifier: {
-                                //                                        search:'applied'
-                                //                                        selected:true,
-                            }
-
-                        }
-                    }, { extend: 'excel',
-                        className: 'btn btn-sm',
-                        title: '部门管理',
-                        exportOptions: {
-                            modifier: {
-                                //                                        search:'applied',
-                                //                                        order: 'applied'
-                                selected: true
-                            }
-                        }
-                    }, { extend: 'print',
-                        className: 'btn btn-sm',
-                        exportOptions: {
-                            modifier: {
-                                //                                        search:'applied'
-                                selected: true
-                            }
-                        }
-                    }, {
-                        extend: 'collection',
-                        text: '<i class="fa fa-eye"></i>',
-                        buttons: ['columnsToggle'],
-                        className: 'btn btn-sm'
-                    }]
-                },
-                "language": {
+                language: {
                     "sLengthMenu": "_MENU_",
                     "zeroRecords": "没有找到记录",
                     "info": "第 _PAGE_ 页 / 总 _PAGES_ 页，共 _TOTAL_ 条数据",
@@ -87135,32 +87094,59 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     "sSearch": "搜索:",
                     "sInfoFiltered": "(从 _MAX_ 条记录中过滤)"
                 },
-                "stateSave": false
+                stateSave: false
+            });
+            this.initDataTableButtons(table);
+            this.initDataTableSelect(table);
+        },
+        initDataTableButtons: function initDataTableButtons(table) {
+            new $.fn.dataTable.Buttons(table, {
+                buttons: ['copy', 'excel', 'pdf', { extend: 'print', text: '<i class="fa fa-print"></i>', attr: { title: '打印全部或选中数据', id: 'copyButton' }, key: { key: 'p', ctrlKey: true } }, {
+                    text: 'Copy to div',
+                    action: function action(e, dt, node, config) {
+                        // Copy an array based DataTables' data to another element
+                        $('.output').html(dt.data().map(function (row) {
+                            return row.join(' | ');
+                        }).join('<br>'));
+                    }
+                }]
             });
             //将自动生成的按钮放到指定的位置
             //                table.buttons().container().appendTo($('.dataTableButtons'));
             table.buttons().container().appendTo($('.dataTables_length>label'));
-            table.rows({ page: 'current' }).data();
-            var rows = table.rows('.selected .table-info');
+        },
+        initDataTableSelect: function initDataTableSelect(table) {
+            table.select.style('os');
+            table.select.items('row');
         },
         getDepartments: function getDepartments() {
             return axios.get('/department/org/get');
         },
         selectDepartment: function selectDepartment(department, e) {
-            if (e.currentTarget.className.indexOf('selected table-info') !== -1) {
-                this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id), 1);
-            } else {
-                this.selectedDepartmentId.push(department.id);
-            }
-            //                console.log(this.selectedDepartmentId)
+            //                if(e.currentTarget.className.indexOf('selected table-info') !== -1) {
+            //                    this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id),1);
+            //                }else {
+            //                    this.selectedDepartmentId.push(department.id) ;
+            //                }
+            //                console.log(this.selectedDepartmentId);
+
+            console.log($(e.currentTarget).parent().children('.selected').addClass('table-info'));
+
+            var table = $('#dataTable').DataTable();
+            var rows = table.rows('.selected').data().map(function (rowData) {
+                return rowData[0];
+            });
+            this.selectedDepartmentId = rows;
+            //                console.log(this.selectedDepartmentId);
+            //                console.log(this.selectedDepartmentId[0]);
         },
         delt: function delt() {
             var table = $('#dataTable').DataTable();
-            table.rows('.selected').remove().draw(false);
+            table.rows({ selected: true }).remove().draw(false);
             this.selectedDepartmentId = [];
         },
         selectAll: function selectAll() {
-            this.selectedDepartmentId = this.searchData.map(function (department) {
+            this.selectedDepartmentId = this.searchedData.map(function (department) {
                 return parseInt(department.id);
             });
             console.log(this.selectedDepartmentId);
@@ -87204,7 +87190,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             //              用查询后的数据重新绘制表格
             table.draw();
             //              用filter获取查询后的结果
-            var filteredTime = table.rows().data().filter(function (value, index) {
+            var filteredData = table.rows().data().filter(function (value, index) {
                 //                  设置实际需要获得到的字段
                 var needTime = __WEBPACK_IMPORTED_MODULE_1_moment___default()(value[2]).valueOf();
                 var needName = value[1];
@@ -87212,18 +87198,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     return true;
                 }
             });
-            this.getSearchData(filteredTime);
+            this.getSearchedData(filteredData);
         },
-        getSearchData: function getSearchData(filteredData) {
+        getSearchedData: function getSearchedData(filteredData) {
             var length = filteredData.length;
-            this.searchData = [];
+            this.searchedData = [];
             for (var i = 0; i < length; i++) {
                 var id = filteredData[i][0];
                 var name = filteredData[i][1];
                 var created_at = filteredData[i][2];
                 var single = { id: id, name: name, created_at: created_at };
                 //                    console.log(single);
-                this.searchData.push(single);
+                this.searchedData.push(single);
             }
             //                console.log(filteredData);
             console.log(this.searchData);
@@ -89049,7 +89035,9 @@ var render = function() {
           ]
         )
       ])
-    ])
+    ]),
+    _vm._v(" "),
+    _c("div", { staticClass: "output" }, [_vm._v("ss")])
   ])
 }
 var staticRenderFns = [
