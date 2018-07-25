@@ -45,7 +45,7 @@
         <div class="card dataTable">
             <div class="card-body">
                 <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
-                <div class="btn-group pull-right dataTableButtons">
+                <div class="btn-group-sm pull-right dataTableButtons">
                     <button class="btn btn-danger" @click="delt()">删除</button>
                     <button class="btn btn-primary" @click="selectAll()">全选</button>
                     <button class="btn btn-outline-dark" @click="unSelect()">不选</button>
@@ -116,30 +116,71 @@
         methods: {
             initDataTable() {
                 let table = $('#dataTable').DataTable({
-//                    dom:'Bfrtip',
-                    buttons: [
-                        {
-                            extend: 'collection',
-                            text: '更多',
-                            buttons: [
-                                'copy','excel','print','columnsToggle'
-                            ],
-                            fade: true
-                        },
+//                    "dom":'Bfrtip',
+                    "buttons": {
+                        "buttons": [
+                            {
+                                text: 'Alert',
+                                action: function ( e, dt, node, config ) {
+                                    alert( 'Activated!' );
+                                    this.disable(); // disable button
+                                }
+                            },
+                            {   extend:'copy',
+                                className:'btn btn-sm btn-success',
+                                exportOptions: {
+                                    modifier: {
+//                                        search:'applied'
+//                                        selected:true,
+                                    },
 
-                    ],
-                    language: {
-                        "lengthMenu": "每页 _MENU_ 条记录",
+                                }
+                            },
+                            {   extend:'excel',
+                                className:'btn btn-sm',
+                                title:'部门管理',
+                                exportOptions: {
+                                    modifier: {
+//                                        search:'applied',
+//                                        order: 'applied'
+                                        selected:true
+                                    }
+                                }
+                            },
+                            {   extend:'print',
+                                className:'btn btn-sm',
+                                exportOptions: {
+                                    modifier: {
+//                                        search:'applied'
+                                        selected:true
+                                    }
+                                }
+                            },
+                            {
+                                extend: 'collection',
+                                text: '<i class="fa fa-eye"></i>',
+                                buttons: [
+                                    'columnsToggle'
+                                ],
+                                className:'btn btn-sm'
+                            },
+                        ],
+                    },
+                    "language": {
+                        "sLengthMenu": "_MENU_",
                         "zeroRecords": "没有找到记录",
                         "info": "第 _PAGE_ 页 / 总 _PAGES_ 页，共 _TOTAL_ 条数据",
                         "infoEmpty": "无记录",
                         "sSearch": "搜索:",
                         "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
                     },
-                    stateSave:false
+                    "stateSave":false
                 });
                 //将自动生成的按钮放到指定的位置
-                table.buttons().container().appendTo($('.dataTableButtons'))
+//                table.buttons().container().appendTo($('.dataTableButtons'));
+                table.buttons().container().appendTo($('.dataTables_length>label'));
+                table.rows( {page:'current'} ).data();
+                let rows = table.rows( '.selected .table-info' );
             },
             getDepartments() {
                return axios.get('/department/org/get')
