@@ -1902,7 +1902,7 @@
             try {
                 oldLocale = globalLocale._abbr;
                 var aliasedRequire = require;
-                __webpack_require__(230)("./" + name);
+                __webpack_require__(233)("./" + name);
                 getSetGlobalLocale(oldLocale);
             } catch (e) {}
         }
@@ -4574,320 +4574,10 @@
 
 })));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)(module)))
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var bind = __webpack_require__(14);
-var isBuffer = __webpack_require__(160);
-
-/*global toString:true*/
-
-// utils is a library of generic helper functions non-specific to axios
-
-var toString = Object.prototype.toString;
-
-/**
- * Determine if a value is an Array
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an Array, otherwise false
- */
-function isArray(val) {
-  return toString.call(val) === '[object Array]';
-}
-
-/**
- * Determine if a value is an ArrayBuffer
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an ArrayBuffer, otherwise false
- */
-function isArrayBuffer(val) {
-  return toString.call(val) === '[object ArrayBuffer]';
-}
-
-/**
- * Determine if a value is a FormData
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an FormData, otherwise false
- */
-function isFormData(val) {
-  return (typeof FormData !== 'undefined') && (val instanceof FormData);
-}
-
-/**
- * Determine if a value is a view on an ArrayBuffer
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
- */
-function isArrayBufferView(val) {
-  var result;
-  if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
-    result = ArrayBuffer.isView(val);
-  } else {
-    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
-  }
-  return result;
-}
-
-/**
- * Determine if a value is a String
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a String, otherwise false
- */
-function isString(val) {
-  return typeof val === 'string';
-}
-
-/**
- * Determine if a value is a Number
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Number, otherwise false
- */
-function isNumber(val) {
-  return typeof val === 'number';
-}
-
-/**
- * Determine if a value is undefined
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if the value is undefined, otherwise false
- */
-function isUndefined(val) {
-  return typeof val === 'undefined';
-}
-
-/**
- * Determine if a value is an Object
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an Object, otherwise false
- */
-function isObject(val) {
-  return val !== null && typeof val === 'object';
-}
-
-/**
- * Determine if a value is a Date
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Date, otherwise false
- */
-function isDate(val) {
-  return toString.call(val) === '[object Date]';
-}
-
-/**
- * Determine if a value is a File
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a File, otherwise false
- */
-function isFile(val) {
-  return toString.call(val) === '[object File]';
-}
-
-/**
- * Determine if a value is a Blob
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Blob, otherwise false
- */
-function isBlob(val) {
-  return toString.call(val) === '[object Blob]';
-}
-
-/**
- * Determine if a value is a Function
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Function, otherwise false
- */
-function isFunction(val) {
-  return toString.call(val) === '[object Function]';
-}
-
-/**
- * Determine if a value is a Stream
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Stream, otherwise false
- */
-function isStream(val) {
-  return isObject(val) && isFunction(val.pipe);
-}
-
-/**
- * Determine if a value is a URLSearchParams object
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a URLSearchParams object, otherwise false
- */
-function isURLSearchParams(val) {
-  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
-}
-
-/**
- * Trim excess whitespace off the beginning and end of a string
- *
- * @param {String} str The String to trim
- * @returns {String} The String freed of excess whitespace
- */
-function trim(str) {
-  return str.replace(/^\s*/, '').replace(/\s*$/, '');
-}
-
-/**
- * Determine if we're running in a standard browser environment
- *
- * This allows axios to run in a web worker, and react-native.
- * Both environments support XMLHttpRequest, but not fully standard globals.
- *
- * web workers:
- *  typeof window -> undefined
- *  typeof document -> undefined
- *
- * react-native:
- *  navigator.product -> 'ReactNative'
- */
-function isStandardBrowserEnv() {
-  if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-    return false;
-  }
-  return (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined'
-  );
-}
-
-/**
- * Iterate over an Array or an Object invoking a function for each item.
- *
- * If `obj` is an Array callback will be called passing
- * the value, index, and complete array for each item.
- *
- * If 'obj' is an Object callback will be called passing
- * the value, key, and complete object for each property.
- *
- * @param {Object|Array} obj The object to iterate
- * @param {Function} fn The callback to invoke for each item
- */
-function forEach(obj, fn) {
-  // Don't bother if no value provided
-  if (obj === null || typeof obj === 'undefined') {
-    return;
-  }
-
-  // Force an array if not already something iterable
-  if (typeof obj !== 'object') {
-    /*eslint no-param-reassign:0*/
-    obj = [obj];
-  }
-
-  if (isArray(obj)) {
-    // Iterate over array values
-    for (var i = 0, l = obj.length; i < l; i++) {
-      fn.call(null, obj[i], i, obj);
-    }
-  } else {
-    // Iterate over object keys
-    for (var key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        fn.call(null, obj[key], key, obj);
-      }
-    }
-  }
-}
-
-/**
- * Accepts varargs expecting each argument to be an object, then
- * immutably merges the properties of each object and returns result.
- *
- * When multiple objects contain the same key the later object in
- * the arguments list will take precedence.
- *
- * Example:
- *
- * ```js
- * var result = merge({foo: 123}, {foo: 456});
- * console.log(result.foo); // outputs 456
- * ```
- *
- * @param {Object} obj1 Object to merge
- * @returns {Object} Result of all merge properties
- */
-function merge(/* obj1, obj2, obj3, ... */) {
-  var result = {};
-  function assignValue(val, key) {
-    if (typeof result[key] === 'object' && typeof val === 'object') {
-      result[key] = merge(result[key], val);
-    } else {
-      result[key] = val;
-    }
-  }
-
-  for (var i = 0, l = arguments.length; i < l; i++) {
-    forEach(arguments[i], assignValue);
-  }
-  return result;
-}
-
-/**
- * Extends object a by mutably adding to it the properties of object b.
- *
- * @param {Object} a The object to be extended
- * @param {Object} b The object to copy properties from
- * @param {Object} thisArg The object to bind function to
- * @return {Object} The resulting value of object a
- */
-function extend(a, b, thisArg) {
-  forEach(b, function assignValue(val, key) {
-    if (thisArg && typeof val === 'function') {
-      a[key] = bind(val, thisArg);
-    } else {
-      a[key] = val;
-    }
-  });
-  return a;
-}
-
-module.exports = {
-  isArray: isArray,
-  isArrayBuffer: isArrayBuffer,
-  isBuffer: isBuffer,
-  isFormData: isFormData,
-  isArrayBufferView: isArrayBufferView,
-  isString: isString,
-  isNumber: isNumber,
-  isObject: isObject,
-  isUndefined: isUndefined,
-  isDate: isDate,
-  isFile: isFile,
-  isBlob: isBlob,
-  isFunction: isFunction,
-  isStream: isStream,
-  isURLSearchParams: isURLSearchParams,
-  isStandardBrowserEnv: isStandardBrowserEnv,
-  forEach: forEach,
-  merge: merge,
-  extend: extend,
-  trim: trim
-};
-
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -15258,6 +14948,316 @@ return jQuery;
 
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var bind = __webpack_require__(14);
+var isBuffer = __webpack_require__(163);
+
+/*global toString:true*/
+
+// utils is a library of generic helper functions non-specific to axios
+
+var toString = Object.prototype.toString;
+
+/**
+ * Determine if a value is an Array
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Array, otherwise false
+ */
+function isArray(val) {
+  return toString.call(val) === '[object Array]';
+}
+
+/**
+ * Determine if a value is an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an ArrayBuffer, otherwise false
+ */
+function isArrayBuffer(val) {
+  return toString.call(val) === '[object ArrayBuffer]';
+}
+
+/**
+ * Determine if a value is a FormData
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an FormData, otherwise false
+ */
+function isFormData(val) {
+  return (typeof FormData !== 'undefined') && (val instanceof FormData);
+}
+
+/**
+ * Determine if a value is a view on an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
+ */
+function isArrayBufferView(val) {
+  var result;
+  if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
+    result = ArrayBuffer.isView(val);
+  } else {
+    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
+  }
+  return result;
+}
+
+/**
+ * Determine if a value is a String
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a String, otherwise false
+ */
+function isString(val) {
+  return typeof val === 'string';
+}
+
+/**
+ * Determine if a value is a Number
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Number, otherwise false
+ */
+function isNumber(val) {
+  return typeof val === 'number';
+}
+
+/**
+ * Determine if a value is undefined
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if the value is undefined, otherwise false
+ */
+function isUndefined(val) {
+  return typeof val === 'undefined';
+}
+
+/**
+ * Determine if a value is an Object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Object, otherwise false
+ */
+function isObject(val) {
+  return val !== null && typeof val === 'object';
+}
+
+/**
+ * Determine if a value is a Date
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Date, otherwise false
+ */
+function isDate(val) {
+  return toString.call(val) === '[object Date]';
+}
+
+/**
+ * Determine if a value is a File
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a File, otherwise false
+ */
+function isFile(val) {
+  return toString.call(val) === '[object File]';
+}
+
+/**
+ * Determine if a value is a Blob
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Blob, otherwise false
+ */
+function isBlob(val) {
+  return toString.call(val) === '[object Blob]';
+}
+
+/**
+ * Determine if a value is a Function
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Function, otherwise false
+ */
+function isFunction(val) {
+  return toString.call(val) === '[object Function]';
+}
+
+/**
+ * Determine if a value is a Stream
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Stream, otherwise false
+ */
+function isStream(val) {
+  return isObject(val) && isFunction(val.pipe);
+}
+
+/**
+ * Determine if a value is a URLSearchParams object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a URLSearchParams object, otherwise false
+ */
+function isURLSearchParams(val) {
+  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
+}
+
+/**
+ * Trim excess whitespace off the beginning and end of a string
+ *
+ * @param {String} str The String to trim
+ * @returns {String} The String freed of excess whitespace
+ */
+function trim(str) {
+  return str.replace(/^\s*/, '').replace(/\s*$/, '');
+}
+
+/**
+ * Determine if we're running in a standard browser environment
+ *
+ * This allows axios to run in a web worker, and react-native.
+ * Both environments support XMLHttpRequest, but not fully standard globals.
+ *
+ * web workers:
+ *  typeof window -> undefined
+ *  typeof document -> undefined
+ *
+ * react-native:
+ *  navigator.product -> 'ReactNative'
+ */
+function isStandardBrowserEnv() {
+  if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
+    return false;
+  }
+  return (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined'
+  );
+}
+
+/**
+ * Iterate over an Array or an Object invoking a function for each item.
+ *
+ * If `obj` is an Array callback will be called passing
+ * the value, index, and complete array for each item.
+ *
+ * If 'obj' is an Object callback will be called passing
+ * the value, key, and complete object for each property.
+ *
+ * @param {Object|Array} obj The object to iterate
+ * @param {Function} fn The callback to invoke for each item
+ */
+function forEach(obj, fn) {
+  // Don't bother if no value provided
+  if (obj === null || typeof obj === 'undefined') {
+    return;
+  }
+
+  // Force an array if not already something iterable
+  if (typeof obj !== 'object') {
+    /*eslint no-param-reassign:0*/
+    obj = [obj];
+  }
+
+  if (isArray(obj)) {
+    // Iterate over array values
+    for (var i = 0, l = obj.length; i < l; i++) {
+      fn.call(null, obj[i], i, obj);
+    }
+  } else {
+    // Iterate over object keys
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        fn.call(null, obj[key], key, obj);
+      }
+    }
+  }
+}
+
+/**
+ * Accepts varargs expecting each argument to be an object, then
+ * immutably merges the properties of each object and returns result.
+ *
+ * When multiple objects contain the same key the later object in
+ * the arguments list will take precedence.
+ *
+ * Example:
+ *
+ * ```js
+ * var result = merge({foo: 123}, {foo: 456});
+ * console.log(result.foo); // outputs 456
+ * ```
+ *
+ * @param {Object} obj1 Object to merge
+ * @returns {Object} Result of all merge properties
+ */
+function merge(/* obj1, obj2, obj3, ... */) {
+  var result = {};
+  function assignValue(val, key) {
+    if (typeof result[key] === 'object' && typeof val === 'object') {
+      result[key] = merge(result[key], val);
+    } else {
+      result[key] = val;
+    }
+  }
+
+  for (var i = 0, l = arguments.length; i < l; i++) {
+    forEach(arguments[i], assignValue);
+  }
+  return result;
+}
+
+/**
+ * Extends object a by mutably adding to it the properties of object b.
+ *
+ * @param {Object} a The object to be extended
+ * @param {Object} b The object to copy properties from
+ * @param {Object} thisArg The object to bind function to
+ * @return {Object} The resulting value of object a
+ */
+function extend(a, b, thisArg) {
+  forEach(b, function assignValue(val, key) {
+    if (thisArg && typeof val === 'function') {
+      a[key] = bind(val, thisArg);
+    } else {
+      a[key] = val;
+    }
+  });
+  return a;
+}
+
+module.exports = {
+  isArray: isArray,
+  isArrayBuffer: isArrayBuffer,
+  isBuffer: isBuffer,
+  isFormData: isFormData,
+  isArrayBufferView: isArrayBufferView,
+  isString: isString,
+  isNumber: isNumber,
+  isObject: isObject,
+  isUndefined: isUndefined,
+  isDate: isDate,
+  isFile: isFile,
+  isBlob: isBlob,
+  isFunction: isFunction,
+  isStream: isStream,
+  isURLSearchParams: isURLSearchParams,
+  isStandardBrowserEnv: isStandardBrowserEnv,
+  forEach: forEach,
+  merge: merge,
+  extend: extend,
+  trim: trim
+};
+
+
+/***/ }),
 /* 3 */
 /***/ (function(module, exports) {
 
@@ -15368,115 +15368,6 @@ module.exports = function normalizeComponent (
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! DataTables 1.10.19
@@ -15510,7 +15401,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! DataTables 1
 
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -30779,6 +30670,115 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! DataTables 1
 
 
 /***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -30789,7 +30789,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Buttons for 
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -32705,7 +32705,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
   ) }
 }
 
-var listToStyles = __webpack_require__(197)
+var listToStyles = __webpack_require__(200)
 
 /*
 type StyleObject = {
@@ -32917,11 +32917,202 @@ function applyToTag (styleElement, obj) {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! DataTables Bootstrap 4 integration
+ * ©2011-2017 SpryMedia Ltd - datatables.net/license
+ */
+
+/**
+ * DataTables integration for Bootstrap 4. This requires Bootstrap 4 and
+ * DataTables 1.10 or newer.
+ *
+ * This file sets the defaults and adds options to DataTables to style its
+ * controls using Bootstrap. See http://datatables.net/manual/styling/bootstrap
+ * for further information.
+ */
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				// Require DataTables, which attaches to jQuery, including
+				// jQuery if needed and have a $ property so we can access the
+				// jQuery object that is used
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+/* Set the defaults for DataTables initialisation */
+$.extend( true, DataTable.defaults, {
+	dom:
+		"<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+		"<'row'<'col-sm-12'tr>>" +
+		"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+	renderer: 'bootstrap'
+} );
+
+
+/* Default class modification */
+$.extend( DataTable.ext.classes, {
+	sWrapper:      "dataTables_wrapper dt-bootstrap4",
+	sFilterInput:  "form-control form-control-sm",
+	sLengthSelect: "custom-select custom-select-sm form-control form-control-sm",
+	sProcessing:   "dataTables_processing card",
+	sPageButton:   "paginate_button page-item"
+} );
+
+
+/* Bootstrap paging button renderer */
+DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, buttons, page, pages ) {
+	var api     = new DataTable.Api( settings );
+	var classes = settings.oClasses;
+	var lang    = settings.oLanguage.oPaginate;
+	var aria = settings.oLanguage.oAria.paginate || {};
+	var btnDisplay, btnClass, counter=0;
+
+	var attach = function( container, buttons ) {
+		var i, ien, node, button;
+		var clickHandler = function ( e ) {
+			e.preventDefault();
+			if ( !$(e.currentTarget).hasClass('disabled') && api.page() != e.data.action ) {
+				api.page( e.data.action ).draw( 'page' );
+			}
+		};
+
+		for ( i=0, ien=buttons.length ; i<ien ; i++ ) {
+			button = buttons[i];
+
+			if ( $.isArray( button ) ) {
+				attach( container, button );
+			}
+			else {
+				btnDisplay = '';
+				btnClass = '';
+
+				switch ( button ) {
+					case 'ellipsis':
+						btnDisplay = '&#x2026;';
+						btnClass = 'disabled';
+						break;
+
+					case 'first':
+						btnDisplay = lang.sFirst;
+						btnClass = button + (page > 0 ?
+							'' : ' disabled');
+						break;
+
+					case 'previous':
+						btnDisplay = lang.sPrevious;
+						btnClass = button + (page > 0 ?
+							'' : ' disabled');
+						break;
+
+					case 'next':
+						btnDisplay = lang.sNext;
+						btnClass = button + (page < pages-1 ?
+							'' : ' disabled');
+						break;
+
+					case 'last':
+						btnDisplay = lang.sLast;
+						btnClass = button + (page < pages-1 ?
+							'' : ' disabled');
+						break;
+
+					default:
+						btnDisplay = button + 1;
+						btnClass = page === button ?
+							'active' : '';
+						break;
+				}
+
+				if ( btnDisplay ) {
+					node = $('<li>', {
+							'class': classes.sPageButton+' '+btnClass,
+							'id': idx === 0 && typeof button === 'string' ?
+								settings.sTableId +'_'+ button :
+								null
+						} )
+						.append( $('<a>', {
+								'href': '#',
+								'aria-controls': settings.sTableId,
+								'aria-label': aria[ button ],
+								'data-dt-idx': counter,
+								'tabindex': settings.iTabIndex,
+								'class': 'page-link'
+							} )
+							.html( btnDisplay )
+						)
+						.appendTo( container );
+
+					settings.oApi._fnBindAction(
+						node, {action: button}, clickHandler
+					);
+
+					counter++;
+				}
+			}
+		}
+	};
+
+	// IE9 throws an 'unknown error' if document.activeElement is used
+	// inside an iframe or frame. 
+	var activeEl;
+
+	try {
+		// Because this approach is destroying and recreating the paging
+		// elements, focus is lost on the select button which is bad for
+		// accessibility. So we want to restore focus once the draw has
+		// completed
+		activeEl = $(host).find(document.activeElement).data('dt-idx');
+	}
+	catch (e) {}
+
+	attach(
+		$(host).empty().html('<ul class="pagination"/>').children('ul'),
+		buttons
+	);
+
+	if ( activeEl !== undefined ) {
+		$(host).find( '[data-dt-idx='+activeEl+']' ).focus();
+	}
+};
+
+
+return DataTable;
+}));
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
-var utils = __webpack_require__(1);
-var normalizeHeaderName = __webpack_require__(162);
+var utils = __webpack_require__(2);
+var normalizeHeaderName = __webpack_require__(165);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -33018,7 +33209,7 @@ module.exports = defaults;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -33064,7 +33255,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(189);
+var	fixUrls = __webpack_require__(192);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -33377,7 +33568,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -33405,7 +33596,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -35931,198 +36122,7 @@ Popper.Defaults = Defaults;
 /* harmony default export */ __webpack_exports__["default"] = (Popper);
 //# sourceMappingURL=popper.js.map
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(5)))
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! DataTables Bootstrap 4 integration
- * ©2011-2017 SpryMedia Ltd - datatables.net/license
- */
-
-/**
- * DataTables integration for Bootstrap 4. This requires Bootstrap 4 and
- * DataTables 1.10 or newer.
- *
- * This file sets the defaults and adds options to DataTables to style its
- * controls using Bootstrap. See http://datatables.net/manual/styling/bootstrap
- * for further information.
- */
-(function( factory ){
-	if ( true ) {
-		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
-			return factory( $, window, document );
-		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				// Require DataTables, which attaches to jQuery, including
-				// jQuery if needed and have a $ property so we can access the
-				// jQuery object that is used
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
-
-
-/* Set the defaults for DataTables initialisation */
-$.extend( true, DataTable.defaults, {
-	dom:
-		"<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-		"<'row'<'col-sm-12'tr>>" +
-		"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-	renderer: 'bootstrap'
-} );
-
-
-/* Default class modification */
-$.extend( DataTable.ext.classes, {
-	sWrapper:      "dataTables_wrapper dt-bootstrap4",
-	sFilterInput:  "form-control form-control-sm",
-	sLengthSelect: "custom-select custom-select-sm form-control form-control-sm",
-	sProcessing:   "dataTables_processing card",
-	sPageButton:   "paginate_button page-item"
-} );
-
-
-/* Bootstrap paging button renderer */
-DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, buttons, page, pages ) {
-	var api     = new DataTable.Api( settings );
-	var classes = settings.oClasses;
-	var lang    = settings.oLanguage.oPaginate;
-	var aria = settings.oLanguage.oAria.paginate || {};
-	var btnDisplay, btnClass, counter=0;
-
-	var attach = function( container, buttons ) {
-		var i, ien, node, button;
-		var clickHandler = function ( e ) {
-			e.preventDefault();
-			if ( !$(e.currentTarget).hasClass('disabled') && api.page() != e.data.action ) {
-				api.page( e.data.action ).draw( 'page' );
-			}
-		};
-
-		for ( i=0, ien=buttons.length ; i<ien ; i++ ) {
-			button = buttons[i];
-
-			if ( $.isArray( button ) ) {
-				attach( container, button );
-			}
-			else {
-				btnDisplay = '';
-				btnClass = '';
-
-				switch ( button ) {
-					case 'ellipsis':
-						btnDisplay = '&#x2026;';
-						btnClass = 'disabled';
-						break;
-
-					case 'first':
-						btnDisplay = lang.sFirst;
-						btnClass = button + (page > 0 ?
-							'' : ' disabled');
-						break;
-
-					case 'previous':
-						btnDisplay = lang.sPrevious;
-						btnClass = button + (page > 0 ?
-							'' : ' disabled');
-						break;
-
-					case 'next':
-						btnDisplay = lang.sNext;
-						btnClass = button + (page < pages-1 ?
-							'' : ' disabled');
-						break;
-
-					case 'last':
-						btnDisplay = lang.sLast;
-						btnClass = button + (page < pages-1 ?
-							'' : ' disabled');
-						break;
-
-					default:
-						btnDisplay = button + 1;
-						btnClass = page === button ?
-							'active' : '';
-						break;
-				}
-
-				if ( btnDisplay ) {
-					node = $('<li>', {
-							'class': classes.sPageButton+' '+btnClass,
-							'id': idx === 0 && typeof button === 'string' ?
-								settings.sTableId +'_'+ button :
-								null
-						} )
-						.append( $('<a>', {
-								'href': '#',
-								'aria-controls': settings.sTableId,
-								'aria-label': aria[ button ],
-								'data-dt-idx': counter,
-								'tabindex': settings.iTabIndex,
-								'class': 'page-link'
-							} )
-							.html( btnDisplay )
-						)
-						.appendTo( container );
-
-					settings.oApi._fnBindAction(
-						node, {action: button}, clickHandler
-					);
-
-					counter++;
-				}
-			}
-		}
-	};
-
-	// IE9 throws an 'unknown error' if document.activeElement is used
-	// inside an iframe or frame. 
-	var activeEl;
-
-	try {
-		// Because this approach is destroying and recreating the paging
-		// elements, focus is lost on the select button which is bad for
-		// accessibility. So we want to restore focus once the draw has
-		// completed
-		activeEl = $(host).find(document.activeElement).data('dt-idx');
-	}
-	catch (e) {}
-
-	attach(
-		$(host).empty().html('<ul class="pagination"/>').children('ul'),
-		buttons
-	);
-
-	if ( activeEl !== undefined ) {
-		$(host).find( '[data-dt-idx='+activeEl+']' ).focus();
-	}
-};
-
-
-return DataTable;
-}));
-
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(6)))
 
 /***/ }),
 /* 14 */
@@ -36339,13 +36339,13 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-var utils = __webpack_require__(1);
-var settle = __webpack_require__(163);
-var buildURL = __webpack_require__(165);
-var parseHeaders = __webpack_require__(166);
-var isURLSameOrigin = __webpack_require__(167);
+var utils = __webpack_require__(2);
+var settle = __webpack_require__(166);
+var buildURL = __webpack_require__(168);
+var parseHeaders = __webpack_require__(169);
+var isURLSameOrigin = __webpack_require__(170);
 var createError = __webpack_require__(17);
-var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(168);
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(171);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -36442,7 +36442,7 @@ module.exports = function xhrAdapter(config) {
     // This is only done if running in a standard browser environment.
     // Specifically not if we're in a web worker, or react-native.
     if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(169);
+      var cookies = __webpack_require__(172);
 
       // Add xsrf header
       var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -36526,7 +36526,7 @@ module.exports = function xhrAdapter(config) {
 "use strict";
 
 
-var enhanceError = __webpack_require__(164);
+var enhanceError = __webpack_require__(167);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -36589,9 +36589,9 @@ module.exports = Cancel;
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(194)
+var __vue_script__ = __webpack_require__(197)
 /* template */
-var __vue_template__ = __webpack_require__(200)
+var __vue_template__ = __webpack_require__(203)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -37115,13 +37115,13 @@ module.exports = Component.exports
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(195)
+  __webpack_require__(198)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(198)
+var __vue_script__ = __webpack_require__(201)
 /* template */
-var __vue_template__ = __webpack_require__(199)
+var __vue_template__ = __webpack_require__(202)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -37200,7 +37200,7 @@ module.exports = isObject;
 /* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var freeGlobal = __webpack_require__(205);
+var freeGlobal = __webpack_require__(208);
 
 /** Detect free variable `self`. */
 var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
@@ -49073,7 +49073,7 @@ module.exports = Symbol;
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(150);
-module.exports = __webpack_require__(241);
+module.exports = __webpack_require__(244);
 
 
 /***/ }),
@@ -49082,10 +49082,12 @@ module.exports = __webpack_require__(241);
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css__ = __webpack_require__(180);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css__ = __webpack_require__(183);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css__ = __webpack_require__(190);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css__ = __webpack_require__(193);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css__ = __webpack_require__(248);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css__);
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -49095,9 +49097,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 __webpack_require__(151);
 
-window.Vue = __webpack_require__(177);
+window.Vue = __webpack_require__(180);
 
 // 引入font-awesome
+
+// 下面是必须引入的dataTables的样式
 
 
 
@@ -49107,13 +49111,13 @@ window.Vue = __webpack_require__(177);
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('department-component', __webpack_require__(192));
+Vue.component('department-component', __webpack_require__(195));
 Vue.component('department-tree', __webpack_require__(20));
 Vue.component('department-model', __webpack_require__(22));
-Vue.component('department-lists', __webpack_require__(215));
-Vue.component('department-users', __webpack_require__(232));
-Vue.component('my-detail-row', __webpack_require__(235));
-Vue.component('filter-bar', __webpack_require__(238));
+Vue.component('department-lists', __webpack_require__(218));
+Vue.component('department-users', __webpack_require__(235));
+Vue.component('my-detail-row', __webpack_require__(238));
+Vue.component('filter-bar', __webpack_require__(241));
 
 var app = new Vue({
   el: '#app'
@@ -49125,7 +49129,7 @@ var app = new Vue({
 
 
 window._ = __webpack_require__(152);
-window.Popper = __webpack_require__(12).default;
+window.Popper = __webpack_require__(13).default;
 
 /**
  * We'll load jQuery and the Bootstrap jQuery plugin which provides support
@@ -49134,16 +49138,17 @@ window.Popper = __webpack_require__(12).default;
  */
 
 try {
-  window.$ = window.jQuery = __webpack_require__(2);
+  window.$ = window.jQuery = __webpack_require__(1);
 
   __webpack_require__(153);
-  __webpack_require__(13);
+  __webpack_require__(9);
   __webpack_require__(154);
   __webpack_require__(155);
-  __webpack_require__(243);
-  __webpack_require__(244);
-  __webpack_require__(245);
+  __webpack_require__(156);
+  __webpack_require__(157);
+  __webpack_require__(158);
   __webpack_require__(7);
+  __webpack_require__(159);
   __webpack_require__(246);
 } catch (e) {}
 
@@ -49153,7 +49158,7 @@ try {
  * CSRF token as a header based on the value of the "XSRF" token cookie.
  */
 
-window.axios = __webpack_require__(158);
+window.axios = __webpack_require__(161);
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -66299,7 +66304,7 @@ if (token) {
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(11)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(12)(module)))
 
 /***/ }),
 /* 153 */
@@ -66311,7 +66316,7 @@ if (token) {
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
   */
 (function (global, factory) {
-   true ? factory(exports, __webpack_require__(2), __webpack_require__(12)) :
+   true ? factory(exports, __webpack_require__(1), __webpack_require__(13)) :
   typeof define === 'function' && define.amd ? define(['exports', 'jquery', 'popper.js'], factory) :
   (factory((global.bootstrap = {}),global.jQuery,global.Popper));
 }(this, (function (exports,$,Popper) { 'use strict';
@@ -70245,7 +70250,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap in
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(13), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(9), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -70315,7 +70320,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -70514,24 +70519,4331 @@ return DataTable.Buttons;
 
 
 /***/ }),
-/* 156 */,
-/* 157 */,
+/* 156 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+ * Print button for Buttons and DataTables.
+ * 2016 SpryMedia Ltd - datatables.net/license
+ */
+
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			if ( ! $.fn.dataTable.Buttons ) {
+				require('datatables.net-buttons')(root, $);
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+var _link = document.createElement( 'a' );
+
+/**
+ * Clone link and style tags, taking into account the need to change the source
+ * path.
+ *
+ * @param  {node}     el Element to convert
+ */
+var _styleToAbs = function( el ) {
+	var url;
+	var clone = $(el).clone()[0];
+	var linkHost;
+
+	if ( clone.nodeName.toLowerCase() === 'link' ) {
+		clone.href = _relToAbs( clone.href );
+	}
+
+	return clone.outerHTML;
+};
+
+/**
+ * Convert a URL from a relative to an absolute address so it will work
+ * correctly in the popup window which has no base URL.
+ *
+ * @param  {string} href URL
+ */
+var _relToAbs = function( href ) {
+	// Assign to a link on the original page so the browser will do all the
+	// hard work of figuring out where the file actually is
+	_link.href = href;
+	var linkHost = _link.host;
+
+	// IE doesn't have a trailing slash on the host
+	// Chrome has it on the pathname
+	if ( linkHost.indexOf('/') === -1 && _link.pathname.indexOf('/') !== 0) {
+		linkHost += '/';
+	}
+
+	return _link.protocol+"//"+linkHost+_link.pathname+_link.search;
+};
+
+
+DataTable.ext.buttons.print = {
+	className: 'buttons-print',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.print', 'Print' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		var data = dt.buttons.exportData(
+			$.extend( {decodeEntities: false}, config.exportOptions ) // XSS protection
+		);
+		var exportInfo = dt.buttons.exportInfo( config );
+		var columnClasses = $.map( dt.settings()[0].aoColumns, function (col, key) {
+			return col.sClass;
+		} );
+
+		var addRow = function ( d, tag ) {
+			var str = '<tr>';
+
+			for ( var i=0, ien=d.length ; i<ien ; i++ ) {
+				// null and undefined aren't useful in the print output
+				var dataOut = d[i] === null || d[i] === undefined ?
+					'' :
+					d[i];
+				var classAttr = columnClasses[i] ?
+					'class="'+columnClasses[i]+'"' :
+					'';
+
+				str += '<'+tag+' '+classAttr+'>'+dataOut+'</'+tag+'>';
+			}
+
+			return str + '</tr>';
+		};
+
+		// Construct a table for printing
+		var html = '<table class="'+dt.table().node().className+'">';
+
+		if ( config.header ) {
+			html += '<thead>'+ addRow( data.header, 'th' ) +'</thead>';
+		}
+
+		html += '<tbody>';
+		for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+			html += addRow( data.body[i], 'td' );
+		}
+		html += '</tbody>';
+
+		if ( config.footer && data.footer ) {
+			html += '<tfoot>'+ addRow( data.footer, 'th' ) +'</tfoot>';
+		}
+		html += '</table>';
+
+		// Open a new window for the printable table
+		var win = window.open( '', '' );
+		win.document.close();
+
+		// Inject the title and also a copy of the style and link tags from this
+		// document so the table can retain its base styling. Note that we have
+		// to use string manipulation as IE won't allow elements to be created
+		// in the host document and then appended to the new window.
+		var head = '<title>'+exportInfo.title+'</title>';
+		$('style, link').each( function () {
+			head += _styleToAbs( this );
+		} );
+
+		try {
+			win.document.head.innerHTML = head; // Work around for Edge
+		}
+		catch (e) {
+			$(win.document.head).html( head ); // Old IE
+		}
+
+		// Inject the table and other surrounding information
+		win.document.body.innerHTML =
+			'<h1>'+exportInfo.title+'</h1>'+
+			'<div>'+(exportInfo.messageTop || '')+'</div>'+
+			html+
+			'<div>'+(exportInfo.messageBottom || '')+'</div>';
+
+		$(win.document.body).addClass('dt-print-view');
+
+		$('img', win.document.body).each( function ( i, img ) {
+			img.setAttribute( 'src', _relToAbs( img.getAttribute('src') ) );
+		} );
+
+		if ( config.customize ) {
+			config.customize( win, config, dt );
+		}
+
+		// Allow stylesheets time to load
+		win.setTimeout( function () {
+			if ( config.autoPrint ) {
+				win.print(); // blocking - so close will not
+				win.close(); // execute until this is done
+			}
+		}, 1000 );
+	},
+
+	title: '*',
+
+	messageTop: '*',
+
+	messageBottom: '*',
+
+	exportOptions: {},
+
+	header: true,
+
+	footer: false,
+
+	autoPrint: true,
+
+	customize: null
+};
+
+
+return DataTable.Buttons;
+}));
+
+
+/***/ }),
+/* 157 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+ * HTML5 export buttons for Buttons and DataTables.
+ * 2016 SpryMedia Ltd - datatables.net/license
+ *
+ * FileSaver.js (1.3.3) - MIT license
+ * Copyright © 2016 Eli Grey - http://eligrey.com
+ */
+
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $, jszip, pdfmake) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			if ( ! $.fn.dataTable.Buttons ) {
+				require('datatables.net-buttons')(root, $);
+			}
+
+			return factory( $, root, root.document, jszip, pdfmake );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, jszip, pdfmake, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+// Allow the constructor to pass in JSZip and PDFMake from external requires.
+// Otherwise, use globally defined variables, if they are available.
+function _jsZip () {
+	return jszip || window.JSZip;
+}
+function _pdfMake () {
+	return pdfmake || window.pdfMake;
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * FileSaver.js dependency
+ */
+
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+var _saveAs = (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
+	}
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
+		}
+		, is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
+						return;
+					}
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
+					}
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
+					}
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
+
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
+
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
+
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
+
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
+
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
+
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+
+
+// Expose file saver on the DataTables API. Can't attach to `DataTables.Buttons`
+// since this file can be loaded before Button's core!
+DataTable.fileSave = _saveAs;
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Local (private) functions
+ */
+
+/**
+ * Get the sheet name for Excel exports.
+ *
+ * @param {object}	config Button configuration
+ */
+var _sheetname = function ( config )
+{
+	var sheetName = 'Sheet1';
+
+	if ( config.sheetName ) {
+		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
+	}
+
+	return sheetName;
+};
+
+/**
+ * Get the newline character(s)
+ *
+ * @param {object}	config Button configuration
+ * @return {string}				Newline character
+ */
+var _newLine = function ( config )
+{
+	return config.newline ?
+		config.newline :
+		navigator.userAgent.match(/Windows/) ?
+			'\r\n' :
+			'\n';
+};
+
+/**
+ * Combine the data from the `buttons.exportData` method into a string that
+ * will be used in the export file.
+ *
+ * @param	{DataTable.Api} dt		 DataTables API instance
+ * @param	{object}				config Button configuration
+ * @return {object}							 The data to export
+ */
+var _exportData = function ( dt, config )
+{
+	var newLine = _newLine( config );
+	var data = dt.buttons.exportData( config.exportOptions );
+	var boundary = config.fieldBoundary;
+	var separator = config.fieldSeparator;
+	var reBoundary = new RegExp( boundary, 'g' );
+	var escapeChar = config.escapeChar !== undefined ?
+		config.escapeChar :
+		'\\';
+	var join = function ( a ) {
+		var s = '';
+
+		// If there is a field boundary, then we might need to escape it in
+		// the source data
+		for ( var i=0, ien=a.length ; i<ien ; i++ ) {
+			if ( i > 0 ) {
+				s += separator;
+			}
+
+			s += boundary ?
+				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
+				a[i];
+		}
+
+		return s;
+	};
+
+	var header = config.header ? join( data.header )+newLine : '';
+	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
+	var body = [];
+
+	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+		body.push( join( data.body[i] ) );
+	}
+
+	return {
+		str: header + body.join( newLine ) + footer,
+		rows: body.length
+	};
+};
+
+/**
+ * Older versions of Safari (prior to tech preview 18) don't support the
+ * download option required.
+ *
+ * @return {Boolean} `true` if old Safari
+ */
+var _isDuffSafari = function ()
+{
+	var safari = navigator.userAgent.indexOf('Safari') !== -1 &&
+		navigator.userAgent.indexOf('Chrome') === -1 &&
+		navigator.userAgent.indexOf('Opera') === -1;
+
+	if ( ! safari ) {
+		return false;
+	}
+
+	var version = navigator.userAgent.match( /AppleWebKit\/(\d+\.\d+)/ );
+	if ( version && version.length > 1 && version[1]*1 < 603.1 ) {
+		return true;
+	}
+
+	return false;
+};
+
+/**
+ * Convert from numeric position to letter for column names in Excel
+ * @param  {int} n Column number
+ * @return {string} Column letter(s) name
+ */
+function createCellPos( n ){
+	var ordA = 'A'.charCodeAt(0);
+	var ordZ = 'Z'.charCodeAt(0);
+	var len = ordZ - ordA + 1;
+	var s = "";
+
+	while( n >= 0 ) {
+		s = String.fromCharCode(n % len + ordA) + s;
+		n = Math.floor(n / len) - 1;
+	}
+
+	return s;
+}
+
+try {
+	var _serialiser = new XMLSerializer();
+	var _ieExcel;
+}
+catch (t) {}
+
+/**
+ * Recursively add XML files from an object's structure to a ZIP file. This
+ * allows the XSLX file to be easily defined with an object's structure matching
+ * the files structure.
+ *
+ * @param {JSZip} zip ZIP package
+ * @param {object} obj Object to add (recursive)
+ */
+function _addToZip( zip, obj ) {
+	if ( _ieExcel === undefined ) {
+		// Detect if we are dealing with IE's _awful_ serialiser by seeing if it
+		// drop attributes
+		_ieExcel = _serialiser
+			.serializeToString(
+				$.parseXML( excelStrings['xl/worksheets/sheet1.xml'] )
+			)
+			.indexOf( 'xmlns:r' ) === -1;
+	}
+
+	$.each( obj, function ( name, val ) {
+		if ( $.isPlainObject( val ) ) {
+			var newDir = zip.folder( name );
+			_addToZip( newDir, val );
+		}
+		else {
+			if ( _ieExcel ) {
+				// IE's XML serialiser will drop some name space attributes from
+				// from the root node, so we need to save them. Do this by
+				// replacing the namespace nodes with a regular attribute that
+				// we convert back when serialised. Edge does not have this
+				// issue
+				var worksheet = val.childNodes[0];
+				var i, ien;
+				var attrs = [];
+
+				for ( i=worksheet.attributes.length-1 ; i>=0 ; i-- ) {
+					var attrName = worksheet.attributes[i].nodeName;
+					var attrValue = worksheet.attributes[i].nodeValue;
+
+					if ( attrName.indexOf( ':' ) !== -1 ) {
+						attrs.push( { name: attrName, value: attrValue } );
+
+						worksheet.removeAttribute( attrName );
+					}
+				}
+
+				for ( i=0, ien=attrs.length ; i<ien ; i++ ) {
+					var attr = val.createAttribute( attrs[i].name.replace( ':', '_dt_b_namespace_token_' ) );
+					attr.value = attrs[i].value;
+					worksheet.setAttributeNode( attr );
+				}
+			}
+
+			var str = _serialiser.serializeToString(val);
+
+			// Fix IE's XML
+			if ( _ieExcel ) {
+				// IE doesn't include the XML declaration
+				if ( str.indexOf( '<?xml' ) === -1 ) {
+					str = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+str;
+				}
+
+				// Return namespace attributes to being as such
+				str = str.replace( /_dt_b_namespace_token_/g, ':' );
+			}
+
+			// Safari, IE and Edge will put empty name space attributes onto
+			// various elements making them useless. This strips them out
+			str = str.replace( /<([^<>]*?) xmlns=""([^<>]*?)>/g, '<$1 $2>' );
+
+			zip.file( name, str );
+		}
+	} );
+}
+
+/**
+ * Create an XML node and add any children, attributes, etc without needing to
+ * be verbose in the DOM.
+ *
+ * @param  {object} doc      XML document
+ * @param  {string} nodeName Node name
+ * @param  {object} opts     Options - can be `attr` (attributes), `children`
+ *   (child nodes) and `text` (text content)
+ * @return {node}            Created node
+ */
+function _createNode( doc, nodeName, opts ) {
+	var tempNode = doc.createElement( nodeName );
+
+	if ( opts ) {
+		if ( opts.attr ) {
+			$(tempNode).attr( opts.attr );
+		}
+
+		if ( opts.children ) {
+			$.each( opts.children, function ( key, value ) {
+				tempNode.appendChild( value );
+			} );
+		}
+
+		if ( opts.text !== null && opts.text !== undefined ) {
+			tempNode.appendChild( doc.createTextNode( opts.text ) );
+		}
+	}
+
+	return tempNode;
+}
+
+/**
+ * Get the width for an Excel column based on the contents of that column
+ * @param  {object} data Data for export
+ * @param  {int}    col  Column index
+ * @return {int}         Column width
+ */
+function _excelColWidth( data, col ) {
+	var max = data.header[col].length;
+	var len, lineSplit, str;
+
+	if ( data.footer && data.footer[col].length > max ) {
+		max = data.footer[col].length;
+	}
+
+	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+		var point = data.body[i][col];
+		str = point !== null && point !== undefined ?
+			point.toString() :
+			'';
+
+		// If there is a newline character, workout the width of the column
+		// based on the longest line in the string
+		if ( str.indexOf('\n') !== -1 ) {
+			lineSplit = str.split('\n');
+			lineSplit.sort( function (a, b) {
+				return b.length - a.length;
+			} );
+
+			len = lineSplit[0].length;
+		}
+		else {
+			len = str.length;
+		}
+
+		if ( len > max ) {
+			max = len;
+		}
+
+		// Max width rather than having potentially massive column widths
+		if ( max > 40 ) {
+			return 52; // 40 * 1.3
+		}
+	}
+
+	max *= 1.3;
+
+	// And a min width
+	return max > 6 ? max : 6;
+}
+
+// Excel - Pre-defined strings to build a basic XLSX file
+var excelStrings = {
+	"_rels/.rels":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+		'</Relationships>',
+
+	"xl/_rels/workbook.xml.rels":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+			'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
+		'</Relationships>',
+
+	"[Content_Types].xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+			'<Default Extension="xml" ContentType="application/xml" />'+
+			'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />'+
+			'<Default Extension="jpeg" ContentType="image/jpeg" />'+
+			'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />'+
+			'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />'+
+			'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />'+
+		'</Types>',
+
+	"xl/workbook.xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+			'<fileVersion appName="xl" lastEdited="5" lowestEdited="5" rupBuild="24816"/>'+
+			'<workbookPr showInkAnnotation="0" autoCompressPictures="0"/>'+
+			'<bookViews>'+
+				'<workbookView xWindow="0" yWindow="0" windowWidth="25600" windowHeight="19020" tabRatio="500"/>'+
+			'</bookViews>'+
+			'<sheets>'+
+				'<sheet name="" sheetId="1" r:id="rId1"/>'+
+			'</sheets>'+
+		'</workbook>',
+
+	"xl/worksheets/sheet1.xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
+			'<sheetData/>'+
+			'<mergeCells count="0"/>'+
+		'</worksheet>',
+
+	"xl/styles.xml":
+		'<?xml version="1.0" encoding="UTF-8"?>'+
+		'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
+			'<numFmts count="6">'+
+				'<numFmt numFmtId="164" formatCode="#,##0.00_-\ [$$-45C]"/>'+
+				'<numFmt numFmtId="165" formatCode="&quot;£&quot;#,##0.00"/>'+
+				'<numFmt numFmtId="166" formatCode="[$€-2]\ #,##0.00"/>'+
+				'<numFmt numFmtId="167" formatCode="0.0%"/>'+
+				'<numFmt numFmtId="168" formatCode="#,##0;(#,##0)"/>'+
+				'<numFmt numFmtId="169" formatCode="#,##0.00;(#,##0.00)"/>'+
+			'</numFmts>'+
+			'<fonts count="5" x14ac:knownFonts="1">'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<color rgb="FFFFFFFF" />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<b />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<i />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<u />'+
+				'</font>'+
+			'</fonts>'+
+			'<fills count="6">'+
+				'<fill>'+
+					'<patternFill patternType="none" />'+
+				'</fill>'+
+				'<fill>'+ // Excel appears to use this as a dotted background regardless of values but
+					'<patternFill patternType="none" />'+ // to be valid to the schema, use a patternFill
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="FFD9D9D9" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="FFD99795" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="ffc6efce" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="ffc6cfef" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+			'</fills>'+
+			'<borders count="2">'+
+				'<border>'+
+					'<left />'+
+					'<right />'+
+					'<top />'+
+					'<bottom />'+
+					'<diagonal />'+
+				'</border>'+
+				'<border diagonalUp="false" diagonalDown="false">'+
+					'<left style="thin">'+
+						'<color auto="1" />'+
+					'</left>'+
+					'<right style="thin">'+
+						'<color auto="1" />'+
+					'</right>'+
+					'<top style="thin">'+
+						'<color auto="1" />'+
+					'</top>'+
+					'<bottom style="thin">'+
+						'<color auto="1" />'+
+					'</bottom>'+
+					'<diagonal />'+
+				'</border>'+
+			'</borders>'+
+			'<cellStyleXfs count="1">'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" />'+
+			'</cellStyleXfs>'+
+			'<cellXfs count="67">'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="left"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="center"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="right"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="fill"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment textRotation="90"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment wrapText="1"/>'+
+				'</xf>'+
+				'<xf numFmtId="9"   fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="166" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="167" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="168" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="169" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="3" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="4" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="1" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="2" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+			'</cellXfs>'+
+			'<cellStyles count="1">'+
+				'<cellStyle name="Normal" xfId="0" builtinId="0" />'+
+			'</cellStyles>'+
+			'<dxfs count="0" />'+
+			'<tableStyles count="0" defaultTableStyle="TableStyleMedium9" defaultPivotStyle="PivotStyleMedium4" />'+
+		'</styleSheet>'
+};
+// Note we could use 3 `for` loops for the styles, but when gzipped there is
+// virtually no difference in size, since the above can be easily compressed
+
+// Pattern matching for special number formats. Perhaps this should be exposed
+// via an API in future?
+// Ref: section 3.8.30 - built in formatters in open spreadsheet
+//   https://www.ecma-international.org/news/TC45_current_work/Office%20Open%20XML%20Part%204%20-%20Markup%20Language%20Reference.pdf
+var _excelSpecials = [
+	{ match: /^\-?\d+\.\d%$/,       style: 60, fmt: function (d) { return d/100; } }, // Precent with d.p.
+	{ match: /^\-?\d+\.?\d*%$/,     style: 56, fmt: function (d) { return d/100; } }, // Percent
+	{ match: /^\-?\$[\d,]+.?\d*$/,  style: 57 }, // Dollars
+	{ match: /^\-?£[\d,]+.?\d*$/,   style: 58 }, // Pounds
+	{ match: /^\-?€[\d,]+.?\d*$/,   style: 59 }, // Euros
+	{ match: /^\-?\d+$/,            style: 65 }, // Numbers without thousand separators
+	{ match: /^\-?\d+\.\d{2}$/,     style: 66 }, // Numbers 2 d.p. without thousands separators
+	{ match: /^\([\d,]+\)$/,        style: 61, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets
+	{ match: /^\([\d,]+\.\d{2}\)$/, style: 62, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets - 2d.p.
+	{ match: /^\-?[\d,]+$/,         style: 63 }, // Numbers with thousand separators
+	{ match: /^\-?[\d,]+\.\d{2}$/,  style: 64 }  // Numbers with 2 d.p. and thousands separators
+];
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Buttons
+ */
+
+//
+// Copy to clipboard
+//
+DataTable.ext.buttons.copyHtml5 = {
+	className: 'buttons-copy buttons-html5',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.copy', 'Copy' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		var that = this;
+		var exportData = _exportData( dt, config );
+		var info = dt.buttons.exportInfo( config );
+		var newline = _newLine(config);
+		var output = exportData.str;
+		var hiddenDiv = $('<div/>')
+			.css( {
+				height: 1,
+				width: 1,
+				overflow: 'hidden',
+				position: 'fixed',
+				top: 0,
+				left: 0
+			} );
+
+		if ( info.title ) {
+			output = info.title + newline + newline + output;
+		}
+
+		if ( info.messageTop ) {
+			output = info.messageTop + newline + newline + output;
+		}
+
+		if ( info.messageBottom ) {
+			output = output + newline + newline + info.messageBottom;
+		}
+
+		if ( config.customize ) {
+			output = config.customize( output, config, dt );
+		}
+
+		var textarea = $('<textarea readonly/>')
+			.val( output )
+			.appendTo( hiddenDiv );
+
+		// For browsers that support the copy execCommand, try to use it
+		if ( document.queryCommandSupported('copy') ) {
+			hiddenDiv.appendTo( dt.table().container() );
+			textarea[0].focus();
+			textarea[0].select();
+
+			try {
+				var successful = document.execCommand( 'copy' );
+				hiddenDiv.remove();
+
+				if (successful) {
+					dt.buttons.info(
+						dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
+						dt.i18n( 'buttons.copySuccess', {
+							1: 'Copied one row to clipboard',
+							_: 'Copied %d rows to clipboard'
+						}, exportData.rows ),
+						2000
+					);
+
+					this.processing( false );
+					return;
+				}
+			}
+			catch (t) {}
+		}
+
+		// Otherwise we show the text box and instruct the user to use it
+		var message = $('<span>'+dt.i18n( 'buttons.copyKeys',
+				'Press <i>ctrl</i> or <i>\u2318</i> + <i>C</i> to copy the table data<br>to your system clipboard.<br><br>'+
+				'To cancel, click this message or press escape.' )+'</span>'
+			)
+			.append( hiddenDiv );
+
+		dt.buttons.info( dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ), message, 0 );
+
+		// Select the text so when the user activates their system clipboard
+		// it will copy that text
+		textarea[0].focus();
+		textarea[0].select();
+
+		// Event to hide the message when the user is done
+		var container = $(message).closest('.dt-button-info');
+		var close = function () {
+			container.off( 'click.buttons-copy' );
+			$(document).off( '.buttons-copy' );
+			dt.buttons.info( false );
+		};
+
+		container.on( 'click.buttons-copy', close );
+		$(document)
+			.on( 'keydown.buttons-copy', function (e) {
+				if ( e.keyCode === 27 ) { // esc
+					close();
+					that.processing( false );
+				}
+			} )
+			.on( 'copy.buttons-copy cut.buttons-copy', function () {
+				close();
+				that.processing( false );
+			} );
+	},
+
+	exportOptions: {},
+
+	fieldSeparator: '\t',
+
+	fieldBoundary: '',
+
+	header: true,
+
+	footer: false,
+
+	title: '*',
+
+	messageTop: '*',
+
+	messageBottom: '*'
+};
+
+//
+// CSV export
+//
+DataTable.ext.buttons.csvHtml5 = {
+	bom: false,
+
+	className: 'buttons-csv buttons-html5',
+
+	available: function () {
+		return window.FileReader !== undefined && window.Blob;
+	},
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.csv', 'CSV' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		// Set the text
+		var output = _exportData( dt, config ).str;
+		var info = dt.buttons.exportInfo(config);
+		var charset = config.charset;
+
+		if ( config.customize ) {
+			output = config.customize( output, config, dt );
+		}
+
+		if ( charset !== false ) {
+			if ( ! charset ) {
+				charset = document.characterSet || document.charset;
+			}
+
+			if ( charset ) {
+				charset = ';charset='+charset;
+			}
+		}
+		else {
+			charset = '';
+		}
+
+		if ( config.bom ) {
+			output = '\ufeff' + output;
+		}
+
+		_saveAs(
+			new Blob( [output], {type: 'text/csv'+charset} ),
+			info.filename,
+			true
+		);
+
+		this.processing( false );
+	},
+
+	filename: '*',
+
+	extension: '.csv',
+
+	exportOptions: {},
+
+	fieldSeparator: ',',
+
+	fieldBoundary: '"',
+
+	escapeChar: '"',
+
+	charset: null,
+
+	header: true,
+
+	footer: false
+};
+
+//
+// Excel (xlsx) export
+//
+DataTable.ext.buttons.excelHtml5 = {
+	className: 'buttons-excel buttons-html5',
+
+	available: function () {
+		return window.FileReader !== undefined && _jsZip() !== undefined && ! _isDuffSafari() && _serialiser;
+	},
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.excel', 'Excel' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		var that = this;
+		var rowPos = 0;
+		var getXml = function ( type ) {
+			var str = excelStrings[ type ];
+
+			//str = str.replace( /xmlns:/g, 'xmlns_' ).replace( /mc:/g, 'mc_' );
+
+			return $.parseXML( str );
+		};
+		var rels = getXml('xl/worksheets/sheet1.xml');
+		var relsGet = rels.getElementsByTagName( "sheetData" )[0];
+
+		var xlsx = {
+			_rels: {
+				".rels": getXml('_rels/.rels')
+			},
+			xl: {
+				_rels: {
+					"workbook.xml.rels": getXml('xl/_rels/workbook.xml.rels')
+				},
+				"workbook.xml": getXml('xl/workbook.xml'),
+				"styles.xml": getXml('xl/styles.xml'),
+				"worksheets": {
+					"sheet1.xml": rels
+				}
+
+			},
+			"[Content_Types].xml": getXml('[Content_Types].xml')
+		};
+
+		var data = dt.buttons.exportData( config.exportOptions );
+		var currentRow, rowNode;
+		var addRow = function ( row ) {
+			currentRow = rowPos+1;
+			rowNode = _createNode( rels, "row", { attr: {r:currentRow} } );
+
+			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
+				// Concat both the Cell Columns as a letter and the Row of the cell.
+				var cellId = createCellPos(i) + '' + currentRow;
+				var cell = null;
+
+				// For null, undefined of blank cell, continue so it doesn't create the _createNode
+				if ( row[i] === null || row[i] === undefined || row[i] === '' ) {
+					if ( config.createEmptyCells === true ) {
+						row[i] = '';
+					}
+					else {
+						continue;
+					}
+				}
+
+				var originalContent = row[i];
+				row[i] = $.trim( row[i] );
+
+				// Special number formatting options
+				for ( var j=0, jen=_excelSpecials.length ; j<jen ; j++ ) {
+					var special = _excelSpecials[j];
+
+					// TODO Need to provide the ability for the specials to say
+					// if they are returning a string, since at the moment it is
+					// assumed to be a number
+					if ( row[i].match && ! row[i].match(/^0\d+/) && row[i].match( special.match ) ) {
+						var val = row[i].replace(/[^\d\.\-]/g, '');
+
+						if ( special.fmt ) {
+							val = special.fmt( val );
+						}
+
+						cell = _createNode( rels, 'c', {
+							attr: {
+								r: cellId,
+								s: special.style
+							},
+							children: [
+								_createNode( rels, 'v', { text: val } )
+							]
+						} );
+
+						break;
+					}
+				}
+
+				if ( ! cell ) {
+					if ( typeof row[i] === 'number' || (
+						row[i].match &&
+						row[i].match(/^-?\d+(\.\d+)?$/) &&
+						! row[i].match(/^0\d+/) )
+					) {
+						// Detect numbers - don't match numbers with leading zeros
+						// or a negative anywhere but the start
+						cell = _createNode( rels, 'c', {
+							attr: {
+								t: 'n',
+								r: cellId
+							},
+							children: [
+								_createNode( rels, 'v', { text: row[i] } )
+							]
+						} );
+					}
+					else {
+						// String output - replace non standard characters for text output
+						var text = ! originalContent.replace ?
+							originalContent :
+							originalContent.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+
+						cell = _createNode( rels, 'c', {
+							attr: {
+								t: 'inlineStr',
+								r: cellId
+							},
+							children:{
+								row: _createNode( rels, 'is', {
+									children: {
+										row: _createNode( rels, 't', {
+											text: text,
+											attr: {
+												'xml:space': 'preserve'
+											}
+										} )
+									}
+								} )
+							}
+						} );
+					}
+				}
+
+				rowNode.appendChild( cell );
+			}
+
+			relsGet.appendChild(rowNode);
+			rowPos++;
+		};
+
+		$( 'sheets sheet', xlsx.xl['workbook.xml'] ).attr( 'name', _sheetname( config ) );
+
+		if ( config.customizeData ) {
+			config.customizeData( data );
+		}
+
+		var mergeCells = function ( row, colspan ) {
+			var mergeCells = $('mergeCells', rels);
+
+			mergeCells[0].appendChild( _createNode( rels, 'mergeCell', {
+				attr: {
+					ref: 'A'+row+':'+createCellPos(colspan)+row
+				}
+			} ) );
+			mergeCells.attr( 'count', parseFloat(mergeCells.attr( 'count' ))+1 );
+			$('row:eq('+(row-1)+') c', rels).attr( 's', '51' ); // centre
+		};
+
+		// Title and top messages
+		var exportInfo = dt.buttons.exportInfo( config );
+		if ( exportInfo.title ) {
+			addRow( [exportInfo.title], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		if ( exportInfo.messageTop ) {
+			addRow( [exportInfo.messageTop], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		// Table itself
+		if ( config.header ) {
+			addRow( data.header, rowPos );
+			$('row:last c', rels).attr( 's', '2' ); // bold
+		}
+
+		for ( var n=0, ie=data.body.length ; n<ie ; n++ ) {
+			addRow( data.body[n], rowPos );
+		}
+
+		if ( config.footer && data.footer ) {
+			addRow( data.footer, rowPos);
+			$('row:last c', rels).attr( 's', '2' ); // bold
+		}
+
+		// Below the table
+		if ( exportInfo.messageBottom ) {
+			addRow( [exportInfo.messageBottom], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		// Set column widths
+		var cols = _createNode( rels, 'cols' );
+		$('worksheet', rels).prepend( cols );
+
+		for ( var i=0, ien=data.header.length ; i<ien ; i++ ) {
+			cols.appendChild( _createNode( rels, 'col', {
+				attr: {
+					min: i+1,
+					max: i+1,
+					width: _excelColWidth( data, i ),
+					customWidth: 1
+				}
+			} ) );
+		}
+
+		// Let the developer customise the document if they want to
+		if ( config.customize ) {
+			config.customize( xlsx, config, dt );
+		}
+
+		// Excel doesn't like an empty mergeCells tag
+		if ( $('mergeCells', rels).children().length === 0 ) {
+			$('mergeCells', rels).remove();
+		}
+
+		var jszip = _jsZip();
+		var zip = new jszip();
+		var zipConfig = {
+			type: 'blob',
+			mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		};
+
+		_addToZip( zip, xlsx );
+
+		if ( zip.generateAsync ) {
+			// JSZip 3+
+			zip
+				.generateAsync( zipConfig )
+				.then( function ( blob ) {
+					_saveAs( blob, exportInfo.filename );
+					that.processing( false );
+				} );
+		}
+		else {
+			// JSZip 2.5
+			_saveAs(
+				zip.generate( zipConfig ),
+				exportInfo.filename
+			);
+			this.processing( false );
+		}
+	},
+
+	filename: '*',
+
+	extension: '.xlsx',
+
+	exportOptions: {},
+
+	header: true,
+
+	footer: false,
+
+	title: '*',
+
+	messageTop: '*',
+
+	messageBottom: '*',
+
+	createEmptyCells: false
+};
+
+//
+// PDF export - using pdfMake - http://pdfmake.org
+//
+DataTable.ext.buttons.pdfHtml5 = {
+	className: 'buttons-pdf buttons-html5',
+
+	available: function () {
+		return window.FileReader !== undefined && _pdfMake();
+	},
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.pdf', 'PDF' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		var that = this;
+		var data = dt.buttons.exportData( config.exportOptions );
+		var info = dt.buttons.exportInfo( config );
+		var rows = [];
+
+		if ( config.header ) {
+			rows.push( $.map( data.header, function ( d ) {
+				return {
+					text: typeof d === 'string' ? d : d+'',
+					style: 'tableHeader'
+				};
+			} ) );
+		}
+
+		for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+			rows.push( $.map( data.body[i], function ( d ) {
+				return {
+					text: typeof d === 'string' ? d : d+'',
+					style: i % 2 ? 'tableBodyEven' : 'tableBodyOdd'
+				};
+			} ) );
+		}
+
+		if ( config.footer && data.footer) {
+			rows.push( $.map( data.footer, function ( d ) {
+				return {
+					text: typeof d === 'string' ? d : d+'',
+					style: 'tableFooter'
+				};
+			} ) );
+		}
+
+		var doc = {
+			pageSize: config.pageSize,
+			pageOrientation: config.orientation,
+			content: [
+				{
+					table: {
+						headerRows: 1,
+						body: rows
+					},
+					layout: 'noBorders'
+				}
+			],
+			styles: {
+				tableHeader: {
+					bold: true,
+					fontSize: 11,
+					color: 'white',
+					fillColor: '#2d4154',
+					alignment: 'center'
+				},
+				tableBodyEven: {},
+				tableBodyOdd: {
+					fillColor: '#f3f3f3'
+				},
+				tableFooter: {
+					bold: true,
+					fontSize: 11,
+					color: 'white',
+					fillColor: '#2d4154'
+				},
+				title: {
+					alignment: 'center',
+					fontSize: 15
+				},
+				message: {}
+			},
+			defaultStyle: {
+				fontSize: 10
+			}
+		};
+
+		if ( info.messageTop ) {
+			doc.content.unshift( {
+				text: info.messageTop,
+				style: 'message',
+				margin: [ 0, 0, 0, 12 ]
+			} );
+		}
+
+		if ( info.messageBottom ) {
+			doc.content.push( {
+				text: info.messageBottom,
+				style: 'message',
+				margin: [ 0, 0, 0, 12 ]
+			} );
+		}
+
+		if ( info.title ) {
+			doc.content.unshift( {
+				text: info.title,
+				style: 'title',
+				margin: [ 0, 0, 0, 12 ]
+			} );
+		}
+
+		if ( config.customize ) {
+			config.customize( doc, config, dt );
+		}
+
+		var pdf = _pdfMake().createPdf( doc );
+
+		if ( config.download === 'open' && ! _isDuffSafari() ) {
+			pdf.open();
+		}
+		else {
+			pdf.download( info.filename );
+		}
+
+		this.processing( false );
+	},
+
+	title: '*',
+
+	filename: '*',
+
+	extension: '.pdf',
+
+	exportOptions: {},
+
+	orientation: 'portrait',
+
+	pageSize: 'A4',
+
+	header: true,
+
+	footer: false,
+
+	messageTop: '*',
+
+	messageBottom: '*',
+
+	customize: null,
+
+	download: 'download'
+};
+
+
+return DataTable.Buttons;
+}));
+
+
+/***/ }),
 /* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(159);
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+ * Flash export buttons for Buttons and DataTables.
+ * 2015-2017 SpryMedia Ltd - datatables.net/license
+ *
+ * ZeroClipbaord - MIT license
+ * Copyright (c) 2012 Joseph Huckaby
+ */
+
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			if ( ! $.fn.dataTable.Buttons ) {
+				require('datatables.net-buttons')(root, $);
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * ZeroClipboard dependency
+ */
+
+/*
+ * ZeroClipboard 1.0.4 with modifications
+ * Author: Joseph Huckaby
+ * License: MIT
+ *
+ * Copyright (c) 2012 Joseph Huckaby
+ */
+var ZeroClipboard_TableTools = {
+	version: "1.0.4-TableTools2",
+	clients: {}, // registered upload clients on page, indexed by id
+	moviePath: '', // URL to movie
+	nextId: 1, // ID of next movie
+
+	$: function(thingy) {
+		// simple DOM lookup utility function
+		if (typeof(thingy) == 'string') {
+			thingy = document.getElementById(thingy);
+		}
+		if (!thingy.addClass) {
+			// extend element with a few useful methods
+			thingy.hide = function() { this.style.display = 'none'; };
+			thingy.show = function() { this.style.display = ''; };
+			thingy.addClass = function(name) { this.removeClass(name); this.className += ' ' + name; };
+			thingy.removeClass = function(name) {
+				this.className = this.className.replace( new RegExp("\\s*" + name + "\\s*"), " ").replace(/^\s+/, '').replace(/\s+$/, '');
+			};
+			thingy.hasClass = function(name) {
+				return !!this.className.match( new RegExp("\\s*" + name + "\\s*") );
+			};
+		}
+		return thingy;
+	},
+
+	setMoviePath: function(path) {
+		// set path to ZeroClipboard.swf
+		this.moviePath = path;
+	},
+
+	dispatch: function(id, eventName, args) {
+		// receive event from flash movie, send to client
+		var client = this.clients[id];
+		if (client) {
+			client.receiveEvent(eventName, args);
+		}
+	},
+
+	log: function ( str ) {
+		console.log( 'Flash: '+str );
+	},
+
+	register: function(id, client) {
+		// register new client to receive events
+		this.clients[id] = client;
+	},
+
+	getDOMObjectPosition: function(obj) {
+		// get absolute coordinates for dom element
+		var info = {
+			left: 0,
+			top: 0,
+			width: obj.width ? obj.width : obj.offsetWidth,
+			height: obj.height ? obj.height : obj.offsetHeight
+		};
+
+		if ( obj.style.width !== "" ) {
+			info.width = obj.style.width.replace("px","");
+		}
+
+		if ( obj.style.height !== "" ) {
+			info.height = obj.style.height.replace("px","");
+		}
+
+		while (obj) {
+			info.left += obj.offsetLeft;
+			info.top += obj.offsetTop;
+			obj = obj.offsetParent;
+		}
+
+		return info;
+	},
+
+	Client: function(elem) {
+		// constructor for new simple upload client
+		this.handlers = {};
+
+		// unique ID
+		this.id = ZeroClipboard_TableTools.nextId++;
+		this.movieId = 'ZeroClipboard_TableToolsMovie_' + this.id;
+
+		// register client with singleton to receive flash events
+		ZeroClipboard_TableTools.register(this.id, this);
+
+		// create movie
+		if (elem) {
+			this.glue(elem);
+		}
+	}
+};
+
+ZeroClipboard_TableTools.Client.prototype = {
+
+	id: 0, // unique ID for us
+	ready: false, // whether movie is ready to receive events or not
+	movie: null, // reference to movie object
+	clipText: '', // text to copy to clipboard
+	fileName: '', // default file save name
+	action: 'copy', // action to perform
+	handCursorEnabled: true, // whether to show hand cursor, or default pointer cursor
+	cssEffects: true, // enable CSS mouse effects on dom container
+	handlers: null, // user event handlers
+	sized: false,
+	sheetName: '', // default sheet name for excel export
+
+	glue: function(elem, title) {
+		// glue to DOM element
+		// elem can be ID or actual DOM element object
+		this.domElement = ZeroClipboard_TableTools.$(elem);
+
+		// float just above object, or zIndex 99 if dom element isn't set
+		var zIndex = 99;
+		if (this.domElement.style.zIndex) {
+			zIndex = parseInt(this.domElement.style.zIndex, 10) + 1;
+		}
+
+		// find X/Y position of domElement
+		var box = ZeroClipboard_TableTools.getDOMObjectPosition(this.domElement);
+
+		// create floating DIV above element
+		this.div = document.createElement('div');
+		var style = this.div.style;
+		style.position = 'absolute';
+		style.left = '0px';
+		style.top = '0px';
+		style.width = (box.width) + 'px';
+		style.height = box.height + 'px';
+		style.zIndex = zIndex;
+
+		if ( typeof title != "undefined" && title !== "" ) {
+			this.div.title = title;
+		}
+		if ( box.width !== 0 && box.height !== 0 ) {
+			this.sized = true;
+		}
+
+		// style.backgroundColor = '#f00'; // debug
+		if ( this.domElement ) {
+			this.domElement.appendChild(this.div);
+			this.div.innerHTML = this.getHTML( box.width, box.height ).replace(/&/g, '&amp;');
+		}
+	},
+
+	positionElement: function() {
+		var box = ZeroClipboard_TableTools.getDOMObjectPosition(this.domElement);
+		var style = this.div.style;
+
+		style.position = 'absolute';
+		//style.left = (this.domElement.offsetLeft)+'px';
+		//style.top = this.domElement.offsetTop+'px';
+		style.width = box.width + 'px';
+		style.height = box.height + 'px';
+
+		if ( box.width !== 0 && box.height !== 0 ) {
+			this.sized = true;
+		} else {
+			return;
+		}
+
+		var flash = this.div.childNodes[0];
+		flash.width = box.width;
+		flash.height = box.height;
+	},
+
+	getHTML: function(width, height) {
+		// return HTML for movie
+		var html = '';
+		var flashvars = 'id=' + this.id +
+			'&width=' + width +
+			'&height=' + height;
+
+		if (navigator.userAgent.match(/MSIE/)) {
+			// IE gets an OBJECT tag
+			var protocol = location.href.match(/^https/i) ? 'https://' : 'http://';
+			html += '<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="'+protocol+'download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="'+width+'" height="'+height+'" id="'+this.movieId+'" align="middle"><param name="allowScriptAccess" value="always" /><param name="allowFullScreen" value="false" /><param name="movie" value="'+ZeroClipboard_TableTools.moviePath+'" /><param name="loop" value="false" /><param name="menu" value="false" /><param name="quality" value="best" /><param name="bgcolor" value="#ffffff" /><param name="flashvars" value="'+flashvars+'"/><param name="wmode" value="transparent"/></object>';
+		}
+		else {
+			// all other browsers get an EMBED tag
+			html += '<embed id="'+this.movieId+'" src="'+ZeroClipboard_TableTools.moviePath+'" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="'+width+'" height="'+height+'" name="'+this.movieId+'" align="middle" allowScriptAccess="always" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="'+flashvars+'" wmode="transparent" />';
+		}
+		return html;
+	},
+
+	hide: function() {
+		// temporarily hide floater offscreen
+		if (this.div) {
+			this.div.style.left = '-2000px';
+		}
+	},
+
+	show: function() {
+		// show ourselves after a call to hide()
+		this.reposition();
+	},
+
+	destroy: function() {
+		// destroy control and floater
+		var that = this;
+
+		if (this.domElement && this.div) {
+			$(this.div).remove();
+
+			this.domElement = null;
+			this.div = null;
+
+			$.each( ZeroClipboard_TableTools.clients, function ( id, client ) {
+				if ( client === that ) {
+					delete ZeroClipboard_TableTools.clients[ id ];
+				}
+			} );
+		}
+	},
+
+	reposition: function(elem) {
+		// reposition our floating div, optionally to new container
+		// warning: container CANNOT change size, only position
+		if (elem) {
+			this.domElement = ZeroClipboard_TableTools.$(elem);
+			if (!this.domElement) {
+				this.hide();
+			}
+		}
+
+		if (this.domElement && this.div) {
+			var box = ZeroClipboard_TableTools.getDOMObjectPosition(this.domElement);
+			var style = this.div.style;
+			style.left = '' + box.left + 'px';
+			style.top = '' + box.top + 'px';
+		}
+	},
+
+	clearText: function() {
+		// clear the text to be copy / saved
+		this.clipText = '';
+		if (this.ready) {
+			this.movie.clearText();
+		}
+	},
+
+	appendText: function(newText) {
+		// append text to that which is to be copied / saved
+		this.clipText += newText;
+		if (this.ready) { this.movie.appendText(newText) ;}
+	},
+
+	setText: function(newText) {
+		// set text to be copied to be copied / saved
+		this.clipText = newText;
+		if (this.ready) { this.movie.setText(newText) ;}
+	},
+
+	setFileName: function(newText) {
+		// set the file name
+		this.fileName = newText;
+		if (this.ready) {
+			this.movie.setFileName(newText);
+		}
+	},
+
+	setSheetData: function(data) {
+		// set the xlsx sheet data
+		if (this.ready) {
+			this.movie.setSheetData( JSON.stringify( data ) );
+		}
+	},
+
+	setAction: function(newText) {
+		// set action (save or copy)
+		this.action = newText;
+		if (this.ready) {
+			this.movie.setAction(newText);
+		}
+	},
+
+	addEventListener: function(eventName, func) {
+		// add user event listener for event
+		// event types: load, queueStart, fileStart, fileComplete, queueComplete, progress, error, cancel
+		eventName = eventName.toString().toLowerCase().replace(/^on/, '');
+		if (!this.handlers[eventName]) {
+			this.handlers[eventName] = [];
+		}
+		this.handlers[eventName].push(func);
+	},
+
+	setHandCursor: function(enabled) {
+		// enable hand cursor (true), or default arrow cursor (false)
+		this.handCursorEnabled = enabled;
+		if (this.ready) {
+			this.movie.setHandCursor(enabled);
+		}
+	},
+
+	setCSSEffects: function(enabled) {
+		// enable or disable CSS effects on DOM container
+		this.cssEffects = !!enabled;
+	},
+
+	receiveEvent: function(eventName, args) {
+		var self;
+
+		// receive event from flash
+		eventName = eventName.toString().toLowerCase().replace(/^on/, '');
+
+		// special behavior for certain events
+		switch (eventName) {
+			case 'load':
+				// movie claims it is ready, but in IE this isn't always the case...
+				// bug fix: Cannot extend EMBED DOM elements in Firefox, must use traditional function
+				this.movie = document.getElementById(this.movieId);
+				if (!this.movie) {
+					self = this;
+					setTimeout( function() { self.receiveEvent('load', null); }, 1 );
+					return;
+				}
+
+				// firefox on pc needs a "kick" in order to set these in certain cases
+				if (!this.ready && navigator.userAgent.match(/Firefox/) && navigator.userAgent.match(/Windows/)) {
+					self = this;
+					setTimeout( function() { self.receiveEvent('load', null); }, 100 );
+					this.ready = true;
+					return;
+				}
+
+				this.ready = true;
+				this.movie.clearText();
+				this.movie.appendText( this.clipText );
+				this.movie.setFileName( this.fileName );
+				this.movie.setAction( this.action );
+				this.movie.setHandCursor( this.handCursorEnabled );
+				break;
+
+			case 'mouseover':
+				if (this.domElement && this.cssEffects) {
+					//this.domElement.addClass('hover');
+					if (this.recoverActive) {
+						this.domElement.addClass('active');
+					}
+				}
+				break;
+
+			case 'mouseout':
+				if (this.domElement && this.cssEffects) {
+					this.recoverActive = false;
+					if (this.domElement.hasClass('active')) {
+						this.domElement.removeClass('active');
+						this.recoverActive = true;
+					}
+					//this.domElement.removeClass('hover');
+				}
+				break;
+
+			case 'mousedown':
+				if (this.domElement && this.cssEffects) {
+					this.domElement.addClass('active');
+				}
+				break;
+
+			case 'mouseup':
+				if (this.domElement && this.cssEffects) {
+					this.domElement.removeClass('active');
+					this.recoverActive = false;
+				}
+				break;
+		} // switch eventName
+
+		if (this.handlers[eventName]) {
+			for (var idx = 0, len = this.handlers[eventName].length; idx < len; idx++) {
+				var func = this.handlers[eventName][idx];
+
+				if (typeof(func) == 'function') {
+					// actual function reference
+					func(this, args);
+				}
+				else if ((typeof(func) == 'object') && (func.length == 2)) {
+					// PHP style object + method, i.e. [myObject, 'myMethod']
+					func[0][ func[1] ](this, args);
+				}
+				else if (typeof(func) == 'string') {
+					// name of function
+					window[func](this, args);
+				}
+			} // foreach event handler defined
+		} // user defined handler for event
+	}
+};
+
+ZeroClipboard_TableTools.hasFlash = function ()
+{
+	try {
+		var fo = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+		if (fo) {
+			return true;
+		}
+	}
+	catch (e) {
+		if (
+			navigator.mimeTypes &&
+			navigator.mimeTypes['application/x-shockwave-flash'] !== undefined &&
+			navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin
+		) {
+			return true;
+		}
+	}
+
+	return false;
+};
+
+// For the Flash binding to work, ZeroClipboard_TableTools must be on the global
+// object list
+window.ZeroClipboard_TableTools = ZeroClipboard_TableTools;
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Local (private) functions
+ */
+
+/**
+ * If a Buttons instance is initlaised before it is placed into the DOM, Flash
+ * won't be able to bind to it, so we need to wait until it is available, this
+ * method abstracts that out.
+ *
+ * @param {ZeroClipboard} flash ZeroClipboard instance
+ * @param {jQuery} node  Button
+ */
+var _glue = function ( flash, node )
+{
+	var id = node.attr('id');
+
+	if ( node.parents('html').length ) {
+		flash.glue( node[0], '' );
+	}
+	else {
+		setTimeout( function () {
+			_glue( flash, node );
+		}, 500 );
+	}
+};
+
+/**
+ * Get the sheet name for Excel exports.
+ *
+ * @param {object}  config       Button configuration
+ */
+var _sheetname = function ( config )
+{
+	var sheetName = 'Sheet1';
+
+	if ( config.sheetName ) {
+		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
+	}
+
+	return sheetName;
+};
+
+/**
+ * Set the flash text. This has to be broken up into chunks as the Javascript /
+ * Flash bridge has a size limit. There is no indication in the Flash
+ * documentation what this is, and it probably depends upon the browser.
+ * Experimentation shows that the point is around 50k when data starts to get
+ * lost, so an 8K limit used here is safe.
+ *
+ * @param {ZeroClipboard} flash ZeroClipboard instance
+ * @param {string}        data  Data to send to Flash
+ */
+var _setText = function ( flash, data )
+{
+	var parts = data.match(/[\s\S]{1,8192}/g) || [];
+
+	flash.clearText();
+	for ( var i=0, len=parts.length ; i<len ; i++ )
+	{
+		flash.appendText( parts[i] );
+	}
+};
+
+/**
+ * Get the newline character(s)
+ *
+ * @param {object}  config Button configuration
+ * @return {string}        Newline character
+ */
+var _newLine = function ( config )
+{
+	return config.newline ?
+		config.newline :
+		navigator.userAgent.match(/Windows/) ?
+			'\r\n' :
+			'\n';
+};
+
+/**
+ * Combine the data from the `buttons.exportData` method into a string that
+ * will be used in the export file.
+ *
+ * @param  {DataTable.Api} dt     DataTables API instance
+ * @param  {object}        config Button configuration
+ * @return {object}               The data to export
+ */
+var _exportData = function ( dt, config )
+{
+	var newLine = _newLine( config );
+	var data = dt.buttons.exportData( config.exportOptions );
+	var boundary = config.fieldBoundary;
+	var separator = config.fieldSeparator;
+	var reBoundary = new RegExp( boundary, 'g' );
+	var escapeChar = config.escapeChar !== undefined ?
+		config.escapeChar :
+		'\\';
+	var join = function ( a ) {
+		var s = '';
+
+		// If there is a field boundary, then we might need to escape it in
+		// the source data
+		for ( var i=0, ien=a.length ; i<ien ; i++ ) {
+			if ( i > 0 ) {
+				s += separator;
+			}
+
+			s += boundary ?
+				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
+				a[i];
+		}
+
+		return s;
+	};
+
+	var header = config.header ? join( data.header )+newLine : '';
+	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
+	var body = [];
+
+	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+		body.push( join( data.body[i] ) );
+	}
+
+	return {
+		str: header + body.join( newLine ) + footer,
+		rows: body.length
+	};
+};
+
+
+// Basic initialisation for the buttons is common between them
+var flashButton = {
+	available: function () {
+		return ZeroClipboard_TableTools.hasFlash();
+	},
+
+	init: function ( dt, button, config ) {
+		// Insert the Flash movie
+		ZeroClipboard_TableTools.moviePath = DataTable.Buttons.swfPath;
+		var flash = new ZeroClipboard_TableTools.Client();
+
+		flash.setHandCursor( true );
+		flash.addEventListener('mouseDown', function(client) {
+			config._fromFlash = true;
+			dt.button( button[0] ).trigger();
+			config._fromFlash = false;
+		} );
+
+		_glue( flash, button );
+
+		config._flash = flash;
+	},
+
+	destroy: function ( dt, button, config ) {
+		config._flash.destroy();
+	},
+
+	fieldSeparator: ',',
+
+	fieldBoundary: '"',
+
+	exportOptions: {},
+
+	title: '*',
+
+	messageTop: '*',
+
+	messageBottom: '*',
+
+	filename: '*',
+
+	extension: '.csv',
+
+	header: true,
+
+	footer: false
+};
+
+
+/**
+ * Convert from numeric position to letter for column names in Excel
+ * @param  {int} n Column number
+ * @return {string} Column letter(s) name
+ */
+function createCellPos( n ){
+	var ordA = 'A'.charCodeAt(0);
+	var ordZ = 'Z'.charCodeAt(0);
+	var len = ordZ - ordA + 1;
+	var s = "";
+
+	while( n >= 0 ) {
+		s = String.fromCharCode(n % len + ordA) + s;
+		n = Math.floor(n / len) - 1;
+	}
+
+	return s;
+}
+
+/**
+ * Create an XML node and add any children, attributes, etc without needing to
+ * be verbose in the DOM.
+ *
+ * @param  {object} doc      XML document
+ * @param  {string} nodeName Node name
+ * @param  {object} opts     Options - can be `attr` (attributes), `children`
+ *   (child nodes) and `text` (text content)
+ * @return {node}            Created node
+ */
+function _createNode( doc, nodeName, opts ){
+	var tempNode = doc.createElement( nodeName );
+
+	if ( opts ) {
+		if ( opts.attr ) {
+			$(tempNode).attr( opts.attr );
+		}
+
+		if ( opts.children ) {
+			$.each( opts.children, function ( key, value ) {
+				tempNode.appendChild( value );
+			} );
+		}
+
+		if ( opts.text !== null && opts.text !== undefined ) {
+			tempNode.appendChild( doc.createTextNode( opts.text ) );
+		}
+	}
+
+	return tempNode;
+}
+
+/**
+ * Get the width for an Excel column based on the contents of that column
+ * @param  {object} data Data for export
+ * @param  {int}    col  Column index
+ * @return {int}         Column width
+ */
+function _excelColWidth( data, col ) {
+	var max = data.header[col].length;
+	var len, lineSplit, str;
+
+	if ( data.footer && data.footer[col].length > max ) {
+		max = data.footer[col].length;
+	}
+
+	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+		var point = data.body[i][col];
+		str = point !== null && point !== undefined ?
+			point.toString() :
+			'';
+
+		// If there is a newline character, workout the width of the column
+		// based on the longest line in the string
+		if ( str.indexOf('\n') !== -1 ) {
+			lineSplit = str.split('\n');
+			lineSplit.sort( function (a, b) {
+				return b.length - a.length;
+			} );
+
+			len = lineSplit[0].length;
+		}
+		else {
+			len = str.length;
+		}
+
+		if ( len > max ) {
+			max = len;
+		}
+
+		// Max width rather than having potentially massive column widths
+		if ( max > 40 ) {
+			return 52; // 40 * 1.3
+		}
+	}
+
+	max *= 1.3;
+
+	// And a min width
+	return max > 6 ? max : 6;
+}
+
+  var _serialiser = "";
+    if (typeof window.XMLSerializer === 'undefined') {
+        _serialiser = new function () {
+            this.serializeToString = function (input) {
+                return input.xml
+            }
+        };
+    } else {
+        _serialiser =  new XMLSerializer();
+    }
+
+    var _ieExcel;
+
+
+/**
+ * Convert XML documents in an object to strings
+ * @param  {object} obj XLSX document object
+ */
+function _xlsxToStrings( obj ) {
+	if ( _ieExcel === undefined ) {
+		// Detect if we are dealing with IE's _awful_ serialiser by seeing if it
+		// drop attributes
+		_ieExcel = _serialiser
+			.serializeToString(
+				$.parseXML( excelStrings['xl/worksheets/sheet1.xml'] )
+			)
+			.indexOf( 'xmlns:r' ) === -1;
+	}
+
+	$.each( obj, function ( name, val ) {
+		if ( $.isPlainObject( val ) ) {
+			_xlsxToStrings( val );
+		}
+		else {
+			if ( _ieExcel ) {
+				// IE's XML serialiser will drop some name space attributes from
+				// from the root node, so we need to save them. Do this by
+				// replacing the namespace nodes with a regular attribute that
+				// we convert back when serialised. Edge does not have this
+				// issue
+				var worksheet = val.childNodes[0];
+				var i, ien;
+				var attrs = [];
+
+				for ( i=worksheet.attributes.length-1 ; i>=0 ; i-- ) {
+					var attrName = worksheet.attributes[i].nodeName;
+					var attrValue = worksheet.attributes[i].nodeValue;
+
+					if ( attrName.indexOf( ':' ) !== -1 ) {
+						attrs.push( { name: attrName, value: attrValue } );
+
+						worksheet.removeAttribute( attrName );
+					}
+				}
+
+				for ( i=0, ien=attrs.length ; i<ien ; i++ ) {
+					var attr = val.createAttribute( attrs[i].name.replace( ':', '_dt_b_namespace_token_' ) );
+					attr.value = attrs[i].value;
+					worksheet.setAttributeNode( attr );
+				}
+			}
+
+			var str = _serialiser.serializeToString(val);
+
+			// Fix IE's XML
+			if ( _ieExcel ) {
+				// IE doesn't include the XML declaration
+				if ( str.indexOf( '<?xml' ) === -1 ) {
+					str = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+str;
+				}
+
+				// Return namespace attributes to being as such
+				str = str.replace( /_dt_b_namespace_token_/g, ':' );
+			}
+
+			// Safari, IE and Edge will put empty name space attributes onto
+			// various elements making them useless. This strips them out
+			str = str.replace( /<([^<>]*?) xmlns=""([^<>]*?)>/g, '<$1 $2>' );
+
+			obj[ name ] = str;
+		}
+	} );
+}
+
+// Excel - Pre-defined strings to build a basic XLSX file
+var excelStrings = {
+	"_rels/.rels":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+		'</Relationships>',
+
+	"xl/_rels/workbook.xml.rels":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+			'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
+		'</Relationships>',
+
+	"[Content_Types].xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+			'<Default Extension="xml" ContentType="application/xml" />'+
+			'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />'+
+			'<Default Extension="jpeg" ContentType="image/jpeg" />'+
+			'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />'+
+			'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />'+
+			'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />'+
+		'</Types>',
+
+	"xl/workbook.xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+			'<fileVersion appName="xl" lastEdited="5" lowestEdited="5" rupBuild="24816"/>'+
+			'<workbookPr showInkAnnotation="0" autoCompressPictures="0"/>'+
+			'<bookViews>'+
+				'<workbookView xWindow="0" yWindow="0" windowWidth="25600" windowHeight="19020" tabRatio="500"/>'+
+			'</bookViews>'+
+			'<sheets>'+
+				'<sheet name="" sheetId="1" r:id="rId1"/>'+
+			'</sheets>'+
+		'</workbook>',
+
+	"xl/worksheets/sheet1.xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
+			'<sheetData/>'+
+			'<mergeCells count="0"/>'+
+		'</worksheet>',
+
+	"xl/styles.xml":
+		'<?xml version="1.0" encoding="UTF-8"?>'+
+		'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
+			'<numFmts count="6">'+
+				'<numFmt numFmtId="164" formatCode="#,##0.00_-\ [$$-45C]"/>'+
+				'<numFmt numFmtId="165" formatCode="&quot;£&quot;#,##0.00"/>'+
+				'<numFmt numFmtId="166" formatCode="[$€-2]\ #,##0.00"/>'+
+				'<numFmt numFmtId="167" formatCode="0.0%"/>'+
+				'<numFmt numFmtId="168" formatCode="#,##0;(#,##0)"/>'+
+				'<numFmt numFmtId="169" formatCode="#,##0.00;(#,##0.00)"/>'+
+			'</numFmts>'+
+			'<fonts count="5" x14ac:knownFonts="1">'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<color rgb="FFFFFFFF" />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<b />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<i />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<u />'+
+				'</font>'+
+			'</fonts>'+
+			'<fills count="6">'+
+				'<fill>'+
+					'<patternFill patternType="none" />'+
+				'</fill>'+
+				'<fill>'+ // Excel appears to use this as a dotted background regardless of values but
+					'<patternFill patternType="none" />'+ // to be valid to the schema, use a patternFill
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="FFD9D9D9" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="FFD99795" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="ffc6efce" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="ffc6cfef" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+			'</fills>'+
+			'<borders count="2">'+
+				'<border>'+
+					'<left />'+
+					'<right />'+
+					'<top />'+
+					'<bottom />'+
+					'<diagonal />'+
+				'</border>'+
+				'<border diagonalUp="false" diagonalDown="false">'+
+					'<left style="thin">'+
+						'<color auto="1" />'+
+					'</left>'+
+					'<right style="thin">'+
+						'<color auto="1" />'+
+					'</right>'+
+					'<top style="thin">'+
+						'<color auto="1" />'+
+					'</top>'+
+					'<bottom style="thin">'+
+						'<color auto="1" />'+
+					'</bottom>'+
+					'<diagonal />'+
+				'</border>'+
+			'</borders>'+
+			'<cellStyleXfs count="1">'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" />'+
+			'</cellStyleXfs>'+
+			'<cellXfs count="61">'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="left"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="center"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="right"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="fill"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment textRotation="90"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment wrapText="1"/>'+
+				'</xf>'+
+				'<xf numFmtId="9"   fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="166" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="167" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="168" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="169" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="3" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="4" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+			'</cellXfs>'+
+			'<cellStyles count="1">'+
+				'<cellStyle name="Normal" xfId="0" builtinId="0" />'+
+			'</cellStyles>'+
+			'<dxfs count="0" />'+
+			'<tableStyles count="0" defaultTableStyle="TableStyleMedium9" defaultPivotStyle="PivotStyleMedium4" />'+
+		'</styleSheet>'
+};
+// Note we could use 3 `for` loops for the styles, but when gzipped there is
+// virtually no difference in size, since the above can be easily compressed
+
+// Pattern matching for special number formats. Perhaps this should be exposed
+// via an API in future?
+var _excelSpecials = [
+	{ match: /^\-?\d+\.\d%$/,       style: 60, fmt: function (d) { return d/100; } }, // Precent with d.p.
+	{ match: /^\-?\d+\.?\d*%$/,     style: 56, fmt: function (d) { return d/100; } }, // Percent
+	{ match: /^\-?\$[\d,]+.?\d*$/,  style: 57 }, // Dollars
+	{ match: /^\-?£[\d,]+.?\d*$/,   style: 58 }, // Pounds
+	{ match: /^\-?€[\d,]+.?\d*$/,   style: 59 }, // Euros
+	{ match: /^\([\d,]+\)$/,        style: 61, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets
+	{ match: /^\([\d,]+\.\d{2}\)$/, style: 62, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets - 2d.p.
+	{ match: /^[\d,]+$/,            style: 63 }, // Numbers with thousand separators
+	{ match: /^[\d,]+\.\d{2}$/,     style: 64 }  // Numbers with 2d.p. and thousands separators
+];
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables options and methods
+ */
+
+// Set the default SWF path
+DataTable.Buttons.swfPath = '//cdn.datatables.net/buttons/'+DataTable.Buttons.version+'/swf/flashExport.swf';
+
+// Method to allow Flash buttons to be resized when made visible - as they are
+// of zero height and width if initialised hidden
+DataTable.Api.register( 'buttons.resize()', function () {
+	$.each( ZeroClipboard_TableTools.clients, function ( i, client ) {
+		if ( client.domElement !== undefined && client.domElement.parentNode ) {
+			client.positionElement();
+		}
+	} );
+} );
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Button definitions
+ */
+
+// Copy to clipboard
+DataTable.ext.buttons.copyFlash = $.extend( {}, flashButton, {
+	className: 'buttons-copy buttons-flash',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.copy', 'Copy' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		// Check that the trigger did actually occur due to a Flash activation
+		if ( ! config._fromFlash ) {
+			return;
+		}
+
+		this.processing( true );
+
+		var flash = config._flash;
+		var exportData = _exportData( dt, config );
+		var info = dt.buttons.exportInfo( config );
+		var newline = _newLine(config);
+		var output = exportData.str;
+
+		if ( info.title ) {
+			output = info.title + newline + newline + output;
+		}
+
+		if ( info.messageTop ) {
+			output = info.messageTop + newline + newline + output;
+		}
+
+		if ( info.messageBottom ) {
+			output = output + newline + newline + info.messageBottom;
+		}
+
+		if ( config.customize ) {
+			output = config.customize( output, config, dt );
+		}
+
+		flash.setAction( 'copy' );
+		_setText( flash, output );
+
+		this.processing( false );
+
+		dt.buttons.info(
+			dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
+			dt.i18n( 'buttons.copySuccess', {
+				_: 'Copied %d rows to clipboard',
+				1: 'Copied 1 row to clipboard'
+			}, data.rows ),
+			3000
+		);
+	},
+
+	fieldSeparator: '\t',
+
+	fieldBoundary: ''
+} );
+
+// CSV save file
+DataTable.ext.buttons.csvFlash = $.extend( {}, flashButton, {
+	className: 'buttons-csv buttons-flash',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.csv', 'CSV' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		// Set the text
+		var flash = config._flash;
+		var data = _exportData( dt, config );
+		var info = dt.buttons.exportInfo( config );
+		var output = config.customize ?
+			config.customize( data.str, config, dt ) :
+			data.str;
+
+		flash.setAction( 'csv' );
+		flash.setFileName( info.filename );
+		_setText( flash, output );
+	},
+
+	escapeChar: '"'
+} );
+
+// Excel save file - this is really a CSV file using UTF-8 that Excel can read
+DataTable.ext.buttons.excelFlash = $.extend( {}, flashButton, {
+	className: 'buttons-excel buttons-flash',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.excel', 'Excel' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		var flash = config._flash;
+		var rowPos = 0;
+		var rels = $.parseXML( excelStrings['xl/worksheets/sheet1.xml'] ) ; //Parses xml
+		var relsGet = rels.getElementsByTagName( "sheetData" )[0];
+
+		var xlsx = {
+			_rels: {
+				".rels": $.parseXML( excelStrings['_rels/.rels'] )
+			},
+			xl: {
+				_rels: {
+					"workbook.xml.rels": $.parseXML( excelStrings['xl/_rels/workbook.xml.rels'] )
+				},
+				"workbook.xml": $.parseXML( excelStrings['xl/workbook.xml'] ),
+				"styles.xml": $.parseXML( excelStrings['xl/styles.xml'] ),
+				"worksheets": {
+					"sheet1.xml": rels
+				}
+
+			},
+			"[Content_Types].xml": $.parseXML( excelStrings['[Content_Types].xml'])
+		};
+
+		var data = dt.buttons.exportData( config.exportOptions );
+		var currentRow, rowNode;
+		var addRow = function ( row ) {
+			currentRow = rowPos+1;
+			rowNode = _createNode( rels, "row", { attr: {r:currentRow} } );
+
+			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
+				// Concat both the Cell Columns as a letter and the Row of the cell.
+				var cellId = createCellPos(i) + '' + currentRow;
+				var cell = null;
+
+				// For null, undefined of blank cell, continue so it doesn't create the _createNode
+				if ( row[i] === null || row[i] === undefined || row[i] === '' ) {
+					if ( config.createEmptyCells === true ) {
+						row[i] = '';
+					}
+					else {
+						continue;
+					}
+				}
+
+				row[i] = $.trim( row[i] );
+
+				// Special number formatting options
+				for ( var j=0, jen=_excelSpecials.length ; j<jen ; j++ ) {
+					var special = _excelSpecials[j];
+
+					// TODO Need to provide the ability for the specials to say
+					// if they are returning a string, since at the moment it is
+					// assumed to be a number
+					if ( row[i].match && ! row[i].match(/^0\d+/) && row[i].match( special.match ) ) {
+						var val = row[i].replace(/[^\d\.\-]/g, '');
+
+						if ( special.fmt ) {
+							val = special.fmt( val );
+						}
+
+						cell = _createNode( rels, 'c', {
+							attr: {
+								r: cellId,
+								s: special.style
+							},
+							children: [
+								_createNode( rels, 'v', { text: val } )
+							]
+						} );
+
+						break;
+					}
+				}
+
+				if ( ! cell ) {
+					if ( typeof row[i] === 'number' || (
+						row[i].match &&
+						row[i].match(/^-?\d+(\.\d+)?$/) &&
+						! row[i].match(/^0\d+/) )
+					) {
+						// Detect numbers - don't match numbers with leading zeros
+						// or a negative anywhere but the start
+						cell = _createNode( rels, 'c', {
+							attr: {
+								t: 'n',
+								r: cellId
+							},
+							children: [
+								_createNode( rels, 'v', { text: row[i] } )
+							]
+						} );
+					}
+					else {
+						// String output - replace non standard characters for text output
+						var text = ! row[i].replace ?
+							row[i] :
+							row[i].replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+
+						cell = _createNode( rels, 'c', {
+							attr: {
+								t: 'inlineStr',
+								r: cellId
+							},
+							children:{
+								row: _createNode( rels, 'is', {
+									children: {
+										row: _createNode( rels, 't', {
+											text: text
+										} )
+									}
+								} )
+							}
+						} );
+					}
+				}
+
+				rowNode.appendChild( cell );
+			}
+
+			relsGet.appendChild(rowNode);
+			rowPos++;
+		};
+
+		$( 'sheets sheet', xlsx.xl['workbook.xml'] ).attr( 'name', _sheetname( config ) );
+
+		if ( config.customizeData ) {
+			config.customizeData( data );
+		}
+
+		var mergeCells = function ( row, colspan ) {
+			var mergeCells = $('mergeCells', rels);
+
+			mergeCells[0].appendChild( _createNode( rels, 'mergeCell', {
+				attr: {
+					ref: 'A'+row+':'+createCellPos(colspan)+row
+				}
+			} ) );
+			mergeCells.attr( 'count', mergeCells.attr( 'count' )+1 );
+			$('row:eq('+(row-1)+') c', rels).attr( 's', '51' ); // centre
+		};
+
+		// Title and top messages
+		var exportInfo = dt.buttons.exportInfo( config );
+		if ( exportInfo.title ) {
+			addRow( [exportInfo.title], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		if ( exportInfo.messageTop ) {
+			addRow( [exportInfo.messageTop], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		// Table itself
+		if ( config.header ) {
+			addRow( data.header, rowPos );
+			$('row:last c', rels).attr( 's', '2' ); // bold
+		}
+
+		for ( var n=0, ie=data.body.length ; n<ie ; n++ ) {
+			addRow( data.body[n], rowPos );
+		}
+
+		if ( config.footer && data.footer ) {
+			addRow( data.footer, rowPos);
+			$('row:last c', rels).attr( 's', '2' ); // bold
+		}
+
+		// Below the table
+		if ( exportInfo.messageBottom ) {
+			addRow( [exportInfo.messageBottom], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		// Set column widths
+		var cols = _createNode( rels, 'cols' );
+		$('worksheet', rels).prepend( cols );
+
+		for ( var i=0, ien=data.header.length ; i<ien ; i++ ) {
+			cols.appendChild( _createNode( rels, 'col', {
+				attr: {
+					min: i+1,
+					max: i+1,
+					width: _excelColWidth( data, i ),
+					customWidth: 1
+				}
+			} ) );
+		}
+
+		// Let the developer customise the document if they want to
+		if ( config.customize ) {
+			config.customize( xlsx, config, dt );
+		}
+
+		_xlsxToStrings( xlsx );
+
+		flash.setAction( 'excel' );
+		flash.setFileName( exportInfo.filename );
+		flash.setSheetData( xlsx );
+		_setText( flash, '' );
+
+		this.processing( false );
+	},
+
+	extension: '.xlsx',
+	
+	createEmptyCells: false
+} );
+
+
+
+// PDF export
+DataTable.ext.buttons.pdfFlash = $.extend( {}, flashButton, {
+	className: 'buttons-pdf buttons-flash',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.pdf', 'PDF' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		// Set the text
+		var flash = config._flash;
+		var data = dt.buttons.exportData( config.exportOptions );
+		var info = dt.buttons.exportInfo( config );
+		var totalWidth = dt.table().node().offsetWidth;
+
+		// Calculate the column width ratios for layout of the table in the PDF
+		var ratios = dt.columns( config.columns ).indexes().map( function ( idx ) {
+			return dt.column( idx ).header().offsetWidth / totalWidth;
+		} );
+
+		flash.setAction( 'pdf' );
+		flash.setFileName( info.filename );
+
+		_setText( flash, JSON.stringify( {
+			title:         info.title || '',
+			messageTop:    info.messageTop || '',
+			messageBottom: info.messageBottom || '',
+			colWidth:      ratios.toArray(),
+			orientation:   config.orientation,
+			size:          config.pageSize,
+			header:        config.header ? data.header : null,
+			footer:        config.footer ? data.footer : null,
+			body:          data.body
+		} ) );
+
+		this.processing( false );
+	},
+
+	extension: '.pdf',
+
+	orientation: 'portrait',
+
+	pageSize: 'A4',
+
+	newline: '\n'
+} );
+
+
+return DataTable.Buttons;
+}));
+
 
 /***/ }),
 /* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 styling wrapper for Select
+ * ©2018 SpryMedia Ltd - datatables.net/license
+ */
+
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(9), __webpack_require__(160)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net-bs4')(root, $).$;
+			}
+
+			if ( ! $.fn.dataTable.select ) {
+				require('datatables.net-select')(root, $);
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+
+return $.fn.dataTable;
+
+}));
+
+/***/ }),
+/* 160 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Select for DataTables 1.2.7
+ * 2015-2018 SpryMedia Ltd - datatables.net/license/mit
+ */
+
+/**
+ * @summary     Select for DataTables
+ * @description A collection of API methods, events and buttons for DataTables
+ *   that provides selection options of the items in a DataTable
+ * @version     1.2.7
+ * @file        dataTables.select.js
+ * @author      SpryMedia Ltd (www.sprymedia.co.uk)
+ * @contact     datatables.net/forums
+ * @copyright   Copyright 2015-2018 SpryMedia Ltd.
+ *
+ * This source file is free software, available under the following license:
+ *   MIT license - http://datatables.net/license/mit
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
+ *
+ * For details please refer to: http://www.datatables.net/extensions/select
+ */
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+// Version information for debugger
+DataTable.select = {};
+
+DataTable.select.version = '1.2.7';
+
+DataTable.select.init = function ( dt ) {
+	var ctx = dt.settings()[0];
+	var init = ctx.oInit.select;
+	var defaults = DataTable.defaults.select;
+	var opts = init === undefined ?
+		defaults :
+		init;
+
+	// Set defaults
+	var items = 'row';
+	var style = 'api';
+	var blurable = false;
+	var info = true;
+	var selector = 'td, th';
+	var className = 'selected';
+	var setStyle = false;
+
+	ctx._select = {};
+
+	// Initialisation customisations
+	if ( opts === true ) {
+		style = 'os';
+		setStyle = true;
+	}
+	else if ( typeof opts === 'string' ) {
+		style = opts;
+		setStyle = true;
+	}
+	else if ( $.isPlainObject( opts ) ) {
+		if ( opts.blurable !== undefined ) {
+			blurable = opts.blurable;
+		}
+
+		if ( opts.info !== undefined ) {
+			info = opts.info;
+		}
+
+		if ( opts.items !== undefined ) {
+			items = opts.items;
+		}
+
+		if ( opts.style !== undefined ) {
+			style = opts.style;
+			setStyle = true;
+		}
+
+		if ( opts.selector !== undefined ) {
+			selector = opts.selector;
+		}
+
+		if ( opts.className !== undefined ) {
+			className = opts.className;
+		}
+	}
+
+	dt.select.selector( selector );
+	dt.select.items( items );
+	dt.select.style( style );
+	dt.select.blurable( blurable );
+	dt.select.info( info );
+	ctx._select.className = className;
+
+
+	// Sort table based on selected rows. Requires Select Datatables extension
+	$.fn.dataTable.ext.order['select-checkbox'] = function ( settings, col ) {
+		return this.api().column( col, {order: 'index'} ).nodes().map( function ( td ) {
+			if ( settings._select.items === 'row' ) {
+				return $( td ).parent().hasClass( settings._select.className );
+			} else if ( settings._select.items === 'cell' ) {
+				return $( td ).hasClass( settings._select.className );
+			}
+			return false;
+		});
+	};
+
+	// If the init options haven't enabled select, but there is a selectable
+	// class name, then enable
+	if ( ! setStyle && $( dt.table().node() ).hasClass( 'selectable' ) ) {
+		dt.select.style( 'os' );
+	}
+};
+
+/*
+
+Select is a collection of API methods, event handlers, event emitters and
+buttons (for the `Buttons` extension) for DataTables. It provides the following
+features, with an overview of how they are implemented:
+
+## Selection of rows, columns and cells. Whether an item is selected or not is
+   stored in:
+
+* rows: a `_select_selected` property which contains a boolean value of the
+  DataTables' `aoData` object for each row
+* columns: a `_select_selected` property which contains a boolean value of the
+  DataTables' `aoColumns` object for each column
+* cells: a `_selected_cells` property which contains an array of boolean values
+  of the `aoData` object for each row. The array is the same length as the
+  columns array, with each element of it representing a cell.
+
+This method of using boolean flags allows Select to operate when nodes have not
+been created for rows / cells (DataTables' defer rendering feature).
+
+## API methods
+
+A range of API methods are available for triggering selection and de-selection
+of rows. Methods are also available to configure the selection events that can
+be triggered by an end user (such as which items are to be selected). To a large
+extent, these of API methods *is* Select. It is basically a collection of helper
+functions that can be used to select items in a DataTable.
+
+Configuration of select is held in the object `_select` which is attached to the
+DataTables settings object on initialisation. Select being available on a table
+is not optional when Select is loaded, but its default is for selection only to
+be available via the API - so the end user wouldn't be able to select rows
+without additional configuration.
+
+The `_select` object contains the following properties:
+
+```
+{
+	items:string     - Can be `rows`, `columns` or `cells`. Defines what item 
+	                   will be selected if the user is allowed to activate row
+	                   selection using the mouse.
+	style:string     - Can be `none`, `single`, `multi` or `os`. Defines the
+	                   interaction style when selecting items
+	blurable:boolean - If row selection can be cleared by clicking outside of
+	                   the table
+	info:boolean     - If the selection summary should be shown in the table
+	                   information elements
+}
+```
+
+In addition to the API methods, Select also extends the DataTables selector
+options for rows, columns and cells adding a `selected` option to the selector
+options object, allowing the developer to select only selected items or
+unselected items.
+
+## Mouse selection of items
+
+Clicking on items can be used to select items. This is done by a simple event
+handler that will select the items using the API methods.
+
+ */
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Local functions
+ */
+
+/**
+ * Add one or more cells to the selection when shift clicking in OS selection
+ * style cell selection.
+ *
+ * Cell range is more complicated than row and column as we want to select
+ * in the visible grid rather than by index in sequence. For example, if you
+ * click first in cell 1-1 and then shift click in 2-2 - cells 1-2 and 2-1
+ * should also be selected (and not 1-3, 1-4. etc)
+ * 
+ * @param  {DataTable.Api} dt   DataTable
+ * @param  {object}        idx  Cell index to select to
+ * @param  {object}        last Cell index to select from
+ * @private
+ */
+function cellRange( dt, idx, last )
+{
+	var indexes;
+	var columnIndexes;
+	var rowIndexes;
+	var selectColumns = function ( start, end ) {
+		if ( start > end ) {
+			var tmp = end;
+			end = start;
+			start = tmp;
+		}
+		
+		var record = false;
+		return dt.columns( ':visible' ).indexes().filter( function (i) {
+			if ( i === start ) {
+				record = true;
+			}
+			
+			if ( i === end ) { // not else if, as start might === end
+				record = false;
+				return true;
+			}
+
+			return record;
+		} );
+	};
+
+	var selectRows = function ( start, end ) {
+		var indexes = dt.rows( { search: 'applied' } ).indexes();
+
+		// Which comes first - might need to swap
+		if ( indexes.indexOf( start ) > indexes.indexOf( end ) ) {
+			var tmp = end;
+			end = start;
+			start = tmp;
+		}
+
+		var record = false;
+		return indexes.filter( function (i) {
+			if ( i === start ) {
+				record = true;
+			}
+			
+			if ( i === end ) {
+				record = false;
+				return true;
+			}
+
+			return record;
+		} );
+	};
+
+	if ( ! dt.cells( { selected: true } ).any() && ! last ) {
+		// select from the top left cell to this one
+		columnIndexes = selectColumns( 0, idx.column );
+		rowIndexes = selectRows( 0 , idx.row );
+	}
+	else {
+		// Get column indexes between old and new
+		columnIndexes = selectColumns( last.column, idx.column );
+		rowIndexes = selectRows( last.row , idx.row );
+	}
+
+	indexes = dt.cells( rowIndexes, columnIndexes ).flatten();
+
+	if ( ! dt.cells( idx, { selected: true } ).any() ) {
+		// Select range
+		dt.cells( indexes ).select();
+	}
+	else {
+		// Deselect range
+		dt.cells( indexes ).deselect();
+	}
+}
+
+/**
+ * Disable mouse selection by removing the selectors
+ *
+ * @param {DataTable.Api} dt DataTable to remove events from
+ * @private
+ */
+function disableMouseSelection( dt )
+{
+	var ctx = dt.settings()[0];
+	var selector = ctx._select.selector;
+
+	$( dt.table().container() )
+		.off( 'mousedown.dtSelect', selector )
+		.off( 'mouseup.dtSelect', selector )
+		.off( 'click.dtSelect', selector );
+
+	$('body').off( 'click.dtSelect' + dt.table().node().id );
+}
+
+/**
+ * Attach mouse listeners to the table to allow mouse selection of items
+ *
+ * @param {DataTable.Api} dt DataTable to remove events from
+ * @private
+ */
+function enableMouseSelection ( dt )
+{
+	var container = $( dt.table().container() );
+	var ctx = dt.settings()[0];
+	var selector = ctx._select.selector;
+	var matchSelection;
+
+	container
+		.on( 'mousedown.dtSelect', selector, function(e) {
+			// Disallow text selection for shift clicking on the table so multi
+			// element selection doesn't look terrible!
+			if ( e.shiftKey || e.metaKey || e.ctrlKey ) {
+				container
+					.css( '-moz-user-select', 'none' )
+					.one('selectstart.dtSelect', selector, function () {
+						return false;
+					} );
+			}
+
+			if ( window.getSelection ) {
+				matchSelection = window.getSelection();
+			}
+		} )
+		.on( 'mouseup.dtSelect', selector, function() {
+			// Allow text selection to occur again, Mozilla style (tested in FF
+			// 35.0.1 - still required)
+			container.css( '-moz-user-select', '' );
+		} )
+		.on( 'click.dtSelect', selector, function ( e ) {
+			var items = dt.select.items();
+			var idx;
+
+			// If text was selected (click and drag), then we shouldn't change
+			// the row's selected state
+			if ( window.getSelection ) {
+				var selection = window.getSelection();
+
+				// If the element that contains the selection is not in the table, we can ignore it
+				// This can happen if the developer selects text from the click event
+				if ( ! selection.anchorNode || $(selection.anchorNode).closest('table')[0] === dt.table().node() ) {
+					if ( selection !== matchSelection ) {
+						return;
+					}
+				}
+			}
+
+			var ctx = dt.settings()[0];
+			var wrapperClass = dt.settings()[0].oClasses.sWrapper.replace(/ /g, '.');
+
+			// Ignore clicks inside a sub-table
+			if ( $(e.target).closest('div.'+wrapperClass)[0] != dt.table().container() ) {
+				return;
+			}
+
+			var cell = dt.cell( $(e.target).closest('td, th') );
+
+			// Check the cell actually belongs to the host DataTable (so child
+			// rows, etc, are ignored)
+			if ( ! cell.any() ) {
+				return;
+			}
+
+			var event = $.Event('user-select.dt');
+			eventTrigger( dt, event, [ items, cell, e ] );
+
+			if ( event.isDefaultPrevented() ) {
+				return;
+			}
+
+			var cellIndex = cell.index();
+			if ( items === 'row' ) {
+				idx = cellIndex.row;
+				typeSelect( e, dt, ctx, 'row', idx );
+			}
+			else if ( items === 'column' ) {
+				idx = cell.index().column;
+				typeSelect( e, dt, ctx, 'column', idx );
+			}
+			else if ( items === 'cell' ) {
+				idx = cell.index();
+				typeSelect( e, dt, ctx, 'cell', idx );
+			}
+
+			ctx._select_lastCell = cellIndex;
+		} );
+
+	// Blurable
+	$('body').on( 'click.dtSelect' + dt.table().node().id, function ( e ) {
+		if ( ctx._select.blurable ) {
+			// If the click was inside the DataTables container, don't blur
+			if ( $(e.target).parents().filter( dt.table().container() ).length ) {
+				return;
+			}
+
+			// Ignore elements which have been removed from the DOM (i.e. paging
+			// buttons)
+			if ( $(e.target).parents('html').length === 0 ) {
+			 	return;
+			}
+
+			// Don't blur in Editor form
+			if ( $(e.target).parents('div.DTE').length ) {
+				return;
+			}
+
+			clear( ctx, true );
+		}
+	} );
+}
+
+/**
+ * Trigger an event on a DataTable
+ *
+ * @param {DataTable.Api} api      DataTable to trigger events on
+ * @param  {boolean}      selected true if selected, false if deselected
+ * @param  {string}       type     Item type acting on
+ * @param  {boolean}      any      Require that there are values before
+ *     triggering
+ * @private
+ */
+function eventTrigger ( api, type, args, any )
+{
+	if ( any && ! api.flatten().length ) {
+		return;
+	}
+
+	if ( typeof type === 'string' ) {
+		type = type +'.dt';
+	}
+
+	args.unshift( api );
+
+	$(api.table().node()).trigger( type, args );
+}
+
+/**
+ * Update the information element of the DataTable showing information about the
+ * items selected. This is done by adding tags to the existing text
+ * 
+ * @param {DataTable.Api} api DataTable to update
+ * @private
+ */
+function info ( api )
+{
+	var ctx = api.settings()[0];
+
+	if ( ! ctx._select.info || ! ctx.aanFeatures.i ) {
+		return;
+	}
+
+	if ( api.select.style() === 'api' ) {
+		return;
+	}
+
+	var rows    = api.rows( { selected: true } ).flatten().length;
+	var columns = api.columns( { selected: true } ).flatten().length;
+	var cells   = api.cells( { selected: true } ).flatten().length;
+
+	var add = function ( el, name, num ) {
+		el.append( $('<span class="select-item"/>').append( api.i18n(
+			'select.'+name+'s',
+			{ _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
+			num
+		) ) );
+	};
+
+	// Internal knowledge of DataTables to loop over all information elements
+	$.each( ctx.aanFeatures.i, function ( i, el ) {
+		el = $(el);
+
+		var output  = $('<span class="select-info"/>');
+		add( output, 'row', rows );
+		add( output, 'column', columns );
+		add( output, 'cell', cells  );
+
+		var exisiting = el.children('span.select-info');
+		if ( exisiting.length ) {
+			exisiting.remove();
+		}
+
+		if ( output.text() !== '' ) {
+			el.append( output );
+		}
+	} );
+}
+
+/**
+ * Initialisation of a new table. Attach event handlers and callbacks to allow
+ * Select to operate correctly.
+ *
+ * This will occur _after_ the initial DataTables initialisation, although
+ * before Ajax data is rendered, if there is ajax data
+ *
+ * @param  {DataTable.settings} ctx Settings object to operate on
+ * @private
+ */
+function init ( ctx ) {
+	var api = new DataTable.Api( ctx );
+
+	// Row callback so that classes can be added to rows and cells if the item
+	// was selected before the element was created. This will happen with the
+	// `deferRender` option enabled.
+	// 
+	// This method of attaching to `aoRowCreatedCallback` is a hack until
+	// DataTables has proper events for row manipulation If you are reviewing
+	// this code to create your own plug-ins, please do not do this!
+	ctx.aoRowCreatedCallback.push( {
+		fn: function ( row, data, index ) {
+			var i, ien;
+			var d = ctx.aoData[ index ];
+
+			// Row
+			if ( d._select_selected ) {
+				$( row ).addClass( ctx._select.className );
+			}
+
+			// Cells and columns - if separated out, we would need to do two
+			// loops, so it makes sense to combine them into a single one
+			for ( i=0, ien=ctx.aoColumns.length ; i<ien ; i++ ) {
+				if ( ctx.aoColumns[i]._select_selected || (d._selected_cells && d._selected_cells[i]) ) {
+					$(d.anCells[i]).addClass( ctx._select.className );
+				}
+			}
+		},
+		sName: 'select-deferRender'
+	} );
+
+	// On Ajax reload we want to reselect all rows which are currently selected,
+	// if there is an rowId (i.e. a unique value to identify each row with)
+	api.on( 'preXhr.dt.dtSelect', function () {
+		// note that column selection doesn't need to be cached and then
+		// reselected, as they are already selected
+		var rows = api.rows( { selected: true } ).ids( true ).filter( function ( d ) {
+			return d !== undefined;
+		} );
+
+		var cells = api.cells( { selected: true } ).eq(0).map( function ( cellIdx ) {
+			var id = api.row( cellIdx.row ).id( true );
+			return id ?
+				{ row: id, column: cellIdx.column } :
+				undefined;
+		} ).filter( function ( d ) {
+			return d !== undefined;
+		} );
+
+		// On the next draw, reselect the currently selected items
+		api.one( 'draw.dt.dtSelect', function () {
+			api.rows( rows ).select();
+
+			// `cells` is not a cell index selector, so it needs a loop
+			if ( cells.any() ) {
+				cells.each( function ( id ) {
+					api.cells( id.row, id.column ).select();
+				} );
+			}
+		} );
+	} );
+
+	// Update the table information element with selected item summary
+	api.on( 'draw.dtSelect.dt select.dtSelect.dt deselect.dtSelect.dt info.dt', function () {
+		info( api );
+	} );
+
+	// Clean up and release
+	api.on( 'destroy.dtSelect', function () {
+		disableMouseSelection( api );
+		api.off( '.dtSelect' );
+	} );
+}
+
+/**
+ * Add one or more items (rows or columns) to the selection when shift clicking
+ * in OS selection style
+ *
+ * @param  {DataTable.Api} dt   DataTable
+ * @param  {string}        type Row or column range selector
+ * @param  {object}        idx  Item index to select to
+ * @param  {object}        last Item index to select from
+ * @private
+ */
+function rowColumnRange( dt, type, idx, last )
+{
+	// Add a range of rows from the last selected row to this one
+	var indexes = dt[type+'s']( { search: 'applied' } ).indexes();
+	var idx1 = $.inArray( last, indexes );
+	var idx2 = $.inArray( idx, indexes );
+
+	if ( ! dt[type+'s']( { selected: true } ).any() && idx1 === -1 ) {
+		// select from top to here - slightly odd, but both Windows and Mac OS
+		// do this
+		indexes.splice( $.inArray( idx, indexes )+1, indexes.length );
+	}
+	else {
+		// reverse so we can shift click 'up' as well as down
+		if ( idx1 > idx2 ) {
+			var tmp = idx2;
+			idx2 = idx1;
+			idx1 = tmp;
+		}
+
+		indexes.splice( idx2+1, indexes.length );
+		indexes.splice( 0, idx1 );
+	}
+
+	if ( ! dt[type]( idx, { selected: true } ).any() ) {
+		// Select range
+		dt[type+'s']( indexes ).select();
+	}
+	else {
+		// Deselect range - need to keep the clicked on row selected
+		indexes.splice( $.inArray( idx, indexes ), 1 );
+		dt[type+'s']( indexes ).deselect();
+	}
+}
+
+/**
+ * Clear all selected items
+ *
+ * @param  {DataTable.settings} ctx Settings object of the host DataTable
+ * @param  {boolean} [force=false] Force the de-selection to happen, regardless
+ *     of selection style
+ * @private
+ */
+function clear( ctx, force )
+{
+	if ( force || ctx._select.style === 'single' ) {
+		var api = new DataTable.Api( ctx );
+		
+		api.rows( { selected: true } ).deselect();
+		api.columns( { selected: true } ).deselect();
+		api.cells( { selected: true } ).deselect();
+	}
+}
+
+/**
+ * Select items based on the current configuration for style and items.
+ *
+ * @param  {object}             e    Mouse event object
+ * @param  {DataTables.Api}     dt   DataTable
+ * @param  {DataTable.settings} ctx  Settings object of the host DataTable
+ * @param  {string}             type Items to select
+ * @param  {int|object}         idx  Index of the item to select
+ * @private
+ */
+function typeSelect ( e, dt, ctx, type, idx )
+{
+	var style = dt.select.style();
+	var isSelected = dt[type]( idx, { selected: true } ).any();
+
+	if ( style === 'os' ) {
+		if ( e.ctrlKey || e.metaKey ) {
+			// Add or remove from the selection
+			dt[type]( idx ).select( ! isSelected );
+		}
+		else if ( e.shiftKey ) {
+			if ( type === 'cell' ) {
+				cellRange( dt, idx, ctx._select_lastCell || null );
+			}
+			else {
+				rowColumnRange( dt, type, idx, ctx._select_lastCell ?
+					ctx._select_lastCell[type] :
+					null
+				);
+			}
+		}
+		else {
+			// No cmd or shift click - deselect if selected, or select
+			// this row only
+			var selected = dt[type+'s']( { selected: true } );
+
+			if ( isSelected && selected.flatten().length === 1 ) {
+				dt[type]( idx ).deselect();
+			}
+			else {
+				selected.deselect();
+				dt[type]( idx ).select();
+			}
+		}
+	} else if ( style == 'multi+shift' ) {
+		if ( e.shiftKey ) {
+			if ( type === 'cell' ) {
+				cellRange( dt, idx, ctx._select_lastCell || null );
+			}
+			else {
+				rowColumnRange( dt, type, idx, ctx._select_lastCell ?
+					ctx._select_lastCell[type] :
+					null
+				);
+			}
+		}
+		else {
+			dt[ type ]( idx ).select( ! isSelected );
+		}
+	}
+	else {
+		dt[ type ]( idx ).select( ! isSelected );
+	}
+}
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables selectors
+ */
+
+// row and column are basically identical just assigned to different properties
+// and checking a different array, so we can dynamically create the functions to
+// reduce the code size
+$.each( [
+	{ type: 'row', prop: 'aoData' },
+	{ type: 'column', prop: 'aoColumns' }
+], function ( i, o ) {
+	DataTable.ext.selector[ o.type ].push( function ( settings, opts, indexes ) {
+		var selected = opts.selected;
+		var data;
+		var out = [];
+
+		if ( selected !== true && selected !== false ) {
+			return indexes;
+		}
+
+		for ( var i=0, ien=indexes.length ; i<ien ; i++ ) {
+			data = settings[ o.prop ][ indexes[i] ];
+
+			if ( (selected === true && data._select_selected === true) ||
+			     (selected === false && ! data._select_selected )
+			) {
+				out.push( indexes[i] );
+			}
+		}
+
+		return out;
+	} );
+} );
+
+DataTable.ext.selector.cell.push( function ( settings, opts, cells ) {
+	var selected = opts.selected;
+	var rowData;
+	var out = [];
+
+	if ( selected === undefined ) {
+		return cells;
+	}
+
+	for ( var i=0, ien=cells.length ; i<ien ; i++ ) {
+		rowData = settings.aoData[ cells[i].row ];
+
+		if ( (selected === true && rowData._selected_cells && rowData._selected_cells[ cells[i].column ] === true) ||
+		     (selected === false && ( ! rowData._selected_cells || ! rowData._selected_cells[ cells[i].column ] ) )
+		) {
+			out.push( cells[i] );
+		}
+	}
+
+	return out;
+} );
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables API
+ *
+ * For complete documentation, please refer to the docs/api directory or the
+ * DataTables site
+ */
+
+// Local variables to improve compression
+var apiRegister = DataTable.Api.register;
+var apiRegisterPlural = DataTable.Api.registerPlural;
+
+apiRegister( 'select()', function () {
+	return this.iterator( 'table', function ( ctx ) {
+		DataTable.select.init( new DataTable.Api( ctx ) );
+	} );
+} );
+
+apiRegister( 'select.blurable()', function ( flag ) {
+	if ( flag === undefined ) {
+		return this.context[0]._select.blurable;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		ctx._select.blurable = flag;
+	} );
+} );
+
+apiRegister( 'select.info()', function ( flag ) {
+	if ( info === undefined ) {
+		return this.context[0]._select.info;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		ctx._select.info = flag;
+	} );
+} );
+
+apiRegister( 'select.items()', function ( items ) {
+	if ( items === undefined ) {
+		return this.context[0]._select.items;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		ctx._select.items = items;
+
+		eventTrigger( new DataTable.Api( ctx ), 'selectItems', [ items ] );
+	} );
+} );
+
+// Takes effect from the _next_ selection. None disables future selection, but
+// does not clear the current selection. Use the `deselect` methods for that
+apiRegister( 'select.style()', function ( style ) {
+	if ( style === undefined ) {
+		return this.context[0]._select.style;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		ctx._select.style = style;
+
+		if ( ! ctx._select_init ) {
+			init( ctx );
+		}
+
+		// Add / remove mouse event handlers. They aren't required when only
+		// API selection is available
+		var dt = new DataTable.Api( ctx );
+		disableMouseSelection( dt );
+		
+		if ( style !== 'api' ) {
+			enableMouseSelection( dt );
+		}
+
+		eventTrigger( new DataTable.Api( ctx ), 'selectStyle', [ style ] );
+	} );
+} );
+
+apiRegister( 'select.selector()', function ( selector ) {
+	if ( selector === undefined ) {
+		return this.context[0]._select.selector;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		disableMouseSelection( new DataTable.Api( ctx ) );
+
+		ctx._select.selector = selector;
+
+		if ( ctx._select.style !== 'api' ) {
+			enableMouseSelection( new DataTable.Api( ctx ) );
+		}
+	} );
+} );
+
+
+
+apiRegisterPlural( 'rows().select()', 'row().select()', function ( select ) {
+	var api = this;
+
+	if ( select === false ) {
+		return this.deselect();
+	}
+
+	this.iterator( 'row', function ( ctx, idx ) {
+		clear( ctx );
+
+		ctx.aoData[ idx ]._select_selected = true;
+		$( ctx.aoData[ idx ].nTr ).addClass( ctx._select.className );
+	} );
+
+	this.iterator( 'table', function ( ctx, i ) {
+		eventTrigger( api, 'select', [ 'row', api[i] ], true );
+	} );
+
+	return this;
+} );
+
+apiRegisterPlural( 'columns().select()', 'column().select()', function ( select ) {
+	var api = this;
+
+	if ( select === false ) {
+		return this.deselect();
+	}
+
+	this.iterator( 'column', function ( ctx, idx ) {
+		clear( ctx );
+
+		ctx.aoColumns[ idx ]._select_selected = true;
+
+		var column = new DataTable.Api( ctx ).column( idx );
+
+		$( column.header() ).addClass( ctx._select.className );
+		$( column.footer() ).addClass( ctx._select.className );
+
+		column.nodes().to$().addClass( ctx._select.className );
+	} );
+
+	this.iterator( 'table', function ( ctx, i ) {
+		eventTrigger( api, 'select', [ 'column', api[i] ], true );
+	} );
+
+	return this;
+} );
+
+apiRegisterPlural( 'cells().select()', 'cell().select()', function ( select ) {
+	var api = this;
+
+	if ( select === false ) {
+		return this.deselect();
+	}
+
+	this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
+		clear( ctx );
+
+		var data = ctx.aoData[ rowIdx ];
+
+		if ( data._selected_cells === undefined ) {
+			data._selected_cells = [];
+		}
+
+		data._selected_cells[ colIdx ] = true;
+
+		if ( data.anCells ) {
+			$( data.anCells[ colIdx ] ).addClass( ctx._select.className );
+		}
+	} );
+
+	this.iterator( 'table', function ( ctx, i ) {
+		eventTrigger( api, 'select', [ 'cell', api[i] ], true );
+	} );
+
+	return this;
+} );
+
+
+apiRegisterPlural( 'rows().deselect()', 'row().deselect()', function () {
+	var api = this;
+
+	this.iterator( 'row', function ( ctx, idx ) {
+		ctx.aoData[ idx ]._select_selected = false;
+		$( ctx.aoData[ idx ].nTr ).removeClass( ctx._select.className );
+	} );
+
+	this.iterator( 'table', function ( ctx, i ) {
+		eventTrigger( api, 'deselect', [ 'row', api[i] ], true );
+	} );
+
+	return this;
+} );
+
+apiRegisterPlural( 'columns().deselect()', 'column().deselect()', function () {
+	var api = this;
+
+	this.iterator( 'column', function ( ctx, idx ) {
+		ctx.aoColumns[ idx ]._select_selected = false;
+
+		var api = new DataTable.Api( ctx );
+		var column = api.column( idx );
+
+		$( column.header() ).removeClass( ctx._select.className );
+		$( column.footer() ).removeClass( ctx._select.className );
+
+		// Need to loop over each cell, rather than just using
+		// `column().nodes()` as cells which are individually selected should
+		// not have the `selected` class removed from them
+		api.cells( null, idx ).indexes().each( function (cellIdx) {
+			var data = ctx.aoData[ cellIdx.row ];
+			var cellSelected = data._selected_cells;
+
+			if ( data.anCells && (! cellSelected || ! cellSelected[ cellIdx.column ]) ) {
+				$( data.anCells[ cellIdx.column  ] ).removeClass( ctx._select.className );
+			}
+		} );
+	} );
+
+	this.iterator( 'table', function ( ctx, i ) {
+		eventTrigger( api, 'deselect', [ 'column', api[i] ], true );
+	} );
+
+	return this;
+} );
+
+apiRegisterPlural( 'cells().deselect()', 'cell().deselect()', function () {
+	var api = this;
+
+	this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
+		var data = ctx.aoData[ rowIdx ];
+
+		data._selected_cells[ colIdx ] = false;
+
+		// Remove class only if the cells exist, and the cell is not column
+		// selected, in which case the class should remain (since it is selected
+		// in the column)
+		if ( data.anCells && ! ctx.aoColumns[ colIdx ]._select_selected ) {
+			$( data.anCells[ colIdx ] ).removeClass( ctx._select.className );
+		}
+	} );
+
+	this.iterator( 'table', function ( ctx, i ) {
+		eventTrigger( api, 'deselect', [ 'cell', api[i] ], true );
+	} );
+
+	return this;
+} );
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Buttons
+ */
+function i18n( label, def ) {
+	return function (dt) {
+		return dt.i18n( 'buttons.'+label, def );
+	};
+}
+
+// Common events with suitable namespaces
+function namespacedEvents ( config ) {
+	var unique = config._eventNamespace;
+
+	return 'draw.dt.DT'+unique+' select.dt.DT'+unique+' deselect.dt.DT'+unique;
+}
+
+function enabled ( dt, config ) {
+	if ( $.inArray( 'rows', config.limitTo ) !== -1 && dt.rows( { selected: true } ).any() ) {
+		return true;
+	}
+
+	if ( $.inArray( 'columns', config.limitTo ) !== -1 && dt.columns( { selected: true } ).any() ) {
+		return true;
+	}
+
+	if ( $.inArray( 'cells', config.limitTo ) !== -1 && dt.cells( { selected: true } ).any() ) {
+		return true;
+	}
+
+	return false;
+}
+
+var _buttonNamespace = 0;
+
+$.extend( DataTable.ext.buttons, {
+	selected: {
+		text: i18n( 'selected', 'Selected' ),
+		className: 'buttons-selected',
+		limitTo: [ 'rows', 'columns', 'cells' ],
+		init: function ( dt, node, config ) {
+			var that = this;
+			config._eventNamespace = '.select'+(_buttonNamespace++);
+
+			// .DT namespace listeners are removed by DataTables automatically
+			// on table destroy
+			dt.on( namespacedEvents(config), function () {
+				that.enable( enabled(dt, config) );
+			} );
+
+			this.disable();
+		},
+		destroy: function ( dt, node, config ) {
+			dt.off( config._eventNamespace );
+		}
+	},
+	selectedSingle: {
+		text: i18n( 'selectedSingle', 'Selected single' ),
+		className: 'buttons-selected-single',
+		init: function ( dt, node, config ) {
+			var that = this;
+			config._eventNamespace = '.select'+(_buttonNamespace++);
+
+			dt.on( namespacedEvents(config), function () {
+				var count = dt.rows( { selected: true } ).flatten().length +
+				            dt.columns( { selected: true } ).flatten().length +
+				            dt.cells( { selected: true } ).flatten().length;
+
+				that.enable( count === 1 );
+			} );
+
+			this.disable();
+		},
+		destroy: function ( dt, node, config ) {
+			dt.off( config._eventNamespace );
+		}
+	},
+	selectAll: {
+		text: i18n( 'selectAll', 'Select all' ),
+		className: 'buttons-select-all',
+		action: function () {
+			var items = this.select.items();
+			this[ items+'s' ]().select();
+		}
+	},
+	selectNone: {
+		text: i18n( 'selectNone', 'Deselect all' ),
+		className: 'buttons-select-none',
+		action: function () {
+			clear( this.settings()[0], true );
+		},
+		init: function ( dt, node, config ) {
+			var that = this;
+			config._eventNamespace = '.select'+(_buttonNamespace++);
+
+			dt.on( namespacedEvents(config), function () {
+				var count = dt.rows( { selected: true } ).flatten().length +
+				            dt.columns( { selected: true } ).flatten().length +
+				            dt.cells( { selected: true } ).flatten().length;
+
+				that.enable( count > 0 );
+			} );
+
+			this.disable();
+		},
+		destroy: function ( dt, node, config ) {
+			dt.off( config._eventNamespace );
+		}
+	}
+} );
+
+$.each( [ 'Row', 'Column', 'Cell' ], function ( i, item ) {
+	var lc = item.toLowerCase();
+
+	DataTable.ext.buttons[ 'select'+item+'s' ] = {
+		text: i18n( 'select'+item+'s', 'Select '+lc+'s' ),
+		className: 'buttons-select-'+lc+'s',
+		action: function () {
+			this.select.items( lc );
+		},
+		init: function ( dt ) {
+			var that = this;
+
+			dt.on( 'selectItems.dt.DT', function ( e, ctx, items ) {
+				that.active( items === lc );
+			} );
+		}
+	};
+} );
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Initialisation
+ */
+
+// DataTables creation - check if select has been defined in the options. Note
+// this required that the table be in the document! If it isn't then something
+// needs to trigger this method unfortunately. The next major release of
+// DataTables will rework the events and address this.
+$(document).on( 'preInit.dt.dtSelect', function (e, ctx) {
+	if ( e.namespace !== 'dt' ) {
+		return;
+	}
+
+	DataTable.select.init( new DataTable.Api( ctx ) );
+} );
+
+
+return DataTable.select;
+}));
+
+
+/***/ }),
+/* 161 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(162);
+
+/***/ }),
+/* 162 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 var bind = __webpack_require__(14);
-var Axios = __webpack_require__(161);
-var defaults = __webpack_require__(9);
+var Axios = __webpack_require__(164);
+var defaults = __webpack_require__(10);
 
 /**
  * Create an instance of Axios
@@ -70565,14 +74877,14 @@ axios.create = function create(instanceConfig) {
 
 // Expose Cancel & CancelToken
 axios.Cancel = __webpack_require__(19);
-axios.CancelToken = __webpack_require__(175);
+axios.CancelToken = __webpack_require__(178);
 axios.isCancel = __webpack_require__(18);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(176);
+axios.spread = __webpack_require__(179);
 
 module.exports = axios;
 
@@ -70581,7 +74893,7 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 160 */
+/* 163 */
 /***/ (function(module, exports) {
 
 /*!
@@ -70608,16 +74920,16 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 161 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var defaults = __webpack_require__(9);
-var utils = __webpack_require__(1);
-var InterceptorManager = __webpack_require__(170);
-var dispatchRequest = __webpack_require__(171);
+var defaults = __webpack_require__(10);
+var utils = __webpack_require__(2);
+var InterceptorManager = __webpack_require__(173);
+var dispatchRequest = __webpack_require__(174);
 
 /**
  * Create a new instance of Axios
@@ -70694,13 +75006,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 162 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -70713,7 +75025,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 163 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70746,7 +75058,7 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 164 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70774,13 +75086,13 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 165 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -70847,13 +75159,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 166 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -70907,13 +75219,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 167 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -70982,7 +75294,7 @@ module.exports = (
 
 
 /***/ }),
-/* 168 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71025,13 +75337,13 @@ module.exports = btoa;
 
 
 /***/ }),
-/* 169 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -71085,13 +75397,13 @@ module.exports = (
 
 
 /***/ }),
-/* 170 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -71144,18 +75456,18 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 171 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
-var transformData = __webpack_require__(172);
+var utils = __webpack_require__(2);
+var transformData = __webpack_require__(175);
 var isCancel = __webpack_require__(18);
-var defaults = __webpack_require__(9);
-var isAbsoluteURL = __webpack_require__(173);
-var combineURLs = __webpack_require__(174);
+var defaults = __webpack_require__(10);
+var isAbsoluteURL = __webpack_require__(176);
+var combineURLs = __webpack_require__(177);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -71237,13 +75549,13 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 172 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 /**
  * Transform the data for a request or a response
@@ -71264,7 +75576,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 173 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71285,7 +75597,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 174 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71306,7 +75618,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 175 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71370,7 +75682,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 176 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71404,7 +75716,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 177 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82367,10 +86679,10 @@ Vue.compile = compileToFunctions;
 
 module.exports = Vue;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(178).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(181).setImmediate))
 
 /***/ }),
-/* 178 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -82426,7 +86738,7 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(179);
+__webpack_require__(182);
 // On some exotic environments, it's not clear which object `setimmediate` was
 // able to install onto.  Search each possibility in the same order as the
 // `setimmediate` library.
@@ -82437,10 +86749,10 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
                          (typeof global !== "undefined" && global.clearImmediate) ||
                          (this && this.clearImmediate);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 179 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -82630,16 +86942,16 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(15)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(15)))
 
 /***/ }),
-/* 180 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(181);
+var content = __webpack_require__(184);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -82647,7 +86959,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(10)(content, options);
+var update = __webpack_require__(11)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -82664,22 +86976,22 @@ if(false) {
 }
 
 /***/ }),
-/* 181 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var escape = __webpack_require__(182);
-exports = module.exports = __webpack_require__(4)(false);
+var escape = __webpack_require__(185);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
 // module
-exports.push([module.i, "/*!\n *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome\n *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)\n */@font-face{font-family:'FontAwesome';src:url(" + escape(__webpack_require__(183)) + ");src:url(" + escape(__webpack_require__(184)) + "?#iefix&v=4.7.0) format('embedded-opentype'),url(" + escape(__webpack_require__(185)) + ") format('woff2'),url(" + escape(__webpack_require__(186)) + ") format('woff'),url(" + escape(__webpack_require__(187)) + ") format('truetype'),url(" + escape(__webpack_require__(188)) + "#fontawesomeregular) format('svg');font-weight:normal;font-style:normal}.fa{display:inline-block;font:normal normal normal 14px/1 FontAwesome;font-size:inherit;text-rendering:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.fa-lg{font-size:1.33333333em;line-height:.75em;vertical-align:-15%}.fa-2x{font-size:2em}.fa-3x{font-size:3em}.fa-4x{font-size:4em}.fa-5x{font-size:5em}.fa-fw{width:1.28571429em;text-align:center}.fa-ul{padding-left:0;margin-left:2.14285714em;list-style-type:none}.fa-ul>li{position:relative}.fa-li{position:absolute;left:-2.14285714em;width:2.14285714em;top:.14285714em;text-align:center}.fa-li.fa-lg{left:-1.85714286em}.fa-border{padding:.2em .25em .15em;border:solid .08em #eee;border-radius:.1em}.fa-pull-left{float:left}.fa-pull-right{float:right}.fa.fa-pull-left{margin-right:.3em}.fa.fa-pull-right{margin-left:.3em}.pull-right{float:right}.pull-left{float:left}.fa.pull-left{margin-right:.3em}.fa.pull-right{margin-left:.3em}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}.fa-pulse{-webkit-animation:fa-spin 1s infinite steps(8);animation:fa-spin 1s infinite steps(8)}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}.fa-rotate-90{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.fa-rotate-180{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}.fa-rotate-270{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";-webkit-transform:rotate(270deg);-ms-transform:rotate(270deg);transform:rotate(270deg)}.fa-flip-horizontal{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1)}.fa-flip-vertical{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";-webkit-transform:scale(1, -1);-ms-transform:scale(1, -1);transform:scale(1, -1)}:root .fa-rotate-90,:root .fa-rotate-180,:root .fa-rotate-270,:root .fa-flip-horizontal,:root .fa-flip-vertical{filter:none}.fa-stack{position:relative;display:inline-block;width:2em;height:2em;line-height:2em;vertical-align:middle}.fa-stack-1x,.fa-stack-2x{position:absolute;left:0;width:100%;text-align:center}.fa-stack-1x{line-height:inherit}.fa-stack-2x{font-size:2em}.fa-inverse{color:#fff}.fa-glass:before{content:\"\\F000\"}.fa-music:before{content:\"\\F001\"}.fa-search:before{content:\"\\F002\"}.fa-envelope-o:before{content:\"\\F003\"}.fa-heart:before{content:\"\\F004\"}.fa-star:before{content:\"\\F005\"}.fa-star-o:before{content:\"\\F006\"}.fa-user:before{content:\"\\F007\"}.fa-film:before{content:\"\\F008\"}.fa-th-large:before{content:\"\\F009\"}.fa-th:before{content:\"\\F00A\"}.fa-th-list:before{content:\"\\F00B\"}.fa-check:before{content:\"\\F00C\"}.fa-remove:before,.fa-close:before,.fa-times:before{content:\"\\F00D\"}.fa-search-plus:before{content:\"\\F00E\"}.fa-search-minus:before{content:\"\\F010\"}.fa-power-off:before{content:\"\\F011\"}.fa-signal:before{content:\"\\F012\"}.fa-gear:before,.fa-cog:before{content:\"\\F013\"}.fa-trash-o:before{content:\"\\F014\"}.fa-home:before{content:\"\\F015\"}.fa-file-o:before{content:\"\\F016\"}.fa-clock-o:before{content:\"\\F017\"}.fa-road:before{content:\"\\F018\"}.fa-download:before{content:\"\\F019\"}.fa-arrow-circle-o-down:before{content:\"\\F01A\"}.fa-arrow-circle-o-up:before{content:\"\\F01B\"}.fa-inbox:before{content:\"\\F01C\"}.fa-play-circle-o:before{content:\"\\F01D\"}.fa-rotate-right:before,.fa-repeat:before{content:\"\\F01E\"}.fa-refresh:before{content:\"\\F021\"}.fa-list-alt:before{content:\"\\F022\"}.fa-lock:before{content:\"\\F023\"}.fa-flag:before{content:\"\\F024\"}.fa-headphones:before{content:\"\\F025\"}.fa-volume-off:before{content:\"\\F026\"}.fa-volume-down:before{content:\"\\F027\"}.fa-volume-up:before{content:\"\\F028\"}.fa-qrcode:before{content:\"\\F029\"}.fa-barcode:before{content:\"\\F02A\"}.fa-tag:before{content:\"\\F02B\"}.fa-tags:before{content:\"\\F02C\"}.fa-book:before{content:\"\\F02D\"}.fa-bookmark:before{content:\"\\F02E\"}.fa-print:before{content:\"\\F02F\"}.fa-camera:before{content:\"\\F030\"}.fa-font:before{content:\"\\F031\"}.fa-bold:before{content:\"\\F032\"}.fa-italic:before{content:\"\\F033\"}.fa-text-height:before{content:\"\\F034\"}.fa-text-width:before{content:\"\\F035\"}.fa-align-left:before{content:\"\\F036\"}.fa-align-center:before{content:\"\\F037\"}.fa-align-right:before{content:\"\\F038\"}.fa-align-justify:before{content:\"\\F039\"}.fa-list:before{content:\"\\F03A\"}.fa-dedent:before,.fa-outdent:before{content:\"\\F03B\"}.fa-indent:before{content:\"\\F03C\"}.fa-video-camera:before{content:\"\\F03D\"}.fa-photo:before,.fa-image:before,.fa-picture-o:before{content:\"\\F03E\"}.fa-pencil:before{content:\"\\F040\"}.fa-map-marker:before{content:\"\\F041\"}.fa-adjust:before{content:\"\\F042\"}.fa-tint:before{content:\"\\F043\"}.fa-edit:before,.fa-pencil-square-o:before{content:\"\\F044\"}.fa-share-square-o:before{content:\"\\F045\"}.fa-check-square-o:before{content:\"\\F046\"}.fa-arrows:before{content:\"\\F047\"}.fa-step-backward:before{content:\"\\F048\"}.fa-fast-backward:before{content:\"\\F049\"}.fa-backward:before{content:\"\\F04A\"}.fa-play:before{content:\"\\F04B\"}.fa-pause:before{content:\"\\F04C\"}.fa-stop:before{content:\"\\F04D\"}.fa-forward:before{content:\"\\F04E\"}.fa-fast-forward:before{content:\"\\F050\"}.fa-step-forward:before{content:\"\\F051\"}.fa-eject:before{content:\"\\F052\"}.fa-chevron-left:before{content:\"\\F053\"}.fa-chevron-right:before{content:\"\\F054\"}.fa-plus-circle:before{content:\"\\F055\"}.fa-minus-circle:before{content:\"\\F056\"}.fa-times-circle:before{content:\"\\F057\"}.fa-check-circle:before{content:\"\\F058\"}.fa-question-circle:before{content:\"\\F059\"}.fa-info-circle:before{content:\"\\F05A\"}.fa-crosshairs:before{content:\"\\F05B\"}.fa-times-circle-o:before{content:\"\\F05C\"}.fa-check-circle-o:before{content:\"\\F05D\"}.fa-ban:before{content:\"\\F05E\"}.fa-arrow-left:before{content:\"\\F060\"}.fa-arrow-right:before{content:\"\\F061\"}.fa-arrow-up:before{content:\"\\F062\"}.fa-arrow-down:before{content:\"\\F063\"}.fa-mail-forward:before,.fa-share:before{content:\"\\F064\"}.fa-expand:before{content:\"\\F065\"}.fa-compress:before{content:\"\\F066\"}.fa-plus:before{content:\"\\F067\"}.fa-minus:before{content:\"\\F068\"}.fa-asterisk:before{content:\"\\F069\"}.fa-exclamation-circle:before{content:\"\\F06A\"}.fa-gift:before{content:\"\\F06B\"}.fa-leaf:before{content:\"\\F06C\"}.fa-fire:before{content:\"\\F06D\"}.fa-eye:before{content:\"\\F06E\"}.fa-eye-slash:before{content:\"\\F070\"}.fa-warning:before,.fa-exclamation-triangle:before{content:\"\\F071\"}.fa-plane:before{content:\"\\F072\"}.fa-calendar:before{content:\"\\F073\"}.fa-random:before{content:\"\\F074\"}.fa-comment:before{content:\"\\F075\"}.fa-magnet:before{content:\"\\F076\"}.fa-chevron-up:before{content:\"\\F077\"}.fa-chevron-down:before{content:\"\\F078\"}.fa-retweet:before{content:\"\\F079\"}.fa-shopping-cart:before{content:\"\\F07A\"}.fa-folder:before{content:\"\\F07B\"}.fa-folder-open:before{content:\"\\F07C\"}.fa-arrows-v:before{content:\"\\F07D\"}.fa-arrows-h:before{content:\"\\F07E\"}.fa-bar-chart-o:before,.fa-bar-chart:before{content:\"\\F080\"}.fa-twitter-square:before{content:\"\\F081\"}.fa-facebook-square:before{content:\"\\F082\"}.fa-camera-retro:before{content:\"\\F083\"}.fa-key:before{content:\"\\F084\"}.fa-gears:before,.fa-cogs:before{content:\"\\F085\"}.fa-comments:before{content:\"\\F086\"}.fa-thumbs-o-up:before{content:\"\\F087\"}.fa-thumbs-o-down:before{content:\"\\F088\"}.fa-star-half:before{content:\"\\F089\"}.fa-heart-o:before{content:\"\\F08A\"}.fa-sign-out:before{content:\"\\F08B\"}.fa-linkedin-square:before{content:\"\\F08C\"}.fa-thumb-tack:before{content:\"\\F08D\"}.fa-external-link:before{content:\"\\F08E\"}.fa-sign-in:before{content:\"\\F090\"}.fa-trophy:before{content:\"\\F091\"}.fa-github-square:before{content:\"\\F092\"}.fa-upload:before{content:\"\\F093\"}.fa-lemon-o:before{content:\"\\F094\"}.fa-phone:before{content:\"\\F095\"}.fa-square-o:before{content:\"\\F096\"}.fa-bookmark-o:before{content:\"\\F097\"}.fa-phone-square:before{content:\"\\F098\"}.fa-twitter:before{content:\"\\F099\"}.fa-facebook-f:before,.fa-facebook:before{content:\"\\F09A\"}.fa-github:before{content:\"\\F09B\"}.fa-unlock:before{content:\"\\F09C\"}.fa-credit-card:before{content:\"\\F09D\"}.fa-feed:before,.fa-rss:before{content:\"\\F09E\"}.fa-hdd-o:before{content:\"\\F0A0\"}.fa-bullhorn:before{content:\"\\F0A1\"}.fa-bell:before{content:\"\\F0F3\"}.fa-certificate:before{content:\"\\F0A3\"}.fa-hand-o-right:before{content:\"\\F0A4\"}.fa-hand-o-left:before{content:\"\\F0A5\"}.fa-hand-o-up:before{content:\"\\F0A6\"}.fa-hand-o-down:before{content:\"\\F0A7\"}.fa-arrow-circle-left:before{content:\"\\F0A8\"}.fa-arrow-circle-right:before{content:\"\\F0A9\"}.fa-arrow-circle-up:before{content:\"\\F0AA\"}.fa-arrow-circle-down:before{content:\"\\F0AB\"}.fa-globe:before{content:\"\\F0AC\"}.fa-wrench:before{content:\"\\F0AD\"}.fa-tasks:before{content:\"\\F0AE\"}.fa-filter:before{content:\"\\F0B0\"}.fa-briefcase:before{content:\"\\F0B1\"}.fa-arrows-alt:before{content:\"\\F0B2\"}.fa-group:before,.fa-users:before{content:\"\\F0C0\"}.fa-chain:before,.fa-link:before{content:\"\\F0C1\"}.fa-cloud:before{content:\"\\F0C2\"}.fa-flask:before{content:\"\\F0C3\"}.fa-cut:before,.fa-scissors:before{content:\"\\F0C4\"}.fa-copy:before,.fa-files-o:before{content:\"\\F0C5\"}.fa-paperclip:before{content:\"\\F0C6\"}.fa-save:before,.fa-floppy-o:before{content:\"\\F0C7\"}.fa-square:before{content:\"\\F0C8\"}.fa-navicon:before,.fa-reorder:before,.fa-bars:before{content:\"\\F0C9\"}.fa-list-ul:before{content:\"\\F0CA\"}.fa-list-ol:before{content:\"\\F0CB\"}.fa-strikethrough:before{content:\"\\F0CC\"}.fa-underline:before{content:\"\\F0CD\"}.fa-table:before{content:\"\\F0CE\"}.fa-magic:before{content:\"\\F0D0\"}.fa-truck:before{content:\"\\F0D1\"}.fa-pinterest:before{content:\"\\F0D2\"}.fa-pinterest-square:before{content:\"\\F0D3\"}.fa-google-plus-square:before{content:\"\\F0D4\"}.fa-google-plus:before{content:\"\\F0D5\"}.fa-money:before{content:\"\\F0D6\"}.fa-caret-down:before{content:\"\\F0D7\"}.fa-caret-up:before{content:\"\\F0D8\"}.fa-caret-left:before{content:\"\\F0D9\"}.fa-caret-right:before{content:\"\\F0DA\"}.fa-columns:before{content:\"\\F0DB\"}.fa-unsorted:before,.fa-sort:before{content:\"\\F0DC\"}.fa-sort-down:before,.fa-sort-desc:before{content:\"\\F0DD\"}.fa-sort-up:before,.fa-sort-asc:before{content:\"\\F0DE\"}.fa-envelope:before{content:\"\\F0E0\"}.fa-linkedin:before{content:\"\\F0E1\"}.fa-rotate-left:before,.fa-undo:before{content:\"\\F0E2\"}.fa-legal:before,.fa-gavel:before{content:\"\\F0E3\"}.fa-dashboard:before,.fa-tachometer:before{content:\"\\F0E4\"}.fa-comment-o:before{content:\"\\F0E5\"}.fa-comments-o:before{content:\"\\F0E6\"}.fa-flash:before,.fa-bolt:before{content:\"\\F0E7\"}.fa-sitemap:before{content:\"\\F0E8\"}.fa-umbrella:before{content:\"\\F0E9\"}.fa-paste:before,.fa-clipboard:before{content:\"\\F0EA\"}.fa-lightbulb-o:before{content:\"\\F0EB\"}.fa-exchange:before{content:\"\\F0EC\"}.fa-cloud-download:before{content:\"\\F0ED\"}.fa-cloud-upload:before{content:\"\\F0EE\"}.fa-user-md:before{content:\"\\F0F0\"}.fa-stethoscope:before{content:\"\\F0F1\"}.fa-suitcase:before{content:\"\\F0F2\"}.fa-bell-o:before{content:\"\\F0A2\"}.fa-coffee:before{content:\"\\F0F4\"}.fa-cutlery:before{content:\"\\F0F5\"}.fa-file-text-o:before{content:\"\\F0F6\"}.fa-building-o:before{content:\"\\F0F7\"}.fa-hospital-o:before{content:\"\\F0F8\"}.fa-ambulance:before{content:\"\\F0F9\"}.fa-medkit:before{content:\"\\F0FA\"}.fa-fighter-jet:before{content:\"\\F0FB\"}.fa-beer:before{content:\"\\F0FC\"}.fa-h-square:before{content:\"\\F0FD\"}.fa-plus-square:before{content:\"\\F0FE\"}.fa-angle-double-left:before{content:\"\\F100\"}.fa-angle-double-right:before{content:\"\\F101\"}.fa-angle-double-up:before{content:\"\\F102\"}.fa-angle-double-down:before{content:\"\\F103\"}.fa-angle-left:before{content:\"\\F104\"}.fa-angle-right:before{content:\"\\F105\"}.fa-angle-up:before{content:\"\\F106\"}.fa-angle-down:before{content:\"\\F107\"}.fa-desktop:before{content:\"\\F108\"}.fa-laptop:before{content:\"\\F109\"}.fa-tablet:before{content:\"\\F10A\"}.fa-mobile-phone:before,.fa-mobile:before{content:\"\\F10B\"}.fa-circle-o:before{content:\"\\F10C\"}.fa-quote-left:before{content:\"\\F10D\"}.fa-quote-right:before{content:\"\\F10E\"}.fa-spinner:before{content:\"\\F110\"}.fa-circle:before{content:\"\\F111\"}.fa-mail-reply:before,.fa-reply:before{content:\"\\F112\"}.fa-github-alt:before{content:\"\\F113\"}.fa-folder-o:before{content:\"\\F114\"}.fa-folder-open-o:before{content:\"\\F115\"}.fa-smile-o:before{content:\"\\F118\"}.fa-frown-o:before{content:\"\\F119\"}.fa-meh-o:before{content:\"\\F11A\"}.fa-gamepad:before{content:\"\\F11B\"}.fa-keyboard-o:before{content:\"\\F11C\"}.fa-flag-o:before{content:\"\\F11D\"}.fa-flag-checkered:before{content:\"\\F11E\"}.fa-terminal:before{content:\"\\F120\"}.fa-code:before{content:\"\\F121\"}.fa-mail-reply-all:before,.fa-reply-all:before{content:\"\\F122\"}.fa-star-half-empty:before,.fa-star-half-full:before,.fa-star-half-o:before{content:\"\\F123\"}.fa-location-arrow:before{content:\"\\F124\"}.fa-crop:before{content:\"\\F125\"}.fa-code-fork:before{content:\"\\F126\"}.fa-unlink:before,.fa-chain-broken:before{content:\"\\F127\"}.fa-question:before{content:\"\\F128\"}.fa-info:before{content:\"\\F129\"}.fa-exclamation:before{content:\"\\F12A\"}.fa-superscript:before{content:\"\\F12B\"}.fa-subscript:before{content:\"\\F12C\"}.fa-eraser:before{content:\"\\F12D\"}.fa-puzzle-piece:before{content:\"\\F12E\"}.fa-microphone:before{content:\"\\F130\"}.fa-microphone-slash:before{content:\"\\F131\"}.fa-shield:before{content:\"\\F132\"}.fa-calendar-o:before{content:\"\\F133\"}.fa-fire-extinguisher:before{content:\"\\F134\"}.fa-rocket:before{content:\"\\F135\"}.fa-maxcdn:before{content:\"\\F136\"}.fa-chevron-circle-left:before{content:\"\\F137\"}.fa-chevron-circle-right:before{content:\"\\F138\"}.fa-chevron-circle-up:before{content:\"\\F139\"}.fa-chevron-circle-down:before{content:\"\\F13A\"}.fa-html5:before{content:\"\\F13B\"}.fa-css3:before{content:\"\\F13C\"}.fa-anchor:before{content:\"\\F13D\"}.fa-unlock-alt:before{content:\"\\F13E\"}.fa-bullseye:before{content:\"\\F140\"}.fa-ellipsis-h:before{content:\"\\F141\"}.fa-ellipsis-v:before{content:\"\\F142\"}.fa-rss-square:before{content:\"\\F143\"}.fa-play-circle:before{content:\"\\F144\"}.fa-ticket:before{content:\"\\F145\"}.fa-minus-square:before{content:\"\\F146\"}.fa-minus-square-o:before{content:\"\\F147\"}.fa-level-up:before{content:\"\\F148\"}.fa-level-down:before{content:\"\\F149\"}.fa-check-square:before{content:\"\\F14A\"}.fa-pencil-square:before{content:\"\\F14B\"}.fa-external-link-square:before{content:\"\\F14C\"}.fa-share-square:before{content:\"\\F14D\"}.fa-compass:before{content:\"\\F14E\"}.fa-toggle-down:before,.fa-caret-square-o-down:before{content:\"\\F150\"}.fa-toggle-up:before,.fa-caret-square-o-up:before{content:\"\\F151\"}.fa-toggle-right:before,.fa-caret-square-o-right:before{content:\"\\F152\"}.fa-euro:before,.fa-eur:before{content:\"\\F153\"}.fa-gbp:before{content:\"\\F154\"}.fa-dollar:before,.fa-usd:before{content:\"\\F155\"}.fa-rupee:before,.fa-inr:before{content:\"\\F156\"}.fa-cny:before,.fa-rmb:before,.fa-yen:before,.fa-jpy:before{content:\"\\F157\"}.fa-ruble:before,.fa-rouble:before,.fa-rub:before{content:\"\\F158\"}.fa-won:before,.fa-krw:before{content:\"\\F159\"}.fa-bitcoin:before,.fa-btc:before{content:\"\\F15A\"}.fa-file:before{content:\"\\F15B\"}.fa-file-text:before{content:\"\\F15C\"}.fa-sort-alpha-asc:before{content:\"\\F15D\"}.fa-sort-alpha-desc:before{content:\"\\F15E\"}.fa-sort-amount-asc:before{content:\"\\F160\"}.fa-sort-amount-desc:before{content:\"\\F161\"}.fa-sort-numeric-asc:before{content:\"\\F162\"}.fa-sort-numeric-desc:before{content:\"\\F163\"}.fa-thumbs-up:before{content:\"\\F164\"}.fa-thumbs-down:before{content:\"\\F165\"}.fa-youtube-square:before{content:\"\\F166\"}.fa-youtube:before{content:\"\\F167\"}.fa-xing:before{content:\"\\F168\"}.fa-xing-square:before{content:\"\\F169\"}.fa-youtube-play:before{content:\"\\F16A\"}.fa-dropbox:before{content:\"\\F16B\"}.fa-stack-overflow:before{content:\"\\F16C\"}.fa-instagram:before{content:\"\\F16D\"}.fa-flickr:before{content:\"\\F16E\"}.fa-adn:before{content:\"\\F170\"}.fa-bitbucket:before{content:\"\\F171\"}.fa-bitbucket-square:before{content:\"\\F172\"}.fa-tumblr:before{content:\"\\F173\"}.fa-tumblr-square:before{content:\"\\F174\"}.fa-long-arrow-down:before{content:\"\\F175\"}.fa-long-arrow-up:before{content:\"\\F176\"}.fa-long-arrow-left:before{content:\"\\F177\"}.fa-long-arrow-right:before{content:\"\\F178\"}.fa-apple:before{content:\"\\F179\"}.fa-windows:before{content:\"\\F17A\"}.fa-android:before{content:\"\\F17B\"}.fa-linux:before{content:\"\\F17C\"}.fa-dribbble:before{content:\"\\F17D\"}.fa-skype:before{content:\"\\F17E\"}.fa-foursquare:before{content:\"\\F180\"}.fa-trello:before{content:\"\\F181\"}.fa-female:before{content:\"\\F182\"}.fa-male:before{content:\"\\F183\"}.fa-gittip:before,.fa-gratipay:before{content:\"\\F184\"}.fa-sun-o:before{content:\"\\F185\"}.fa-moon-o:before{content:\"\\F186\"}.fa-archive:before{content:\"\\F187\"}.fa-bug:before{content:\"\\F188\"}.fa-vk:before{content:\"\\F189\"}.fa-weibo:before{content:\"\\F18A\"}.fa-renren:before{content:\"\\F18B\"}.fa-pagelines:before{content:\"\\F18C\"}.fa-stack-exchange:before{content:\"\\F18D\"}.fa-arrow-circle-o-right:before{content:\"\\F18E\"}.fa-arrow-circle-o-left:before{content:\"\\F190\"}.fa-toggle-left:before,.fa-caret-square-o-left:before{content:\"\\F191\"}.fa-dot-circle-o:before{content:\"\\F192\"}.fa-wheelchair:before{content:\"\\F193\"}.fa-vimeo-square:before{content:\"\\F194\"}.fa-turkish-lira:before,.fa-try:before{content:\"\\F195\"}.fa-plus-square-o:before{content:\"\\F196\"}.fa-space-shuttle:before{content:\"\\F197\"}.fa-slack:before{content:\"\\F198\"}.fa-envelope-square:before{content:\"\\F199\"}.fa-wordpress:before{content:\"\\F19A\"}.fa-openid:before{content:\"\\F19B\"}.fa-institution:before,.fa-bank:before,.fa-university:before{content:\"\\F19C\"}.fa-mortar-board:before,.fa-graduation-cap:before{content:\"\\F19D\"}.fa-yahoo:before{content:\"\\F19E\"}.fa-google:before{content:\"\\F1A0\"}.fa-reddit:before{content:\"\\F1A1\"}.fa-reddit-square:before{content:\"\\F1A2\"}.fa-stumbleupon-circle:before{content:\"\\F1A3\"}.fa-stumbleupon:before{content:\"\\F1A4\"}.fa-delicious:before{content:\"\\F1A5\"}.fa-digg:before{content:\"\\F1A6\"}.fa-pied-piper-pp:before{content:\"\\F1A7\"}.fa-pied-piper-alt:before{content:\"\\F1A8\"}.fa-drupal:before{content:\"\\F1A9\"}.fa-joomla:before{content:\"\\F1AA\"}.fa-language:before{content:\"\\F1AB\"}.fa-fax:before{content:\"\\F1AC\"}.fa-building:before{content:\"\\F1AD\"}.fa-child:before{content:\"\\F1AE\"}.fa-paw:before{content:\"\\F1B0\"}.fa-spoon:before{content:\"\\F1B1\"}.fa-cube:before{content:\"\\F1B2\"}.fa-cubes:before{content:\"\\F1B3\"}.fa-behance:before{content:\"\\F1B4\"}.fa-behance-square:before{content:\"\\F1B5\"}.fa-steam:before{content:\"\\F1B6\"}.fa-steam-square:before{content:\"\\F1B7\"}.fa-recycle:before{content:\"\\F1B8\"}.fa-automobile:before,.fa-car:before{content:\"\\F1B9\"}.fa-cab:before,.fa-taxi:before{content:\"\\F1BA\"}.fa-tree:before{content:\"\\F1BB\"}.fa-spotify:before{content:\"\\F1BC\"}.fa-deviantart:before{content:\"\\F1BD\"}.fa-soundcloud:before{content:\"\\F1BE\"}.fa-database:before{content:\"\\F1C0\"}.fa-file-pdf-o:before{content:\"\\F1C1\"}.fa-file-word-o:before{content:\"\\F1C2\"}.fa-file-excel-o:before{content:\"\\F1C3\"}.fa-file-powerpoint-o:before{content:\"\\F1C4\"}.fa-file-photo-o:before,.fa-file-picture-o:before,.fa-file-image-o:before{content:\"\\F1C5\"}.fa-file-zip-o:before,.fa-file-archive-o:before{content:\"\\F1C6\"}.fa-file-sound-o:before,.fa-file-audio-o:before{content:\"\\F1C7\"}.fa-file-movie-o:before,.fa-file-video-o:before{content:\"\\F1C8\"}.fa-file-code-o:before{content:\"\\F1C9\"}.fa-vine:before{content:\"\\F1CA\"}.fa-codepen:before{content:\"\\F1CB\"}.fa-jsfiddle:before{content:\"\\F1CC\"}.fa-life-bouy:before,.fa-life-buoy:before,.fa-life-saver:before,.fa-support:before,.fa-life-ring:before{content:\"\\F1CD\"}.fa-circle-o-notch:before{content:\"\\F1CE\"}.fa-ra:before,.fa-resistance:before,.fa-rebel:before{content:\"\\F1D0\"}.fa-ge:before,.fa-empire:before{content:\"\\F1D1\"}.fa-git-square:before{content:\"\\F1D2\"}.fa-git:before{content:\"\\F1D3\"}.fa-y-combinator-square:before,.fa-yc-square:before,.fa-hacker-news:before{content:\"\\F1D4\"}.fa-tencent-weibo:before{content:\"\\F1D5\"}.fa-qq:before{content:\"\\F1D6\"}.fa-wechat:before,.fa-weixin:before{content:\"\\F1D7\"}.fa-send:before,.fa-paper-plane:before{content:\"\\F1D8\"}.fa-send-o:before,.fa-paper-plane-o:before{content:\"\\F1D9\"}.fa-history:before{content:\"\\F1DA\"}.fa-circle-thin:before{content:\"\\F1DB\"}.fa-header:before{content:\"\\F1DC\"}.fa-paragraph:before{content:\"\\F1DD\"}.fa-sliders:before{content:\"\\F1DE\"}.fa-share-alt:before{content:\"\\F1E0\"}.fa-share-alt-square:before{content:\"\\F1E1\"}.fa-bomb:before{content:\"\\F1E2\"}.fa-soccer-ball-o:before,.fa-futbol-o:before{content:\"\\F1E3\"}.fa-tty:before{content:\"\\F1E4\"}.fa-binoculars:before{content:\"\\F1E5\"}.fa-plug:before{content:\"\\F1E6\"}.fa-slideshare:before{content:\"\\F1E7\"}.fa-twitch:before{content:\"\\F1E8\"}.fa-yelp:before{content:\"\\F1E9\"}.fa-newspaper-o:before{content:\"\\F1EA\"}.fa-wifi:before{content:\"\\F1EB\"}.fa-calculator:before{content:\"\\F1EC\"}.fa-paypal:before{content:\"\\F1ED\"}.fa-google-wallet:before{content:\"\\F1EE\"}.fa-cc-visa:before{content:\"\\F1F0\"}.fa-cc-mastercard:before{content:\"\\F1F1\"}.fa-cc-discover:before{content:\"\\F1F2\"}.fa-cc-amex:before{content:\"\\F1F3\"}.fa-cc-paypal:before{content:\"\\F1F4\"}.fa-cc-stripe:before{content:\"\\F1F5\"}.fa-bell-slash:before{content:\"\\F1F6\"}.fa-bell-slash-o:before{content:\"\\F1F7\"}.fa-trash:before{content:\"\\F1F8\"}.fa-copyright:before{content:\"\\F1F9\"}.fa-at:before{content:\"\\F1FA\"}.fa-eyedropper:before{content:\"\\F1FB\"}.fa-paint-brush:before{content:\"\\F1FC\"}.fa-birthday-cake:before{content:\"\\F1FD\"}.fa-area-chart:before{content:\"\\F1FE\"}.fa-pie-chart:before{content:\"\\F200\"}.fa-line-chart:before{content:\"\\F201\"}.fa-lastfm:before{content:\"\\F202\"}.fa-lastfm-square:before{content:\"\\F203\"}.fa-toggle-off:before{content:\"\\F204\"}.fa-toggle-on:before{content:\"\\F205\"}.fa-bicycle:before{content:\"\\F206\"}.fa-bus:before{content:\"\\F207\"}.fa-ioxhost:before{content:\"\\F208\"}.fa-angellist:before{content:\"\\F209\"}.fa-cc:before{content:\"\\F20A\"}.fa-shekel:before,.fa-sheqel:before,.fa-ils:before{content:\"\\F20B\"}.fa-meanpath:before{content:\"\\F20C\"}.fa-buysellads:before{content:\"\\F20D\"}.fa-connectdevelop:before{content:\"\\F20E\"}.fa-dashcube:before{content:\"\\F210\"}.fa-forumbee:before{content:\"\\F211\"}.fa-leanpub:before{content:\"\\F212\"}.fa-sellsy:before{content:\"\\F213\"}.fa-shirtsinbulk:before{content:\"\\F214\"}.fa-simplybuilt:before{content:\"\\F215\"}.fa-skyatlas:before{content:\"\\F216\"}.fa-cart-plus:before{content:\"\\F217\"}.fa-cart-arrow-down:before{content:\"\\F218\"}.fa-diamond:before{content:\"\\F219\"}.fa-ship:before{content:\"\\F21A\"}.fa-user-secret:before{content:\"\\F21B\"}.fa-motorcycle:before{content:\"\\F21C\"}.fa-street-view:before{content:\"\\F21D\"}.fa-heartbeat:before{content:\"\\F21E\"}.fa-venus:before{content:\"\\F221\"}.fa-mars:before{content:\"\\F222\"}.fa-mercury:before{content:\"\\F223\"}.fa-intersex:before,.fa-transgender:before{content:\"\\F224\"}.fa-transgender-alt:before{content:\"\\F225\"}.fa-venus-double:before{content:\"\\F226\"}.fa-mars-double:before{content:\"\\F227\"}.fa-venus-mars:before{content:\"\\F228\"}.fa-mars-stroke:before{content:\"\\F229\"}.fa-mars-stroke-v:before{content:\"\\F22A\"}.fa-mars-stroke-h:before{content:\"\\F22B\"}.fa-neuter:before{content:\"\\F22C\"}.fa-genderless:before{content:\"\\F22D\"}.fa-facebook-official:before{content:\"\\F230\"}.fa-pinterest-p:before{content:\"\\F231\"}.fa-whatsapp:before{content:\"\\F232\"}.fa-server:before{content:\"\\F233\"}.fa-user-plus:before{content:\"\\F234\"}.fa-user-times:before{content:\"\\F235\"}.fa-hotel:before,.fa-bed:before{content:\"\\F236\"}.fa-viacoin:before{content:\"\\F237\"}.fa-train:before{content:\"\\F238\"}.fa-subway:before{content:\"\\F239\"}.fa-medium:before{content:\"\\F23A\"}.fa-yc:before,.fa-y-combinator:before{content:\"\\F23B\"}.fa-optin-monster:before{content:\"\\F23C\"}.fa-opencart:before{content:\"\\F23D\"}.fa-expeditedssl:before{content:\"\\F23E\"}.fa-battery-4:before,.fa-battery:before,.fa-battery-full:before{content:\"\\F240\"}.fa-battery-3:before,.fa-battery-three-quarters:before{content:\"\\F241\"}.fa-battery-2:before,.fa-battery-half:before{content:\"\\F242\"}.fa-battery-1:before,.fa-battery-quarter:before{content:\"\\F243\"}.fa-battery-0:before,.fa-battery-empty:before{content:\"\\F244\"}.fa-mouse-pointer:before{content:\"\\F245\"}.fa-i-cursor:before{content:\"\\F246\"}.fa-object-group:before{content:\"\\F247\"}.fa-object-ungroup:before{content:\"\\F248\"}.fa-sticky-note:before{content:\"\\F249\"}.fa-sticky-note-o:before{content:\"\\F24A\"}.fa-cc-jcb:before{content:\"\\F24B\"}.fa-cc-diners-club:before{content:\"\\F24C\"}.fa-clone:before{content:\"\\F24D\"}.fa-balance-scale:before{content:\"\\F24E\"}.fa-hourglass-o:before{content:\"\\F250\"}.fa-hourglass-1:before,.fa-hourglass-start:before{content:\"\\F251\"}.fa-hourglass-2:before,.fa-hourglass-half:before{content:\"\\F252\"}.fa-hourglass-3:before,.fa-hourglass-end:before{content:\"\\F253\"}.fa-hourglass:before{content:\"\\F254\"}.fa-hand-grab-o:before,.fa-hand-rock-o:before{content:\"\\F255\"}.fa-hand-stop-o:before,.fa-hand-paper-o:before{content:\"\\F256\"}.fa-hand-scissors-o:before{content:\"\\F257\"}.fa-hand-lizard-o:before{content:\"\\F258\"}.fa-hand-spock-o:before{content:\"\\F259\"}.fa-hand-pointer-o:before{content:\"\\F25A\"}.fa-hand-peace-o:before{content:\"\\F25B\"}.fa-trademark:before{content:\"\\F25C\"}.fa-registered:before{content:\"\\F25D\"}.fa-creative-commons:before{content:\"\\F25E\"}.fa-gg:before{content:\"\\F260\"}.fa-gg-circle:before{content:\"\\F261\"}.fa-tripadvisor:before{content:\"\\F262\"}.fa-odnoklassniki:before{content:\"\\F263\"}.fa-odnoklassniki-square:before{content:\"\\F264\"}.fa-get-pocket:before{content:\"\\F265\"}.fa-wikipedia-w:before{content:\"\\F266\"}.fa-safari:before{content:\"\\F267\"}.fa-chrome:before{content:\"\\F268\"}.fa-firefox:before{content:\"\\F269\"}.fa-opera:before{content:\"\\F26A\"}.fa-internet-explorer:before{content:\"\\F26B\"}.fa-tv:before,.fa-television:before{content:\"\\F26C\"}.fa-contao:before{content:\"\\F26D\"}.fa-500px:before{content:\"\\F26E\"}.fa-amazon:before{content:\"\\F270\"}.fa-calendar-plus-o:before{content:\"\\F271\"}.fa-calendar-minus-o:before{content:\"\\F272\"}.fa-calendar-times-o:before{content:\"\\F273\"}.fa-calendar-check-o:before{content:\"\\F274\"}.fa-industry:before{content:\"\\F275\"}.fa-map-pin:before{content:\"\\F276\"}.fa-map-signs:before{content:\"\\F277\"}.fa-map-o:before{content:\"\\F278\"}.fa-map:before{content:\"\\F279\"}.fa-commenting:before{content:\"\\F27A\"}.fa-commenting-o:before{content:\"\\F27B\"}.fa-houzz:before{content:\"\\F27C\"}.fa-vimeo:before{content:\"\\F27D\"}.fa-black-tie:before{content:\"\\F27E\"}.fa-fonticons:before{content:\"\\F280\"}.fa-reddit-alien:before{content:\"\\F281\"}.fa-edge:before{content:\"\\F282\"}.fa-credit-card-alt:before{content:\"\\F283\"}.fa-codiepie:before{content:\"\\F284\"}.fa-modx:before{content:\"\\F285\"}.fa-fort-awesome:before{content:\"\\F286\"}.fa-usb:before{content:\"\\F287\"}.fa-product-hunt:before{content:\"\\F288\"}.fa-mixcloud:before{content:\"\\F289\"}.fa-scribd:before{content:\"\\F28A\"}.fa-pause-circle:before{content:\"\\F28B\"}.fa-pause-circle-o:before{content:\"\\F28C\"}.fa-stop-circle:before{content:\"\\F28D\"}.fa-stop-circle-o:before{content:\"\\F28E\"}.fa-shopping-bag:before{content:\"\\F290\"}.fa-shopping-basket:before{content:\"\\F291\"}.fa-hashtag:before{content:\"\\F292\"}.fa-bluetooth:before{content:\"\\F293\"}.fa-bluetooth-b:before{content:\"\\F294\"}.fa-percent:before{content:\"\\F295\"}.fa-gitlab:before{content:\"\\F296\"}.fa-wpbeginner:before{content:\"\\F297\"}.fa-wpforms:before{content:\"\\F298\"}.fa-envira:before{content:\"\\F299\"}.fa-universal-access:before{content:\"\\F29A\"}.fa-wheelchair-alt:before{content:\"\\F29B\"}.fa-question-circle-o:before{content:\"\\F29C\"}.fa-blind:before{content:\"\\F29D\"}.fa-audio-description:before{content:\"\\F29E\"}.fa-volume-control-phone:before{content:\"\\F2A0\"}.fa-braille:before{content:\"\\F2A1\"}.fa-assistive-listening-systems:before{content:\"\\F2A2\"}.fa-asl-interpreting:before,.fa-american-sign-language-interpreting:before{content:\"\\F2A3\"}.fa-deafness:before,.fa-hard-of-hearing:before,.fa-deaf:before{content:\"\\F2A4\"}.fa-glide:before{content:\"\\F2A5\"}.fa-glide-g:before{content:\"\\F2A6\"}.fa-signing:before,.fa-sign-language:before{content:\"\\F2A7\"}.fa-low-vision:before{content:\"\\F2A8\"}.fa-viadeo:before{content:\"\\F2A9\"}.fa-viadeo-square:before{content:\"\\F2AA\"}.fa-snapchat:before{content:\"\\F2AB\"}.fa-snapchat-ghost:before{content:\"\\F2AC\"}.fa-snapchat-square:before{content:\"\\F2AD\"}.fa-pied-piper:before{content:\"\\F2AE\"}.fa-first-order:before{content:\"\\F2B0\"}.fa-yoast:before{content:\"\\F2B1\"}.fa-themeisle:before{content:\"\\F2B2\"}.fa-google-plus-circle:before,.fa-google-plus-official:before{content:\"\\F2B3\"}.fa-fa:before,.fa-font-awesome:before{content:\"\\F2B4\"}.fa-handshake-o:before{content:\"\\F2B5\"}.fa-envelope-open:before{content:\"\\F2B6\"}.fa-envelope-open-o:before{content:\"\\F2B7\"}.fa-linode:before{content:\"\\F2B8\"}.fa-address-book:before{content:\"\\F2B9\"}.fa-address-book-o:before{content:\"\\F2BA\"}.fa-vcard:before,.fa-address-card:before{content:\"\\F2BB\"}.fa-vcard-o:before,.fa-address-card-o:before{content:\"\\F2BC\"}.fa-user-circle:before{content:\"\\F2BD\"}.fa-user-circle-o:before{content:\"\\F2BE\"}.fa-user-o:before{content:\"\\F2C0\"}.fa-id-badge:before{content:\"\\F2C1\"}.fa-drivers-license:before,.fa-id-card:before{content:\"\\F2C2\"}.fa-drivers-license-o:before,.fa-id-card-o:before{content:\"\\F2C3\"}.fa-quora:before{content:\"\\F2C4\"}.fa-free-code-camp:before{content:\"\\F2C5\"}.fa-telegram:before{content:\"\\F2C6\"}.fa-thermometer-4:before,.fa-thermometer:before,.fa-thermometer-full:before{content:\"\\F2C7\"}.fa-thermometer-3:before,.fa-thermometer-three-quarters:before{content:\"\\F2C8\"}.fa-thermometer-2:before,.fa-thermometer-half:before{content:\"\\F2C9\"}.fa-thermometer-1:before,.fa-thermometer-quarter:before{content:\"\\F2CA\"}.fa-thermometer-0:before,.fa-thermometer-empty:before{content:\"\\F2CB\"}.fa-shower:before{content:\"\\F2CC\"}.fa-bathtub:before,.fa-s15:before,.fa-bath:before{content:\"\\F2CD\"}.fa-podcast:before{content:\"\\F2CE\"}.fa-window-maximize:before{content:\"\\F2D0\"}.fa-window-minimize:before{content:\"\\F2D1\"}.fa-window-restore:before{content:\"\\F2D2\"}.fa-times-rectangle:before,.fa-window-close:before{content:\"\\F2D3\"}.fa-times-rectangle-o:before,.fa-window-close-o:before{content:\"\\F2D4\"}.fa-bandcamp:before{content:\"\\F2D5\"}.fa-grav:before{content:\"\\F2D6\"}.fa-etsy:before{content:\"\\F2D7\"}.fa-imdb:before{content:\"\\F2D8\"}.fa-ravelry:before{content:\"\\F2D9\"}.fa-eercast:before{content:\"\\F2DA\"}.fa-microchip:before{content:\"\\F2DB\"}.fa-snowflake-o:before{content:\"\\F2DC\"}.fa-superpowers:before{content:\"\\F2DD\"}.fa-wpexplorer:before{content:\"\\F2DE\"}.fa-meetup:before{content:\"\\F2E0\"}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);border:0}.sr-only-focusable:active,.sr-only-focusable:focus{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto}\n", ""]);
+exports.push([module.i, "/*!\n *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome\n *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)\n */@font-face{font-family:'FontAwesome';src:url(" + escape(__webpack_require__(186)) + ");src:url(" + escape(__webpack_require__(187)) + "?#iefix&v=4.7.0) format('embedded-opentype'),url(" + escape(__webpack_require__(188)) + ") format('woff2'),url(" + escape(__webpack_require__(189)) + ") format('woff'),url(" + escape(__webpack_require__(190)) + ") format('truetype'),url(" + escape(__webpack_require__(191)) + "#fontawesomeregular) format('svg');font-weight:normal;font-style:normal}.fa{display:inline-block;font:normal normal normal 14px/1 FontAwesome;font-size:inherit;text-rendering:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.fa-lg{font-size:1.33333333em;line-height:.75em;vertical-align:-15%}.fa-2x{font-size:2em}.fa-3x{font-size:3em}.fa-4x{font-size:4em}.fa-5x{font-size:5em}.fa-fw{width:1.28571429em;text-align:center}.fa-ul{padding-left:0;margin-left:2.14285714em;list-style-type:none}.fa-ul>li{position:relative}.fa-li{position:absolute;left:-2.14285714em;width:2.14285714em;top:.14285714em;text-align:center}.fa-li.fa-lg{left:-1.85714286em}.fa-border{padding:.2em .25em .15em;border:solid .08em #eee;border-radius:.1em}.fa-pull-left{float:left}.fa-pull-right{float:right}.fa.fa-pull-left{margin-right:.3em}.fa.fa-pull-right{margin-left:.3em}.pull-right{float:right}.pull-left{float:left}.fa.pull-left{margin-right:.3em}.fa.pull-right{margin-left:.3em}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}.fa-pulse{-webkit-animation:fa-spin 1s infinite steps(8);animation:fa-spin 1s infinite steps(8)}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}.fa-rotate-90{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.fa-rotate-180{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}.fa-rotate-270{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";-webkit-transform:rotate(270deg);-ms-transform:rotate(270deg);transform:rotate(270deg)}.fa-flip-horizontal{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1)}.fa-flip-vertical{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";-webkit-transform:scale(1, -1);-ms-transform:scale(1, -1);transform:scale(1, -1)}:root .fa-rotate-90,:root .fa-rotate-180,:root .fa-rotate-270,:root .fa-flip-horizontal,:root .fa-flip-vertical{filter:none}.fa-stack{position:relative;display:inline-block;width:2em;height:2em;line-height:2em;vertical-align:middle}.fa-stack-1x,.fa-stack-2x{position:absolute;left:0;width:100%;text-align:center}.fa-stack-1x{line-height:inherit}.fa-stack-2x{font-size:2em}.fa-inverse{color:#fff}.fa-glass:before{content:\"\\F000\"}.fa-music:before{content:\"\\F001\"}.fa-search:before{content:\"\\F002\"}.fa-envelope-o:before{content:\"\\F003\"}.fa-heart:before{content:\"\\F004\"}.fa-star:before{content:\"\\F005\"}.fa-star-o:before{content:\"\\F006\"}.fa-user:before{content:\"\\F007\"}.fa-film:before{content:\"\\F008\"}.fa-th-large:before{content:\"\\F009\"}.fa-th:before{content:\"\\F00A\"}.fa-th-list:before{content:\"\\F00B\"}.fa-check:before{content:\"\\F00C\"}.fa-remove:before,.fa-close:before,.fa-times:before{content:\"\\F00D\"}.fa-search-plus:before{content:\"\\F00E\"}.fa-search-minus:before{content:\"\\F010\"}.fa-power-off:before{content:\"\\F011\"}.fa-signal:before{content:\"\\F012\"}.fa-gear:before,.fa-cog:before{content:\"\\F013\"}.fa-trash-o:before{content:\"\\F014\"}.fa-home:before{content:\"\\F015\"}.fa-file-o:before{content:\"\\F016\"}.fa-clock-o:before{content:\"\\F017\"}.fa-road:before{content:\"\\F018\"}.fa-download:before{content:\"\\F019\"}.fa-arrow-circle-o-down:before{content:\"\\F01A\"}.fa-arrow-circle-o-up:before{content:\"\\F01B\"}.fa-inbox:before{content:\"\\F01C\"}.fa-play-circle-o:before{content:\"\\F01D\"}.fa-rotate-right:before,.fa-repeat:before{content:\"\\F01E\"}.fa-refresh:before{content:\"\\F021\"}.fa-list-alt:before{content:\"\\F022\"}.fa-lock:before{content:\"\\F023\"}.fa-flag:before{content:\"\\F024\"}.fa-headphones:before{content:\"\\F025\"}.fa-volume-off:before{content:\"\\F026\"}.fa-volume-down:before{content:\"\\F027\"}.fa-volume-up:before{content:\"\\F028\"}.fa-qrcode:before{content:\"\\F029\"}.fa-barcode:before{content:\"\\F02A\"}.fa-tag:before{content:\"\\F02B\"}.fa-tags:before{content:\"\\F02C\"}.fa-book:before{content:\"\\F02D\"}.fa-bookmark:before{content:\"\\F02E\"}.fa-print:before{content:\"\\F02F\"}.fa-camera:before{content:\"\\F030\"}.fa-font:before{content:\"\\F031\"}.fa-bold:before{content:\"\\F032\"}.fa-italic:before{content:\"\\F033\"}.fa-text-height:before{content:\"\\F034\"}.fa-text-width:before{content:\"\\F035\"}.fa-align-left:before{content:\"\\F036\"}.fa-align-center:before{content:\"\\F037\"}.fa-align-right:before{content:\"\\F038\"}.fa-align-justify:before{content:\"\\F039\"}.fa-list:before{content:\"\\F03A\"}.fa-dedent:before,.fa-outdent:before{content:\"\\F03B\"}.fa-indent:before{content:\"\\F03C\"}.fa-video-camera:before{content:\"\\F03D\"}.fa-photo:before,.fa-image:before,.fa-picture-o:before{content:\"\\F03E\"}.fa-pencil:before{content:\"\\F040\"}.fa-map-marker:before{content:\"\\F041\"}.fa-adjust:before{content:\"\\F042\"}.fa-tint:before{content:\"\\F043\"}.fa-edit:before,.fa-pencil-square-o:before{content:\"\\F044\"}.fa-share-square-o:before{content:\"\\F045\"}.fa-check-square-o:before{content:\"\\F046\"}.fa-arrows:before{content:\"\\F047\"}.fa-step-backward:before{content:\"\\F048\"}.fa-fast-backward:before{content:\"\\F049\"}.fa-backward:before{content:\"\\F04A\"}.fa-play:before{content:\"\\F04B\"}.fa-pause:before{content:\"\\F04C\"}.fa-stop:before{content:\"\\F04D\"}.fa-forward:before{content:\"\\F04E\"}.fa-fast-forward:before{content:\"\\F050\"}.fa-step-forward:before{content:\"\\F051\"}.fa-eject:before{content:\"\\F052\"}.fa-chevron-left:before{content:\"\\F053\"}.fa-chevron-right:before{content:\"\\F054\"}.fa-plus-circle:before{content:\"\\F055\"}.fa-minus-circle:before{content:\"\\F056\"}.fa-times-circle:before{content:\"\\F057\"}.fa-check-circle:before{content:\"\\F058\"}.fa-question-circle:before{content:\"\\F059\"}.fa-info-circle:before{content:\"\\F05A\"}.fa-crosshairs:before{content:\"\\F05B\"}.fa-times-circle-o:before{content:\"\\F05C\"}.fa-check-circle-o:before{content:\"\\F05D\"}.fa-ban:before{content:\"\\F05E\"}.fa-arrow-left:before{content:\"\\F060\"}.fa-arrow-right:before{content:\"\\F061\"}.fa-arrow-up:before{content:\"\\F062\"}.fa-arrow-down:before{content:\"\\F063\"}.fa-mail-forward:before,.fa-share:before{content:\"\\F064\"}.fa-expand:before{content:\"\\F065\"}.fa-compress:before{content:\"\\F066\"}.fa-plus:before{content:\"\\F067\"}.fa-minus:before{content:\"\\F068\"}.fa-asterisk:before{content:\"\\F069\"}.fa-exclamation-circle:before{content:\"\\F06A\"}.fa-gift:before{content:\"\\F06B\"}.fa-leaf:before{content:\"\\F06C\"}.fa-fire:before{content:\"\\F06D\"}.fa-eye:before{content:\"\\F06E\"}.fa-eye-slash:before{content:\"\\F070\"}.fa-warning:before,.fa-exclamation-triangle:before{content:\"\\F071\"}.fa-plane:before{content:\"\\F072\"}.fa-calendar:before{content:\"\\F073\"}.fa-random:before{content:\"\\F074\"}.fa-comment:before{content:\"\\F075\"}.fa-magnet:before{content:\"\\F076\"}.fa-chevron-up:before{content:\"\\F077\"}.fa-chevron-down:before{content:\"\\F078\"}.fa-retweet:before{content:\"\\F079\"}.fa-shopping-cart:before{content:\"\\F07A\"}.fa-folder:before{content:\"\\F07B\"}.fa-folder-open:before{content:\"\\F07C\"}.fa-arrows-v:before{content:\"\\F07D\"}.fa-arrows-h:before{content:\"\\F07E\"}.fa-bar-chart-o:before,.fa-bar-chart:before{content:\"\\F080\"}.fa-twitter-square:before{content:\"\\F081\"}.fa-facebook-square:before{content:\"\\F082\"}.fa-camera-retro:before{content:\"\\F083\"}.fa-key:before{content:\"\\F084\"}.fa-gears:before,.fa-cogs:before{content:\"\\F085\"}.fa-comments:before{content:\"\\F086\"}.fa-thumbs-o-up:before{content:\"\\F087\"}.fa-thumbs-o-down:before{content:\"\\F088\"}.fa-star-half:before{content:\"\\F089\"}.fa-heart-o:before{content:\"\\F08A\"}.fa-sign-out:before{content:\"\\F08B\"}.fa-linkedin-square:before{content:\"\\F08C\"}.fa-thumb-tack:before{content:\"\\F08D\"}.fa-external-link:before{content:\"\\F08E\"}.fa-sign-in:before{content:\"\\F090\"}.fa-trophy:before{content:\"\\F091\"}.fa-github-square:before{content:\"\\F092\"}.fa-upload:before{content:\"\\F093\"}.fa-lemon-o:before{content:\"\\F094\"}.fa-phone:before{content:\"\\F095\"}.fa-square-o:before{content:\"\\F096\"}.fa-bookmark-o:before{content:\"\\F097\"}.fa-phone-square:before{content:\"\\F098\"}.fa-twitter:before{content:\"\\F099\"}.fa-facebook-f:before,.fa-facebook:before{content:\"\\F09A\"}.fa-github:before{content:\"\\F09B\"}.fa-unlock:before{content:\"\\F09C\"}.fa-credit-card:before{content:\"\\F09D\"}.fa-feed:before,.fa-rss:before{content:\"\\F09E\"}.fa-hdd-o:before{content:\"\\F0A0\"}.fa-bullhorn:before{content:\"\\F0A1\"}.fa-bell:before{content:\"\\F0F3\"}.fa-certificate:before{content:\"\\F0A3\"}.fa-hand-o-right:before{content:\"\\F0A4\"}.fa-hand-o-left:before{content:\"\\F0A5\"}.fa-hand-o-up:before{content:\"\\F0A6\"}.fa-hand-o-down:before{content:\"\\F0A7\"}.fa-arrow-circle-left:before{content:\"\\F0A8\"}.fa-arrow-circle-right:before{content:\"\\F0A9\"}.fa-arrow-circle-up:before{content:\"\\F0AA\"}.fa-arrow-circle-down:before{content:\"\\F0AB\"}.fa-globe:before{content:\"\\F0AC\"}.fa-wrench:before{content:\"\\F0AD\"}.fa-tasks:before{content:\"\\F0AE\"}.fa-filter:before{content:\"\\F0B0\"}.fa-briefcase:before{content:\"\\F0B1\"}.fa-arrows-alt:before{content:\"\\F0B2\"}.fa-group:before,.fa-users:before{content:\"\\F0C0\"}.fa-chain:before,.fa-link:before{content:\"\\F0C1\"}.fa-cloud:before{content:\"\\F0C2\"}.fa-flask:before{content:\"\\F0C3\"}.fa-cut:before,.fa-scissors:before{content:\"\\F0C4\"}.fa-copy:before,.fa-files-o:before{content:\"\\F0C5\"}.fa-paperclip:before{content:\"\\F0C6\"}.fa-save:before,.fa-floppy-o:before{content:\"\\F0C7\"}.fa-square:before{content:\"\\F0C8\"}.fa-navicon:before,.fa-reorder:before,.fa-bars:before{content:\"\\F0C9\"}.fa-list-ul:before{content:\"\\F0CA\"}.fa-list-ol:before{content:\"\\F0CB\"}.fa-strikethrough:before{content:\"\\F0CC\"}.fa-underline:before{content:\"\\F0CD\"}.fa-table:before{content:\"\\F0CE\"}.fa-magic:before{content:\"\\F0D0\"}.fa-truck:before{content:\"\\F0D1\"}.fa-pinterest:before{content:\"\\F0D2\"}.fa-pinterest-square:before{content:\"\\F0D3\"}.fa-google-plus-square:before{content:\"\\F0D4\"}.fa-google-plus:before{content:\"\\F0D5\"}.fa-money:before{content:\"\\F0D6\"}.fa-caret-down:before{content:\"\\F0D7\"}.fa-caret-up:before{content:\"\\F0D8\"}.fa-caret-left:before{content:\"\\F0D9\"}.fa-caret-right:before{content:\"\\F0DA\"}.fa-columns:before{content:\"\\F0DB\"}.fa-unsorted:before,.fa-sort:before{content:\"\\F0DC\"}.fa-sort-down:before,.fa-sort-desc:before{content:\"\\F0DD\"}.fa-sort-up:before,.fa-sort-asc:before{content:\"\\F0DE\"}.fa-envelope:before{content:\"\\F0E0\"}.fa-linkedin:before{content:\"\\F0E1\"}.fa-rotate-left:before,.fa-undo:before{content:\"\\F0E2\"}.fa-legal:before,.fa-gavel:before{content:\"\\F0E3\"}.fa-dashboard:before,.fa-tachometer:before{content:\"\\F0E4\"}.fa-comment-o:before{content:\"\\F0E5\"}.fa-comments-o:before{content:\"\\F0E6\"}.fa-flash:before,.fa-bolt:before{content:\"\\F0E7\"}.fa-sitemap:before{content:\"\\F0E8\"}.fa-umbrella:before{content:\"\\F0E9\"}.fa-paste:before,.fa-clipboard:before{content:\"\\F0EA\"}.fa-lightbulb-o:before{content:\"\\F0EB\"}.fa-exchange:before{content:\"\\F0EC\"}.fa-cloud-download:before{content:\"\\F0ED\"}.fa-cloud-upload:before{content:\"\\F0EE\"}.fa-user-md:before{content:\"\\F0F0\"}.fa-stethoscope:before{content:\"\\F0F1\"}.fa-suitcase:before{content:\"\\F0F2\"}.fa-bell-o:before{content:\"\\F0A2\"}.fa-coffee:before{content:\"\\F0F4\"}.fa-cutlery:before{content:\"\\F0F5\"}.fa-file-text-o:before{content:\"\\F0F6\"}.fa-building-o:before{content:\"\\F0F7\"}.fa-hospital-o:before{content:\"\\F0F8\"}.fa-ambulance:before{content:\"\\F0F9\"}.fa-medkit:before{content:\"\\F0FA\"}.fa-fighter-jet:before{content:\"\\F0FB\"}.fa-beer:before{content:\"\\F0FC\"}.fa-h-square:before{content:\"\\F0FD\"}.fa-plus-square:before{content:\"\\F0FE\"}.fa-angle-double-left:before{content:\"\\F100\"}.fa-angle-double-right:before{content:\"\\F101\"}.fa-angle-double-up:before{content:\"\\F102\"}.fa-angle-double-down:before{content:\"\\F103\"}.fa-angle-left:before{content:\"\\F104\"}.fa-angle-right:before{content:\"\\F105\"}.fa-angle-up:before{content:\"\\F106\"}.fa-angle-down:before{content:\"\\F107\"}.fa-desktop:before{content:\"\\F108\"}.fa-laptop:before{content:\"\\F109\"}.fa-tablet:before{content:\"\\F10A\"}.fa-mobile-phone:before,.fa-mobile:before{content:\"\\F10B\"}.fa-circle-o:before{content:\"\\F10C\"}.fa-quote-left:before{content:\"\\F10D\"}.fa-quote-right:before{content:\"\\F10E\"}.fa-spinner:before{content:\"\\F110\"}.fa-circle:before{content:\"\\F111\"}.fa-mail-reply:before,.fa-reply:before{content:\"\\F112\"}.fa-github-alt:before{content:\"\\F113\"}.fa-folder-o:before{content:\"\\F114\"}.fa-folder-open-o:before{content:\"\\F115\"}.fa-smile-o:before{content:\"\\F118\"}.fa-frown-o:before{content:\"\\F119\"}.fa-meh-o:before{content:\"\\F11A\"}.fa-gamepad:before{content:\"\\F11B\"}.fa-keyboard-o:before{content:\"\\F11C\"}.fa-flag-o:before{content:\"\\F11D\"}.fa-flag-checkered:before{content:\"\\F11E\"}.fa-terminal:before{content:\"\\F120\"}.fa-code:before{content:\"\\F121\"}.fa-mail-reply-all:before,.fa-reply-all:before{content:\"\\F122\"}.fa-star-half-empty:before,.fa-star-half-full:before,.fa-star-half-o:before{content:\"\\F123\"}.fa-location-arrow:before{content:\"\\F124\"}.fa-crop:before{content:\"\\F125\"}.fa-code-fork:before{content:\"\\F126\"}.fa-unlink:before,.fa-chain-broken:before{content:\"\\F127\"}.fa-question:before{content:\"\\F128\"}.fa-info:before{content:\"\\F129\"}.fa-exclamation:before{content:\"\\F12A\"}.fa-superscript:before{content:\"\\F12B\"}.fa-subscript:before{content:\"\\F12C\"}.fa-eraser:before{content:\"\\F12D\"}.fa-puzzle-piece:before{content:\"\\F12E\"}.fa-microphone:before{content:\"\\F130\"}.fa-microphone-slash:before{content:\"\\F131\"}.fa-shield:before{content:\"\\F132\"}.fa-calendar-o:before{content:\"\\F133\"}.fa-fire-extinguisher:before{content:\"\\F134\"}.fa-rocket:before{content:\"\\F135\"}.fa-maxcdn:before{content:\"\\F136\"}.fa-chevron-circle-left:before{content:\"\\F137\"}.fa-chevron-circle-right:before{content:\"\\F138\"}.fa-chevron-circle-up:before{content:\"\\F139\"}.fa-chevron-circle-down:before{content:\"\\F13A\"}.fa-html5:before{content:\"\\F13B\"}.fa-css3:before{content:\"\\F13C\"}.fa-anchor:before{content:\"\\F13D\"}.fa-unlock-alt:before{content:\"\\F13E\"}.fa-bullseye:before{content:\"\\F140\"}.fa-ellipsis-h:before{content:\"\\F141\"}.fa-ellipsis-v:before{content:\"\\F142\"}.fa-rss-square:before{content:\"\\F143\"}.fa-play-circle:before{content:\"\\F144\"}.fa-ticket:before{content:\"\\F145\"}.fa-minus-square:before{content:\"\\F146\"}.fa-minus-square-o:before{content:\"\\F147\"}.fa-level-up:before{content:\"\\F148\"}.fa-level-down:before{content:\"\\F149\"}.fa-check-square:before{content:\"\\F14A\"}.fa-pencil-square:before{content:\"\\F14B\"}.fa-external-link-square:before{content:\"\\F14C\"}.fa-share-square:before{content:\"\\F14D\"}.fa-compass:before{content:\"\\F14E\"}.fa-toggle-down:before,.fa-caret-square-o-down:before{content:\"\\F150\"}.fa-toggle-up:before,.fa-caret-square-o-up:before{content:\"\\F151\"}.fa-toggle-right:before,.fa-caret-square-o-right:before{content:\"\\F152\"}.fa-euro:before,.fa-eur:before{content:\"\\F153\"}.fa-gbp:before{content:\"\\F154\"}.fa-dollar:before,.fa-usd:before{content:\"\\F155\"}.fa-rupee:before,.fa-inr:before{content:\"\\F156\"}.fa-cny:before,.fa-rmb:before,.fa-yen:before,.fa-jpy:before{content:\"\\F157\"}.fa-ruble:before,.fa-rouble:before,.fa-rub:before{content:\"\\F158\"}.fa-won:before,.fa-krw:before{content:\"\\F159\"}.fa-bitcoin:before,.fa-btc:before{content:\"\\F15A\"}.fa-file:before{content:\"\\F15B\"}.fa-file-text:before{content:\"\\F15C\"}.fa-sort-alpha-asc:before{content:\"\\F15D\"}.fa-sort-alpha-desc:before{content:\"\\F15E\"}.fa-sort-amount-asc:before{content:\"\\F160\"}.fa-sort-amount-desc:before{content:\"\\F161\"}.fa-sort-numeric-asc:before{content:\"\\F162\"}.fa-sort-numeric-desc:before{content:\"\\F163\"}.fa-thumbs-up:before{content:\"\\F164\"}.fa-thumbs-down:before{content:\"\\F165\"}.fa-youtube-square:before{content:\"\\F166\"}.fa-youtube:before{content:\"\\F167\"}.fa-xing:before{content:\"\\F168\"}.fa-xing-square:before{content:\"\\F169\"}.fa-youtube-play:before{content:\"\\F16A\"}.fa-dropbox:before{content:\"\\F16B\"}.fa-stack-overflow:before{content:\"\\F16C\"}.fa-instagram:before{content:\"\\F16D\"}.fa-flickr:before{content:\"\\F16E\"}.fa-adn:before{content:\"\\F170\"}.fa-bitbucket:before{content:\"\\F171\"}.fa-bitbucket-square:before{content:\"\\F172\"}.fa-tumblr:before{content:\"\\F173\"}.fa-tumblr-square:before{content:\"\\F174\"}.fa-long-arrow-down:before{content:\"\\F175\"}.fa-long-arrow-up:before{content:\"\\F176\"}.fa-long-arrow-left:before{content:\"\\F177\"}.fa-long-arrow-right:before{content:\"\\F178\"}.fa-apple:before{content:\"\\F179\"}.fa-windows:before{content:\"\\F17A\"}.fa-android:before{content:\"\\F17B\"}.fa-linux:before{content:\"\\F17C\"}.fa-dribbble:before{content:\"\\F17D\"}.fa-skype:before{content:\"\\F17E\"}.fa-foursquare:before{content:\"\\F180\"}.fa-trello:before{content:\"\\F181\"}.fa-female:before{content:\"\\F182\"}.fa-male:before{content:\"\\F183\"}.fa-gittip:before,.fa-gratipay:before{content:\"\\F184\"}.fa-sun-o:before{content:\"\\F185\"}.fa-moon-o:before{content:\"\\F186\"}.fa-archive:before{content:\"\\F187\"}.fa-bug:before{content:\"\\F188\"}.fa-vk:before{content:\"\\F189\"}.fa-weibo:before{content:\"\\F18A\"}.fa-renren:before{content:\"\\F18B\"}.fa-pagelines:before{content:\"\\F18C\"}.fa-stack-exchange:before{content:\"\\F18D\"}.fa-arrow-circle-o-right:before{content:\"\\F18E\"}.fa-arrow-circle-o-left:before{content:\"\\F190\"}.fa-toggle-left:before,.fa-caret-square-o-left:before{content:\"\\F191\"}.fa-dot-circle-o:before{content:\"\\F192\"}.fa-wheelchair:before{content:\"\\F193\"}.fa-vimeo-square:before{content:\"\\F194\"}.fa-turkish-lira:before,.fa-try:before{content:\"\\F195\"}.fa-plus-square-o:before{content:\"\\F196\"}.fa-space-shuttle:before{content:\"\\F197\"}.fa-slack:before{content:\"\\F198\"}.fa-envelope-square:before{content:\"\\F199\"}.fa-wordpress:before{content:\"\\F19A\"}.fa-openid:before{content:\"\\F19B\"}.fa-institution:before,.fa-bank:before,.fa-university:before{content:\"\\F19C\"}.fa-mortar-board:before,.fa-graduation-cap:before{content:\"\\F19D\"}.fa-yahoo:before{content:\"\\F19E\"}.fa-google:before{content:\"\\F1A0\"}.fa-reddit:before{content:\"\\F1A1\"}.fa-reddit-square:before{content:\"\\F1A2\"}.fa-stumbleupon-circle:before{content:\"\\F1A3\"}.fa-stumbleupon:before{content:\"\\F1A4\"}.fa-delicious:before{content:\"\\F1A5\"}.fa-digg:before{content:\"\\F1A6\"}.fa-pied-piper-pp:before{content:\"\\F1A7\"}.fa-pied-piper-alt:before{content:\"\\F1A8\"}.fa-drupal:before{content:\"\\F1A9\"}.fa-joomla:before{content:\"\\F1AA\"}.fa-language:before{content:\"\\F1AB\"}.fa-fax:before{content:\"\\F1AC\"}.fa-building:before{content:\"\\F1AD\"}.fa-child:before{content:\"\\F1AE\"}.fa-paw:before{content:\"\\F1B0\"}.fa-spoon:before{content:\"\\F1B1\"}.fa-cube:before{content:\"\\F1B2\"}.fa-cubes:before{content:\"\\F1B3\"}.fa-behance:before{content:\"\\F1B4\"}.fa-behance-square:before{content:\"\\F1B5\"}.fa-steam:before{content:\"\\F1B6\"}.fa-steam-square:before{content:\"\\F1B7\"}.fa-recycle:before{content:\"\\F1B8\"}.fa-automobile:before,.fa-car:before{content:\"\\F1B9\"}.fa-cab:before,.fa-taxi:before{content:\"\\F1BA\"}.fa-tree:before{content:\"\\F1BB\"}.fa-spotify:before{content:\"\\F1BC\"}.fa-deviantart:before{content:\"\\F1BD\"}.fa-soundcloud:before{content:\"\\F1BE\"}.fa-database:before{content:\"\\F1C0\"}.fa-file-pdf-o:before{content:\"\\F1C1\"}.fa-file-word-o:before{content:\"\\F1C2\"}.fa-file-excel-o:before{content:\"\\F1C3\"}.fa-file-powerpoint-o:before{content:\"\\F1C4\"}.fa-file-photo-o:before,.fa-file-picture-o:before,.fa-file-image-o:before{content:\"\\F1C5\"}.fa-file-zip-o:before,.fa-file-archive-o:before{content:\"\\F1C6\"}.fa-file-sound-o:before,.fa-file-audio-o:before{content:\"\\F1C7\"}.fa-file-movie-o:before,.fa-file-video-o:before{content:\"\\F1C8\"}.fa-file-code-o:before{content:\"\\F1C9\"}.fa-vine:before{content:\"\\F1CA\"}.fa-codepen:before{content:\"\\F1CB\"}.fa-jsfiddle:before{content:\"\\F1CC\"}.fa-life-bouy:before,.fa-life-buoy:before,.fa-life-saver:before,.fa-support:before,.fa-life-ring:before{content:\"\\F1CD\"}.fa-circle-o-notch:before{content:\"\\F1CE\"}.fa-ra:before,.fa-resistance:before,.fa-rebel:before{content:\"\\F1D0\"}.fa-ge:before,.fa-empire:before{content:\"\\F1D1\"}.fa-git-square:before{content:\"\\F1D2\"}.fa-git:before{content:\"\\F1D3\"}.fa-y-combinator-square:before,.fa-yc-square:before,.fa-hacker-news:before{content:\"\\F1D4\"}.fa-tencent-weibo:before{content:\"\\F1D5\"}.fa-qq:before{content:\"\\F1D6\"}.fa-wechat:before,.fa-weixin:before{content:\"\\F1D7\"}.fa-send:before,.fa-paper-plane:before{content:\"\\F1D8\"}.fa-send-o:before,.fa-paper-plane-o:before{content:\"\\F1D9\"}.fa-history:before{content:\"\\F1DA\"}.fa-circle-thin:before{content:\"\\F1DB\"}.fa-header:before{content:\"\\F1DC\"}.fa-paragraph:before{content:\"\\F1DD\"}.fa-sliders:before{content:\"\\F1DE\"}.fa-share-alt:before{content:\"\\F1E0\"}.fa-share-alt-square:before{content:\"\\F1E1\"}.fa-bomb:before{content:\"\\F1E2\"}.fa-soccer-ball-o:before,.fa-futbol-o:before{content:\"\\F1E3\"}.fa-tty:before{content:\"\\F1E4\"}.fa-binoculars:before{content:\"\\F1E5\"}.fa-plug:before{content:\"\\F1E6\"}.fa-slideshare:before{content:\"\\F1E7\"}.fa-twitch:before{content:\"\\F1E8\"}.fa-yelp:before{content:\"\\F1E9\"}.fa-newspaper-o:before{content:\"\\F1EA\"}.fa-wifi:before{content:\"\\F1EB\"}.fa-calculator:before{content:\"\\F1EC\"}.fa-paypal:before{content:\"\\F1ED\"}.fa-google-wallet:before{content:\"\\F1EE\"}.fa-cc-visa:before{content:\"\\F1F0\"}.fa-cc-mastercard:before{content:\"\\F1F1\"}.fa-cc-discover:before{content:\"\\F1F2\"}.fa-cc-amex:before{content:\"\\F1F3\"}.fa-cc-paypal:before{content:\"\\F1F4\"}.fa-cc-stripe:before{content:\"\\F1F5\"}.fa-bell-slash:before{content:\"\\F1F6\"}.fa-bell-slash-o:before{content:\"\\F1F7\"}.fa-trash:before{content:\"\\F1F8\"}.fa-copyright:before{content:\"\\F1F9\"}.fa-at:before{content:\"\\F1FA\"}.fa-eyedropper:before{content:\"\\F1FB\"}.fa-paint-brush:before{content:\"\\F1FC\"}.fa-birthday-cake:before{content:\"\\F1FD\"}.fa-area-chart:before{content:\"\\F1FE\"}.fa-pie-chart:before{content:\"\\F200\"}.fa-line-chart:before{content:\"\\F201\"}.fa-lastfm:before{content:\"\\F202\"}.fa-lastfm-square:before{content:\"\\F203\"}.fa-toggle-off:before{content:\"\\F204\"}.fa-toggle-on:before{content:\"\\F205\"}.fa-bicycle:before{content:\"\\F206\"}.fa-bus:before{content:\"\\F207\"}.fa-ioxhost:before{content:\"\\F208\"}.fa-angellist:before{content:\"\\F209\"}.fa-cc:before{content:\"\\F20A\"}.fa-shekel:before,.fa-sheqel:before,.fa-ils:before{content:\"\\F20B\"}.fa-meanpath:before{content:\"\\F20C\"}.fa-buysellads:before{content:\"\\F20D\"}.fa-connectdevelop:before{content:\"\\F20E\"}.fa-dashcube:before{content:\"\\F210\"}.fa-forumbee:before{content:\"\\F211\"}.fa-leanpub:before{content:\"\\F212\"}.fa-sellsy:before{content:\"\\F213\"}.fa-shirtsinbulk:before{content:\"\\F214\"}.fa-simplybuilt:before{content:\"\\F215\"}.fa-skyatlas:before{content:\"\\F216\"}.fa-cart-plus:before{content:\"\\F217\"}.fa-cart-arrow-down:before{content:\"\\F218\"}.fa-diamond:before{content:\"\\F219\"}.fa-ship:before{content:\"\\F21A\"}.fa-user-secret:before{content:\"\\F21B\"}.fa-motorcycle:before{content:\"\\F21C\"}.fa-street-view:before{content:\"\\F21D\"}.fa-heartbeat:before{content:\"\\F21E\"}.fa-venus:before{content:\"\\F221\"}.fa-mars:before{content:\"\\F222\"}.fa-mercury:before{content:\"\\F223\"}.fa-intersex:before,.fa-transgender:before{content:\"\\F224\"}.fa-transgender-alt:before{content:\"\\F225\"}.fa-venus-double:before{content:\"\\F226\"}.fa-mars-double:before{content:\"\\F227\"}.fa-venus-mars:before{content:\"\\F228\"}.fa-mars-stroke:before{content:\"\\F229\"}.fa-mars-stroke-v:before{content:\"\\F22A\"}.fa-mars-stroke-h:before{content:\"\\F22B\"}.fa-neuter:before{content:\"\\F22C\"}.fa-genderless:before{content:\"\\F22D\"}.fa-facebook-official:before{content:\"\\F230\"}.fa-pinterest-p:before{content:\"\\F231\"}.fa-whatsapp:before{content:\"\\F232\"}.fa-server:before{content:\"\\F233\"}.fa-user-plus:before{content:\"\\F234\"}.fa-user-times:before{content:\"\\F235\"}.fa-hotel:before,.fa-bed:before{content:\"\\F236\"}.fa-viacoin:before{content:\"\\F237\"}.fa-train:before{content:\"\\F238\"}.fa-subway:before{content:\"\\F239\"}.fa-medium:before{content:\"\\F23A\"}.fa-yc:before,.fa-y-combinator:before{content:\"\\F23B\"}.fa-optin-monster:before{content:\"\\F23C\"}.fa-opencart:before{content:\"\\F23D\"}.fa-expeditedssl:before{content:\"\\F23E\"}.fa-battery-4:before,.fa-battery:before,.fa-battery-full:before{content:\"\\F240\"}.fa-battery-3:before,.fa-battery-three-quarters:before{content:\"\\F241\"}.fa-battery-2:before,.fa-battery-half:before{content:\"\\F242\"}.fa-battery-1:before,.fa-battery-quarter:before{content:\"\\F243\"}.fa-battery-0:before,.fa-battery-empty:before{content:\"\\F244\"}.fa-mouse-pointer:before{content:\"\\F245\"}.fa-i-cursor:before{content:\"\\F246\"}.fa-object-group:before{content:\"\\F247\"}.fa-object-ungroup:before{content:\"\\F248\"}.fa-sticky-note:before{content:\"\\F249\"}.fa-sticky-note-o:before{content:\"\\F24A\"}.fa-cc-jcb:before{content:\"\\F24B\"}.fa-cc-diners-club:before{content:\"\\F24C\"}.fa-clone:before{content:\"\\F24D\"}.fa-balance-scale:before{content:\"\\F24E\"}.fa-hourglass-o:before{content:\"\\F250\"}.fa-hourglass-1:before,.fa-hourglass-start:before{content:\"\\F251\"}.fa-hourglass-2:before,.fa-hourglass-half:before{content:\"\\F252\"}.fa-hourglass-3:before,.fa-hourglass-end:before{content:\"\\F253\"}.fa-hourglass:before{content:\"\\F254\"}.fa-hand-grab-o:before,.fa-hand-rock-o:before{content:\"\\F255\"}.fa-hand-stop-o:before,.fa-hand-paper-o:before{content:\"\\F256\"}.fa-hand-scissors-o:before{content:\"\\F257\"}.fa-hand-lizard-o:before{content:\"\\F258\"}.fa-hand-spock-o:before{content:\"\\F259\"}.fa-hand-pointer-o:before{content:\"\\F25A\"}.fa-hand-peace-o:before{content:\"\\F25B\"}.fa-trademark:before{content:\"\\F25C\"}.fa-registered:before{content:\"\\F25D\"}.fa-creative-commons:before{content:\"\\F25E\"}.fa-gg:before{content:\"\\F260\"}.fa-gg-circle:before{content:\"\\F261\"}.fa-tripadvisor:before{content:\"\\F262\"}.fa-odnoklassniki:before{content:\"\\F263\"}.fa-odnoklassniki-square:before{content:\"\\F264\"}.fa-get-pocket:before{content:\"\\F265\"}.fa-wikipedia-w:before{content:\"\\F266\"}.fa-safari:before{content:\"\\F267\"}.fa-chrome:before{content:\"\\F268\"}.fa-firefox:before{content:\"\\F269\"}.fa-opera:before{content:\"\\F26A\"}.fa-internet-explorer:before{content:\"\\F26B\"}.fa-tv:before,.fa-television:before{content:\"\\F26C\"}.fa-contao:before{content:\"\\F26D\"}.fa-500px:before{content:\"\\F26E\"}.fa-amazon:before{content:\"\\F270\"}.fa-calendar-plus-o:before{content:\"\\F271\"}.fa-calendar-minus-o:before{content:\"\\F272\"}.fa-calendar-times-o:before{content:\"\\F273\"}.fa-calendar-check-o:before{content:\"\\F274\"}.fa-industry:before{content:\"\\F275\"}.fa-map-pin:before{content:\"\\F276\"}.fa-map-signs:before{content:\"\\F277\"}.fa-map-o:before{content:\"\\F278\"}.fa-map:before{content:\"\\F279\"}.fa-commenting:before{content:\"\\F27A\"}.fa-commenting-o:before{content:\"\\F27B\"}.fa-houzz:before{content:\"\\F27C\"}.fa-vimeo:before{content:\"\\F27D\"}.fa-black-tie:before{content:\"\\F27E\"}.fa-fonticons:before{content:\"\\F280\"}.fa-reddit-alien:before{content:\"\\F281\"}.fa-edge:before{content:\"\\F282\"}.fa-credit-card-alt:before{content:\"\\F283\"}.fa-codiepie:before{content:\"\\F284\"}.fa-modx:before{content:\"\\F285\"}.fa-fort-awesome:before{content:\"\\F286\"}.fa-usb:before{content:\"\\F287\"}.fa-product-hunt:before{content:\"\\F288\"}.fa-mixcloud:before{content:\"\\F289\"}.fa-scribd:before{content:\"\\F28A\"}.fa-pause-circle:before{content:\"\\F28B\"}.fa-pause-circle-o:before{content:\"\\F28C\"}.fa-stop-circle:before{content:\"\\F28D\"}.fa-stop-circle-o:before{content:\"\\F28E\"}.fa-shopping-bag:before{content:\"\\F290\"}.fa-shopping-basket:before{content:\"\\F291\"}.fa-hashtag:before{content:\"\\F292\"}.fa-bluetooth:before{content:\"\\F293\"}.fa-bluetooth-b:before{content:\"\\F294\"}.fa-percent:before{content:\"\\F295\"}.fa-gitlab:before{content:\"\\F296\"}.fa-wpbeginner:before{content:\"\\F297\"}.fa-wpforms:before{content:\"\\F298\"}.fa-envira:before{content:\"\\F299\"}.fa-universal-access:before{content:\"\\F29A\"}.fa-wheelchair-alt:before{content:\"\\F29B\"}.fa-question-circle-o:before{content:\"\\F29C\"}.fa-blind:before{content:\"\\F29D\"}.fa-audio-description:before{content:\"\\F29E\"}.fa-volume-control-phone:before{content:\"\\F2A0\"}.fa-braille:before{content:\"\\F2A1\"}.fa-assistive-listening-systems:before{content:\"\\F2A2\"}.fa-asl-interpreting:before,.fa-american-sign-language-interpreting:before{content:\"\\F2A3\"}.fa-deafness:before,.fa-hard-of-hearing:before,.fa-deaf:before{content:\"\\F2A4\"}.fa-glide:before{content:\"\\F2A5\"}.fa-glide-g:before{content:\"\\F2A6\"}.fa-signing:before,.fa-sign-language:before{content:\"\\F2A7\"}.fa-low-vision:before{content:\"\\F2A8\"}.fa-viadeo:before{content:\"\\F2A9\"}.fa-viadeo-square:before{content:\"\\F2AA\"}.fa-snapchat:before{content:\"\\F2AB\"}.fa-snapchat-ghost:before{content:\"\\F2AC\"}.fa-snapchat-square:before{content:\"\\F2AD\"}.fa-pied-piper:before{content:\"\\F2AE\"}.fa-first-order:before{content:\"\\F2B0\"}.fa-yoast:before{content:\"\\F2B1\"}.fa-themeisle:before{content:\"\\F2B2\"}.fa-google-plus-circle:before,.fa-google-plus-official:before{content:\"\\F2B3\"}.fa-fa:before,.fa-font-awesome:before{content:\"\\F2B4\"}.fa-handshake-o:before{content:\"\\F2B5\"}.fa-envelope-open:before{content:\"\\F2B6\"}.fa-envelope-open-o:before{content:\"\\F2B7\"}.fa-linode:before{content:\"\\F2B8\"}.fa-address-book:before{content:\"\\F2B9\"}.fa-address-book-o:before{content:\"\\F2BA\"}.fa-vcard:before,.fa-address-card:before{content:\"\\F2BB\"}.fa-vcard-o:before,.fa-address-card-o:before{content:\"\\F2BC\"}.fa-user-circle:before{content:\"\\F2BD\"}.fa-user-circle-o:before{content:\"\\F2BE\"}.fa-user-o:before{content:\"\\F2C0\"}.fa-id-badge:before{content:\"\\F2C1\"}.fa-drivers-license:before,.fa-id-card:before{content:\"\\F2C2\"}.fa-drivers-license-o:before,.fa-id-card-o:before{content:\"\\F2C3\"}.fa-quora:before{content:\"\\F2C4\"}.fa-free-code-camp:before{content:\"\\F2C5\"}.fa-telegram:before{content:\"\\F2C6\"}.fa-thermometer-4:before,.fa-thermometer:before,.fa-thermometer-full:before{content:\"\\F2C7\"}.fa-thermometer-3:before,.fa-thermometer-three-quarters:before{content:\"\\F2C8\"}.fa-thermometer-2:before,.fa-thermometer-half:before{content:\"\\F2C9\"}.fa-thermometer-1:before,.fa-thermometer-quarter:before{content:\"\\F2CA\"}.fa-thermometer-0:before,.fa-thermometer-empty:before{content:\"\\F2CB\"}.fa-shower:before{content:\"\\F2CC\"}.fa-bathtub:before,.fa-s15:before,.fa-bath:before{content:\"\\F2CD\"}.fa-podcast:before{content:\"\\F2CE\"}.fa-window-maximize:before{content:\"\\F2D0\"}.fa-window-minimize:before{content:\"\\F2D1\"}.fa-window-restore:before{content:\"\\F2D2\"}.fa-times-rectangle:before,.fa-window-close:before{content:\"\\F2D3\"}.fa-times-rectangle-o:before,.fa-window-close-o:before{content:\"\\F2D4\"}.fa-bandcamp:before{content:\"\\F2D5\"}.fa-grav:before{content:\"\\F2D6\"}.fa-etsy:before{content:\"\\F2D7\"}.fa-imdb:before{content:\"\\F2D8\"}.fa-ravelry:before{content:\"\\F2D9\"}.fa-eercast:before{content:\"\\F2DA\"}.fa-microchip:before{content:\"\\F2DB\"}.fa-snowflake-o:before{content:\"\\F2DC\"}.fa-superpowers:before{content:\"\\F2DD\"}.fa-wpexplorer:before{content:\"\\F2DE\"}.fa-meetup:before{content:\"\\F2E0\"}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);border:0}.sr-only-focusable:active,.sr-only-focusable:focus{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto}\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 182 */
+/* 185 */
 /***/ (function(module, exports) {
 
 module.exports = function escape(url) {
@@ -82701,43 +87013,43 @@ module.exports = function escape(url) {
 
 
 /***/ }),
-/* 183 */
-/***/ (function(module, exports) {
-
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
-
-/***/ }),
-/* 184 */
-/***/ (function(module, exports) {
-
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
-
-/***/ }),
-/* 185 */
-/***/ (function(module, exports) {
-
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff2?af7ae505a9eed503f8b8e6982036873e";
-
-/***/ }),
 /* 186 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff?fee66e712a8a08eef5805a46892932ad";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
 
 /***/ }),
 /* 187 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.ttf?b06871f281fee6b241d60582ae9369b9";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
 
 /***/ }),
 /* 188 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.svg?912ec66d7572ff821749319396470bde";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff2?af7ae505a9eed503f8b8e6982036873e";
 
 /***/ }),
 /* 189 */
+/***/ (function(module, exports) {
+
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff?fee66e712a8a08eef5805a46892932ad";
+
+/***/ }),
+/* 190 */
+/***/ (function(module, exports) {
+
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.ttf?b06871f281fee6b241d60582ae9369b9";
+
+/***/ }),
+/* 191 */
+/***/ (function(module, exports) {
+
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.svg?912ec66d7572ff821749319396470bde";
+
+/***/ }),
+/* 192 */
 /***/ (function(module, exports) {
 
 
@@ -82832,13 +87144,13 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 190 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(191);
+var content = __webpack_require__(194);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -82846,7 +87158,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(10)(content, options);
+var update = __webpack_require__(11)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -82863,10 +87175,10 @@ if(false) {
 }
 
 /***/ }),
-/* 191 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(false);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
@@ -82877,15 +87189,15 @@ exports.push([module.i, "table.dataTable {\n  clear: both;\n  margin-top: 6px !i
 
 
 /***/ }),
-/* 192 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(193)
+var __vue_script__ = __webpack_require__(196)
 /* template */
-var __vue_template__ = __webpack_require__(214)
+var __vue_template__ = __webpack_require__(217)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -82924,16 +87236,16 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 193 */
+/* 196 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__DepartmentTree_vue__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__DepartmentTree_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__DepartmentTree_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect__ = __webpack_require__(201);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect__ = __webpack_require__(204);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css__ = __webpack_require__(212);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css__ = __webpack_require__(215);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nestable__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nestable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__nestable__);
@@ -83078,7 +87390,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 194 */
+/* 197 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -83197,13 +87509,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 195 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(196);
+var content = __webpack_require__(199);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -83223,10 +87535,10 @@ if(false) {
 }
 
 /***/ }),
-/* 196 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(false);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
@@ -83237,7 +87549,7 @@ exports.push([module.i, "\n.modal-mask {\n    position: fixed;\n    z-index: 999
 
 
 /***/ }),
-/* 197 */
+/* 200 */
 /***/ (function(module, exports) {
 
 /**
@@ -83270,7 +87582,7 @@ module.exports = function listToStyles (parentId, list) {
 
 
 /***/ }),
-/* 198 */
+/* 201 */
 /***/ (function(module, exports) {
 
 //
@@ -83373,7 +87685,7 @@ module.exports = function listToStyles (parentId, list) {
 //
 
 /***/ }),
-/* 199 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -83454,7 +87766,7 @@ if (false) {
 }
 
 /***/ }),
-/* 200 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -83582,7 +87894,7 @@ if (false) {
 }
 
 /***/ }),
-/* 201 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -83681,13 +87993,13 @@ module.exports =
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = __webpack_require__(202);
+module.exports = __webpack_require__(205);
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = __webpack_require__(203);
+module.exports = __webpack_require__(206);
 
 /***/ }),
 /* 2 */
@@ -86130,7 +90442,7 @@ var VERSION = "0.0.30";
 //# sourceMappingURL=vue-treeselect.js.map
 
 /***/ }),
-/* 202 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86161,12 +90473,12 @@ module.exports = fuzzysearch;
 
 
 /***/ }),
-/* 203 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(23),
-    now = __webpack_require__(204),
-    toNumber = __webpack_require__(206);
+    now = __webpack_require__(207),
+    toNumber = __webpack_require__(209);
 
 /** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -86357,7 +90669,7 @@ module.exports = debounce;
 
 
 /***/ }),
-/* 204 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var root = __webpack_require__(24);
@@ -86386,7 +90698,7 @@ module.exports = now;
 
 
 /***/ }),
-/* 205 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/** Detect free variable `global` from Node.js. */
@@ -86394,14 +90706,14 @@ var freeGlobal = typeof global == 'object' && global && global.Object === Object
 
 module.exports = freeGlobal;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 206 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(23),
-    isSymbol = __webpack_require__(207);
+    isSymbol = __webpack_require__(210);
 
 /** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
@@ -86469,11 +90781,11 @@ module.exports = toNumber;
 
 
 /***/ }),
-/* 207 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var baseGetTag = __webpack_require__(208),
-    isObjectLike = __webpack_require__(211);
+var baseGetTag = __webpack_require__(211),
+    isObjectLike = __webpack_require__(214);
 
 /** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
@@ -86504,12 +90816,12 @@ module.exports = isSymbol;
 
 
 /***/ }),
-/* 208 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Symbol = __webpack_require__(25),
-    getRawTag = __webpack_require__(209),
-    objectToString = __webpack_require__(210);
+    getRawTag = __webpack_require__(212),
+    objectToString = __webpack_require__(213);
 
 /** `Object#toString` result references. */
 var nullTag = '[object Null]',
@@ -86538,7 +90850,7 @@ module.exports = baseGetTag;
 
 
 /***/ }),
-/* 209 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Symbol = __webpack_require__(25);
@@ -86590,7 +90902,7 @@ module.exports = getRawTag;
 
 
 /***/ }),
-/* 210 */
+/* 213 */
 /***/ (function(module, exports) {
 
 /** Used for built-in method references. */
@@ -86618,7 +90930,7 @@ module.exports = objectToString;
 
 
 /***/ }),
-/* 211 */
+/* 214 */
 /***/ (function(module, exports) {
 
 /**
@@ -86653,13 +90965,13 @@ module.exports = isObjectLike;
 
 
 /***/ }),
-/* 212 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(213);
+var content = __webpack_require__(216);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -86667,7 +90979,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(10)(content, options);
+var update = __webpack_require__(11)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -86684,10 +90996,10 @@ if(false) {
 }
 
 /***/ }),
-/* 213 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(false);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
@@ -86698,7 +91010,7 @@ exports.push([module.i, "/*!\n * vue-treeselect v0.0.30 | (c) 2017-2018 Riophae 
 
 
 /***/ }),
-/* 214 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -86865,19 +91177,19 @@ if (false) {
 }
 
 /***/ }),
-/* 215 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(216)
+  __webpack_require__(219)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(218)
+var __vue_script__ = __webpack_require__(221)
 /* template */
-var __vue_template__ = __webpack_require__(231)
+var __vue_template__ = __webpack_require__(234)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -86916,13 +91228,13 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 216 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(217);
+var content = __webpack_require__(220);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -86942,26 +91254,26 @@ if(false) {
 }
 
 /***/ }),
-/* 217 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(false);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
 // module
-exports.push([module.i, "\n.card-body{padding: 5px;\n}\n.card-header{padding: 6px\n}\n.row .card-body .btn{width: 30%;\n}\n.card-body>.datepicker>input {height: 27px;width:157px;font-size: 12px;padding-left: 2px\n}\n", ""]);
+exports.push([module.i, "\n.card-body{padding: 5px;\n}\n.card-header{padding: 6px\n}\n.row .card-body .btn{width: 30%;\n}\n.card-body>.datepicker>input {height: 27px;width:157px;font-size: 12px;padding-left: 2px\n}\ntr.selected{background-color: #B0BED9\n}\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 218 */
+/* 221 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__ = __webpack_require__(219);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__ = __webpack_require__(222);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_moment__);
 //
@@ -87058,7 +91370,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     data: function data() {
         return {
             departments: [],
-            selectedDepartmentId: [],
             searchedData: [],
             search: {
                 name: '',
@@ -87092,28 +91403,53 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     "info": "第 _PAGE_ 页 / 总 _PAGES_ 页，共 _TOTAL_ 条数据",
                     "infoEmpty": "无记录",
                     "sSearch": "搜索:",
-                    "sInfoFiltered": "(从 _MAX_ 条记录中过滤)"
+                    "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
+                    "select": {
+                        rows: " , %d 条记录被选中"
+                    },
+                    buttons: {
+                        selectAll: "全选",
+                        selectNone: "全不选",
+                        colvis: '控制列'
+                    }
                 },
-                stateSave: false
+                fixedHeader: true,
+                stateSave: true
             });
             this.initDataTableButtons(table);
             this.initDataTableSelect(table);
         },
         initDataTableButtons: function initDataTableButtons(table) {
             new $.fn.dataTable.Buttons(table, {
-                buttons: ['copy', 'excel', 'pdf', { extend: 'print', text: '<i class="fa fa-print"></i>', attr: { title: '打印全部或选中数据', id: 'copyButton' }, key: { key: 'p', ctrlKey: true } }, {
-                    text: 'Copy to div',
-                    action: function action(e, dt, node, config) {
-                        // Copy an array based DataTables' data to another element
-                        $('.output').html(dt.data().map(function (row) {
-                            return row.join(' | ');
-                        }).join('<br>'));
-                    }
-                }]
+                buttons: ['copy', {
+                    extend: 'collection',
+                    text: '导出',
+                    postfixButtons: ['colvisRestore'],
+                    buttons: [{
+                        text: 'cs',
+                        action: function action(e, dt, node, config) {
+                            alert(dt.rows('.selected').data().length);
+                        }
+                    }, {
+                        text: 'Copy 2',
+                        action: function action(e, dt, node, config) {
+                            // Copy an array based DataTables' data to another element
+                            $('.output').html(dt.rows('.selected').data().map(function (row) {
+                                return row.join(' | ');
+                            }).join('<br>'));
+                        }
+                    }]
+                }, 'pdf', 'excel', 'selectAll', 'selectNone', {
+                    extend: 'colvis',
+                    columns: ':gt(0)'
+                }, { extend: 'print', text: '<i class="fa fa-print"></i>', attr: { title: '打印全部或选中数据', id: 'copyButton' }, modifier: {
+                        selected: true
+                    }, key: { key: 'p', ctrlKey: true } }]
             });
             //将自动生成的按钮放到指定的位置
             //                table.buttons().container().appendTo($('.dataTableButtons'));
             table.buttons().container().appendTo($('.dataTables_length>label'));
+            table.columns([1]).visible(false);
         },
         initDataTableSelect: function initDataTableSelect(table) {
             table.select.style('os');
@@ -87122,37 +91458,22 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         getDepartments: function getDepartments() {
             return axios.get('/department/org/get');
         },
-        selectDepartment: function selectDepartment(department, e) {
-            //                if(e.currentTarget.className.indexOf('selected table-info') !== -1) {
-            //                    this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id),1);
-            //                }else {
-            //                    this.selectedDepartmentId.push(department.id) ;
-            //                }
-            //                console.log(this.selectedDepartmentId);
-
-            console.log($(e.currentTarget).parent().children('.selected').addClass('table-info'));
-
+        selectDepartment: function selectDepartment(department, ee) {
             var table = $('#dataTable').DataTable();
-            var rows = table.rows('.selected').data().map(function (rowData) {
-                return rowData[0];
+            //                console.log(ee.currentTarget);
+            $(ee.currentTarget).toggleClass('selected');
+
+            table.on('select', function (e, dt, type, ix) {
+                //监听选择事件
+                var selected = dt.rows({ selected: true });
+                //                    if ( selected.count() > 5 ) {      //限制选择的个数
+                //                        dt.rows(ix).deselect();
+                //                    }
             });
-            this.selectedDepartmentId = rows;
-            //                console.log(this.selectedDepartmentId);
-            //                console.log(this.selectedDepartmentId[0]);
         },
         delt: function delt() {
             var table = $('#dataTable').DataTable();
             table.rows({ selected: true }).remove().draw(false);
-            this.selectedDepartmentId = [];
-        },
-        selectAll: function selectAll() {
-            this.selectedDepartmentId = this.searchedData.map(function (department) {
-                return parseInt(department.id);
-            });
-            console.log(this.selectedDepartmentId);
-        },
-        unSelect: function unSelect() {
-            this.selectedDepartmentId = [];
         },
 
         //            这个方法只适合单独查询某条记录有用，不能多条件查询
@@ -87218,11 +91539,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 219 */
+/* 222 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue__ = __webpack_require__(220);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue__ = __webpack_require__(223);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue__);
 
 function install (Vue) {
@@ -87236,19 +91557,19 @@ if (typeof window !== 'undefined' && window.Vue) {
 
 
 /***/ }),
-/* 220 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(221)
+  __webpack_require__(224)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(223)
+var __vue_script__ = __webpack_require__(226)
 /* template */
-var __vue_template__ = __webpack_require__(229)
+var __vue_template__ = __webpack_require__(232)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -87287,13 +91608,13 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 221 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(222);
+var content = __webpack_require__(225);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -87313,10 +91634,10 @@ if(false) {
 }
 
 /***/ }),
-/* 222 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(false);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
@@ -87327,12 +91648,12 @@ exports.push([module.i, "\n.datepicker {\n  display: inline-block;\n  position: 
 
 
 /***/ }),
-/* 223 */
+/* 226 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue__ = __webpack_require__(224);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue__ = __webpack_require__(227);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue__);
 //
 //
@@ -87520,19 +91841,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 224 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(225)
+  __webpack_require__(228)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(227)
+var __vue_script__ = __webpack_require__(230)
 /* template */
-var __vue_template__ = __webpack_require__(228)
+var __vue_template__ = __webpack_require__(231)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -87571,13 +91892,13 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 225 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(226);
+var content = __webpack_require__(229);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -87597,10 +91918,10 @@ if(false) {
 }
 
 /***/ }),
-/* 226 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(false);
+exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
@@ -87611,7 +91932,7 @@ exports.push([module.i, "\n.calendar {\n  float: left;\n  display: inline-block;
 
 
 /***/ }),
-/* 227 */
+/* 230 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -87872,7 +92193,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 228 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -88449,7 +92770,7 @@ if (false) {
 }
 
 /***/ }),
-/* 229 */
+/* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -88591,7 +92912,7 @@ if (false) {
 }
 
 /***/ }),
-/* 230 */
+/* 233 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -88856,10 +93177,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 230;
+webpackContext.id = 233;
 
 /***/ }),
-/* 231 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -88997,10 +93318,7 @@ var render = function() {
         _vm._v(" "),
         _c(
           "table",
-          {
-            staticClass: "table table-bordered table-striped table-hover",
-            attrs: { id: "dataTable" }
-          },
+          { staticClass: "table table-bordered", attrs: { id: "dataTable" } },
           [
             _vm._m(5),
             _vm._v(" "),
@@ -89012,10 +93330,6 @@ var render = function() {
                 return _c(
                   "tr",
                   {
-                    class:
-                      _vm.selectedDepartmentId.indexOf(department.id) !== -1
-                        ? "selected table-info"
-                        : "",
                     on: {
                       click: function($event) {
                         _vm.selectDepartment(department, $event)
@@ -89178,15 +93492,15 @@ if (false) {
 }
 
 /***/ }),
-/* 232 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(233)
+var __vue_script__ = __webpack_require__(236)
 /* template */
-var __vue_template__ = __webpack_require__(234)
+var __vue_template__ = __webpack_require__(237)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -89225,7 +93539,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 233 */
+/* 236 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -89240,7 +93554,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony default export */ __webpack_exports__["default"] = ({});
 
 /***/ }),
-/* 234 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -89260,15 +93574,15 @@ if (false) {
 }
 
 /***/ }),
-/* 235 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(236)
+var __vue_script__ = __webpack_require__(239)
 /* template */
-var __vue_template__ = __webpack_require__(237)
+var __vue_template__ = __webpack_require__(240)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -89307,7 +93621,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 236 */
+/* 239 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -89356,7 +93670,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 237 */
+/* 240 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -89406,15 +93720,15 @@ if (false) {
 }
 
 /***/ }),
-/* 238 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(239)
+var __vue_script__ = __webpack_require__(242)
 /* template */
-var __vue_template__ = __webpack_require__(240)
+var __vue_template__ = __webpack_require__(243)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -89453,7 +93767,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 239 */
+/* 242 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -89493,7 +93807,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 240 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -89562,3107 +93876,24 @@ if (false) {
 }
 
 /***/ }),
-/* 241 */
+/* 244 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 242 */,
-/* 243 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * Print button for Buttons and DataTables.
- * 2016 SpryMedia Ltd - datatables.net/license
- */
-
-(function( factory ){
-	if ( true ) {
-		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
-			return factory( $, window, document );
-		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			if ( ! $.fn.dataTable.Buttons ) {
-				require('datatables.net-buttons')(root, $);
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
-
-
-var _link = document.createElement( 'a' );
-
-/**
- * Clone link and style tags, taking into account the need to change the source
- * path.
- *
- * @param  {node}     el Element to convert
- */
-var _styleToAbs = function( el ) {
-	var url;
-	var clone = $(el).clone()[0];
-	var linkHost;
-
-	if ( clone.nodeName.toLowerCase() === 'link' ) {
-		clone.href = _relToAbs( clone.href );
-	}
-
-	return clone.outerHTML;
-};
-
-/**
- * Convert a URL from a relative to an absolute address so it will work
- * correctly in the popup window which has no base URL.
- *
- * @param  {string} href URL
- */
-var _relToAbs = function( href ) {
-	// Assign to a link on the original page so the browser will do all the
-	// hard work of figuring out where the file actually is
-	_link.href = href;
-	var linkHost = _link.host;
-
-	// IE doesn't have a trailing slash on the host
-	// Chrome has it on the pathname
-	if ( linkHost.indexOf('/') === -1 && _link.pathname.indexOf('/') !== 0) {
-		linkHost += '/';
-	}
-
-	return _link.protocol+"//"+linkHost+_link.pathname+_link.search;
-};
-
-
-DataTable.ext.buttons.print = {
-	className: 'buttons-print',
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.print', 'Print' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		var data = dt.buttons.exportData(
-			$.extend( {decodeEntities: false}, config.exportOptions ) // XSS protection
-		);
-		var exportInfo = dt.buttons.exportInfo( config );
-		var columnClasses = $.map( dt.settings()[0].aoColumns, function (col, key) {
-			return col.sClass;
-		} );
-
-		var addRow = function ( d, tag ) {
-			var str = '<tr>';
-
-			for ( var i=0, ien=d.length ; i<ien ; i++ ) {
-				// null and undefined aren't useful in the print output
-				var dataOut = d[i] === null || d[i] === undefined ?
-					'' :
-					d[i];
-				var classAttr = columnClasses[i] ?
-					'class="'+columnClasses[i]+'"' :
-					'';
-
-				str += '<'+tag+' '+classAttr+'>'+dataOut+'</'+tag+'>';
-			}
-
-			return str + '</tr>';
-		};
-
-		// Construct a table for printing
-		var html = '<table class="'+dt.table().node().className+'">';
-
-		if ( config.header ) {
-			html += '<thead>'+ addRow( data.header, 'th' ) +'</thead>';
-		}
-
-		html += '<tbody>';
-		for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
-			html += addRow( data.body[i], 'td' );
-		}
-		html += '</tbody>';
-
-		if ( config.footer && data.footer ) {
-			html += '<tfoot>'+ addRow( data.footer, 'th' ) +'</tfoot>';
-		}
-		html += '</table>';
-
-		// Open a new window for the printable table
-		var win = window.open( '', '' );
-		win.document.close();
-
-		// Inject the title and also a copy of the style and link tags from this
-		// document so the table can retain its base styling. Note that we have
-		// to use string manipulation as IE won't allow elements to be created
-		// in the host document and then appended to the new window.
-		var head = '<title>'+exportInfo.title+'</title>';
-		$('style, link').each( function () {
-			head += _styleToAbs( this );
-		} );
-
-		try {
-			win.document.head.innerHTML = head; // Work around for Edge
-		}
-		catch (e) {
-			$(win.document.head).html( head ); // Old IE
-		}
-
-		// Inject the table and other surrounding information
-		win.document.body.innerHTML =
-			'<h1>'+exportInfo.title+'</h1>'+
-			'<div>'+(exportInfo.messageTop || '')+'</div>'+
-			html+
-			'<div>'+(exportInfo.messageBottom || '')+'</div>';
-
-		$(win.document.body).addClass('dt-print-view');
-
-		$('img', win.document.body).each( function ( i, img ) {
-			img.setAttribute( 'src', _relToAbs( img.getAttribute('src') ) );
-		} );
-
-		if ( config.customize ) {
-			config.customize( win, config, dt );
-		}
-
-		// Allow stylesheets time to load
-		win.setTimeout( function () {
-			if ( config.autoPrint ) {
-				win.print(); // blocking - so close will not
-				win.close(); // execute until this is done
-			}
-		}, 1000 );
-	},
-
-	title: '*',
-
-	messageTop: '*',
-
-	messageBottom: '*',
-
-	exportOptions: {},
-
-	header: true,
-
-	footer: false,
-
-	autoPrint: true,
-
-	customize: null
-};
-
-
-return DataTable.Buttons;
-}));
-
-
-/***/ }),
-/* 244 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * HTML5 export buttons for Buttons and DataTables.
- * 2016 SpryMedia Ltd - datatables.net/license
- *
- * FileSaver.js (1.3.3) - MIT license
- * Copyright © 2016 Eli Grey - http://eligrey.com
- */
-
-(function( factory ){
-	if ( true ) {
-		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
-			return factory( $, window, document );
-		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $, jszip, pdfmake) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			if ( ! $.fn.dataTable.Buttons ) {
-				require('datatables.net-buttons')(root, $);
-			}
-
-			return factory( $, root, root.document, jszip, pdfmake );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, jszip, pdfmake, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
-
-// Allow the constructor to pass in JSZip and PDFMake from external requires.
-// Otherwise, use globally defined variables, if they are available.
-function _jsZip () {
-	return jszip || window.JSZip;
-}
-function _pdfMake () {
-	return pdfmake || window.pdfMake;
-}
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * FileSaver.js dependency
- */
-
-/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
-
-var _saveAs = (function(view) {
-	"use strict";
-	// IE <10 is explicitly unsupported
-	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
-		return;
-	}
-	var
-		  doc = view.document
-		  // only get URL when necessary in case Blob.js hasn't overridden it yet
-		, get_URL = function() {
-			return view.URL || view.webkitURL || view;
-		}
-		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
-		, can_use_save_link = "download" in save_link
-		, click = function(node) {
-			var event = new MouseEvent("click");
-			node.dispatchEvent(event);
-		}
-		, is_safari = /constructor/i.test(view.HTMLElement) || view.safari
-		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
-		, throw_outside = function(ex) {
-			(view.setImmediate || view.setTimeout)(function() {
-				throw ex;
-			}, 0);
-		}
-		, force_saveable_type = "application/octet-stream"
-		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
-		, arbitrary_revoke_timeout = 1000 * 40 // in ms
-		, revoke = function(file) {
-			var revoker = function() {
-				if (typeof file === "string") { // file is an object URL
-					get_URL().revokeObjectURL(file);
-				} else { // file is a File
-					file.remove();
-				}
-			};
-			setTimeout(revoker, arbitrary_revoke_timeout);
-		}
-		, dispatch = function(filesaver, event_types, event) {
-			event_types = [].concat(event_types);
-			var i = event_types.length;
-			while (i--) {
-				var listener = filesaver["on" + event_types[i]];
-				if (typeof listener === "function") {
-					try {
-						listener.call(filesaver, event || filesaver);
-					} catch (ex) {
-						throw_outside(ex);
-					}
-				}
-			}
-		}
-		, auto_bom = function(blob) {
-			// prepend BOM for UTF-8 XML and text/* types (including HTML)
-			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
-			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
-				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
-			}
-			return blob;
-		}
-		, FileSaver = function(blob, name, no_auto_bom) {
-			if (!no_auto_bom) {
-				blob = auto_bom(blob);
-			}
-			// First try a.download, then web filesystem, then object URLs
-			var
-				  filesaver = this
-				, type = blob.type
-				, force = type === force_saveable_type
-				, object_url
-				, dispatch_all = function() {
-					dispatch(filesaver, "writestart progress write writeend".split(" "));
-				}
-				// on any filesys errors revert to saving with object URLs
-				, fs_error = function() {
-					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
-						// Safari doesn't allow downloading of blob urls
-						var reader = new FileReader();
-						reader.onloadend = function() {
-							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
-							var popup = view.open(url, '_blank');
-							if(!popup) view.location.href = url;
-							url=undefined; // release reference before dispatching
-							filesaver.readyState = filesaver.DONE;
-							dispatch_all();
-						};
-						reader.readAsDataURL(blob);
-						filesaver.readyState = filesaver.INIT;
-						return;
-					}
-					// don't create more object URLs than needed
-					if (!object_url) {
-						object_url = get_URL().createObjectURL(blob);
-					}
-					if (force) {
-						view.location.href = object_url;
-					} else {
-						var opened = view.open(object_url, "_blank");
-						if (!opened) {
-							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
-							view.location.href = object_url;
-						}
-					}
-					filesaver.readyState = filesaver.DONE;
-					dispatch_all();
-					revoke(object_url);
-				}
-			;
-			filesaver.readyState = filesaver.INIT;
-
-			if (can_use_save_link) {
-				object_url = get_URL().createObjectURL(blob);
-				setTimeout(function() {
-					save_link.href = object_url;
-					save_link.download = name;
-					click(save_link);
-					dispatch_all();
-					revoke(object_url);
-					filesaver.readyState = filesaver.DONE;
-				});
-				return;
-			}
-
-			fs_error();
-		}
-		, FS_proto = FileSaver.prototype
-		, saveAs = function(blob, name, no_auto_bom) {
-			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
-		}
-	;
-	// IE 10+ (native saveAs)
-	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
-		return function(blob, name, no_auto_bom) {
-			name = name || blob.name || "download";
-
-			if (!no_auto_bom) {
-				blob = auto_bom(blob);
-			}
-			return navigator.msSaveOrOpenBlob(blob, name);
-		};
-	}
-
-	FS_proto.abort = function(){};
-	FS_proto.readyState = FS_proto.INIT = 0;
-	FS_proto.WRITING = 1;
-	FS_proto.DONE = 2;
-
-	FS_proto.error =
-	FS_proto.onwritestart =
-	FS_proto.onprogress =
-	FS_proto.onwrite =
-	FS_proto.onabort =
-	FS_proto.onerror =
-	FS_proto.onwriteend =
-		null;
-
-	return saveAs;
-}(
-	   typeof self !== "undefined" && self
-	|| typeof window !== "undefined" && window
-	|| this.content
-));
-
-
-// Expose file saver on the DataTables API. Can't attach to `DataTables.Buttons`
-// since this file can be loaded before Button's core!
-DataTable.fileSave = _saveAs;
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Local (private) functions
- */
-
-/**
- * Get the sheet name for Excel exports.
- *
- * @param {object}	config Button configuration
- */
-var _sheetname = function ( config )
-{
-	var sheetName = 'Sheet1';
-
-	if ( config.sheetName ) {
-		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
-	}
-
-	return sheetName;
-};
-
-/**
- * Get the newline character(s)
- *
- * @param {object}	config Button configuration
- * @return {string}				Newline character
- */
-var _newLine = function ( config )
-{
-	return config.newline ?
-		config.newline :
-		navigator.userAgent.match(/Windows/) ?
-			'\r\n' :
-			'\n';
-};
-
-/**
- * Combine the data from the `buttons.exportData` method into a string that
- * will be used in the export file.
- *
- * @param	{DataTable.Api} dt		 DataTables API instance
- * @param	{object}				config Button configuration
- * @return {object}							 The data to export
- */
-var _exportData = function ( dt, config )
-{
-	var newLine = _newLine( config );
-	var data = dt.buttons.exportData( config.exportOptions );
-	var boundary = config.fieldBoundary;
-	var separator = config.fieldSeparator;
-	var reBoundary = new RegExp( boundary, 'g' );
-	var escapeChar = config.escapeChar !== undefined ?
-		config.escapeChar :
-		'\\';
-	var join = function ( a ) {
-		var s = '';
-
-		// If there is a field boundary, then we might need to escape it in
-		// the source data
-		for ( var i=0, ien=a.length ; i<ien ; i++ ) {
-			if ( i > 0 ) {
-				s += separator;
-			}
-
-			s += boundary ?
-				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
-				a[i];
-		}
-
-		return s;
-	};
-
-	var header = config.header ? join( data.header )+newLine : '';
-	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
-	var body = [];
-
-	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
-		body.push( join( data.body[i] ) );
-	}
-
-	return {
-		str: header + body.join( newLine ) + footer,
-		rows: body.length
-	};
-};
-
-/**
- * Older versions of Safari (prior to tech preview 18) don't support the
- * download option required.
- *
- * @return {Boolean} `true` if old Safari
- */
-var _isDuffSafari = function ()
-{
-	var safari = navigator.userAgent.indexOf('Safari') !== -1 &&
-		navigator.userAgent.indexOf('Chrome') === -1 &&
-		navigator.userAgent.indexOf('Opera') === -1;
-
-	if ( ! safari ) {
-		return false;
-	}
-
-	var version = navigator.userAgent.match( /AppleWebKit\/(\d+\.\d+)/ );
-	if ( version && version.length > 1 && version[1]*1 < 603.1 ) {
-		return true;
-	}
-
-	return false;
-};
-
-/**
- * Convert from numeric position to letter for column names in Excel
- * @param  {int} n Column number
- * @return {string} Column letter(s) name
- */
-function createCellPos( n ){
-	var ordA = 'A'.charCodeAt(0);
-	var ordZ = 'Z'.charCodeAt(0);
-	var len = ordZ - ordA + 1;
-	var s = "";
-
-	while( n >= 0 ) {
-		s = String.fromCharCode(n % len + ordA) + s;
-		n = Math.floor(n / len) - 1;
-	}
-
-	return s;
-}
-
-try {
-	var _serialiser = new XMLSerializer();
-	var _ieExcel;
-}
-catch (t) {}
-
-/**
- * Recursively add XML files from an object's structure to a ZIP file. This
- * allows the XSLX file to be easily defined with an object's structure matching
- * the files structure.
- *
- * @param {JSZip} zip ZIP package
- * @param {object} obj Object to add (recursive)
- */
-function _addToZip( zip, obj ) {
-	if ( _ieExcel === undefined ) {
-		// Detect if we are dealing with IE's _awful_ serialiser by seeing if it
-		// drop attributes
-		_ieExcel = _serialiser
-			.serializeToString(
-				$.parseXML( excelStrings['xl/worksheets/sheet1.xml'] )
-			)
-			.indexOf( 'xmlns:r' ) === -1;
-	}
-
-	$.each( obj, function ( name, val ) {
-		if ( $.isPlainObject( val ) ) {
-			var newDir = zip.folder( name );
-			_addToZip( newDir, val );
-		}
-		else {
-			if ( _ieExcel ) {
-				// IE's XML serialiser will drop some name space attributes from
-				// from the root node, so we need to save them. Do this by
-				// replacing the namespace nodes with a regular attribute that
-				// we convert back when serialised. Edge does not have this
-				// issue
-				var worksheet = val.childNodes[0];
-				var i, ien;
-				var attrs = [];
-
-				for ( i=worksheet.attributes.length-1 ; i>=0 ; i-- ) {
-					var attrName = worksheet.attributes[i].nodeName;
-					var attrValue = worksheet.attributes[i].nodeValue;
-
-					if ( attrName.indexOf( ':' ) !== -1 ) {
-						attrs.push( { name: attrName, value: attrValue } );
-
-						worksheet.removeAttribute( attrName );
-					}
-				}
-
-				for ( i=0, ien=attrs.length ; i<ien ; i++ ) {
-					var attr = val.createAttribute( attrs[i].name.replace( ':', '_dt_b_namespace_token_' ) );
-					attr.value = attrs[i].value;
-					worksheet.setAttributeNode( attr );
-				}
-			}
-
-			var str = _serialiser.serializeToString(val);
-
-			// Fix IE's XML
-			if ( _ieExcel ) {
-				// IE doesn't include the XML declaration
-				if ( str.indexOf( '<?xml' ) === -1 ) {
-					str = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+str;
-				}
-
-				// Return namespace attributes to being as such
-				str = str.replace( /_dt_b_namespace_token_/g, ':' );
-			}
-
-			// Safari, IE and Edge will put empty name space attributes onto
-			// various elements making them useless. This strips them out
-			str = str.replace( /<([^<>]*?) xmlns=""([^<>]*?)>/g, '<$1 $2>' );
-
-			zip.file( name, str );
-		}
-	} );
-}
-
-/**
- * Create an XML node and add any children, attributes, etc without needing to
- * be verbose in the DOM.
- *
- * @param  {object} doc      XML document
- * @param  {string} nodeName Node name
- * @param  {object} opts     Options - can be `attr` (attributes), `children`
- *   (child nodes) and `text` (text content)
- * @return {node}            Created node
- */
-function _createNode( doc, nodeName, opts ) {
-	var tempNode = doc.createElement( nodeName );
-
-	if ( opts ) {
-		if ( opts.attr ) {
-			$(tempNode).attr( opts.attr );
-		}
-
-		if ( opts.children ) {
-			$.each( opts.children, function ( key, value ) {
-				tempNode.appendChild( value );
-			} );
-		}
-
-		if ( opts.text !== null && opts.text !== undefined ) {
-			tempNode.appendChild( doc.createTextNode( opts.text ) );
-		}
-	}
-
-	return tempNode;
-}
-
-/**
- * Get the width for an Excel column based on the contents of that column
- * @param  {object} data Data for export
- * @param  {int}    col  Column index
- * @return {int}         Column width
- */
-function _excelColWidth( data, col ) {
-	var max = data.header[col].length;
-	var len, lineSplit, str;
-
-	if ( data.footer && data.footer[col].length > max ) {
-		max = data.footer[col].length;
-	}
-
-	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
-		var point = data.body[i][col];
-		str = point !== null && point !== undefined ?
-			point.toString() :
-			'';
-
-		// If there is a newline character, workout the width of the column
-		// based on the longest line in the string
-		if ( str.indexOf('\n') !== -1 ) {
-			lineSplit = str.split('\n');
-			lineSplit.sort( function (a, b) {
-				return b.length - a.length;
-			} );
-
-			len = lineSplit[0].length;
-		}
-		else {
-			len = str.length;
-		}
-
-		if ( len > max ) {
-			max = len;
-		}
-
-		// Max width rather than having potentially massive column widths
-		if ( max > 40 ) {
-			return 52; // 40 * 1.3
-		}
-	}
-
-	max *= 1.3;
-
-	// And a min width
-	return max > 6 ? max : 6;
-}
-
-// Excel - Pre-defined strings to build a basic XLSX file
-var excelStrings = {
-	"_rels/.rels":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
-		'</Relationships>',
-
-	"xl/_rels/workbook.xml.rels":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
-			'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
-		'</Relationships>',
-
-	"[Content_Types].xml":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
-			'<Default Extension="xml" ContentType="application/xml" />'+
-			'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />'+
-			'<Default Extension="jpeg" ContentType="image/jpeg" />'+
-			'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />'+
-			'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />'+
-			'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />'+
-		'</Types>',
-
-	"xl/workbook.xml":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
-			'<fileVersion appName="xl" lastEdited="5" lowestEdited="5" rupBuild="24816"/>'+
-			'<workbookPr showInkAnnotation="0" autoCompressPictures="0"/>'+
-			'<bookViews>'+
-				'<workbookView xWindow="0" yWindow="0" windowWidth="25600" windowHeight="19020" tabRatio="500"/>'+
-			'</bookViews>'+
-			'<sheets>'+
-				'<sheet name="" sheetId="1" r:id="rId1"/>'+
-			'</sheets>'+
-		'</workbook>',
-
-	"xl/worksheets/sheet1.xml":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
-			'<sheetData/>'+
-			'<mergeCells count="0"/>'+
-		'</worksheet>',
-
-	"xl/styles.xml":
-		'<?xml version="1.0" encoding="UTF-8"?>'+
-		'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
-			'<numFmts count="6">'+
-				'<numFmt numFmtId="164" formatCode="#,##0.00_-\ [$$-45C]"/>'+
-				'<numFmt numFmtId="165" formatCode="&quot;£&quot;#,##0.00"/>'+
-				'<numFmt numFmtId="166" formatCode="[$€-2]\ #,##0.00"/>'+
-				'<numFmt numFmtId="167" formatCode="0.0%"/>'+
-				'<numFmt numFmtId="168" formatCode="#,##0;(#,##0)"/>'+
-				'<numFmt numFmtId="169" formatCode="#,##0.00;(#,##0.00)"/>'+
-			'</numFmts>'+
-			'<fonts count="5" x14ac:knownFonts="1">'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<color rgb="FFFFFFFF" />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<b />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<i />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<u />'+
-				'</font>'+
-			'</fonts>'+
-			'<fills count="6">'+
-				'<fill>'+
-					'<patternFill patternType="none" />'+
-				'</fill>'+
-				'<fill>'+ // Excel appears to use this as a dotted background regardless of values but
-					'<patternFill patternType="none" />'+ // to be valid to the schema, use a patternFill
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="FFD9D9D9" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="FFD99795" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="ffc6efce" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="ffc6cfef" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-			'</fills>'+
-			'<borders count="2">'+
-				'<border>'+
-					'<left />'+
-					'<right />'+
-					'<top />'+
-					'<bottom />'+
-					'<diagonal />'+
-				'</border>'+
-				'<border diagonalUp="false" diagonalDown="false">'+
-					'<left style="thin">'+
-						'<color auto="1" />'+
-					'</left>'+
-					'<right style="thin">'+
-						'<color auto="1" />'+
-					'</right>'+
-					'<top style="thin">'+
-						'<color auto="1" />'+
-					'</top>'+
-					'<bottom style="thin">'+
-						'<color auto="1" />'+
-					'</bottom>'+
-					'<diagonal />'+
-				'</border>'+
-			'</borders>'+
-			'<cellStyleXfs count="1">'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" />'+
-			'</cellStyleXfs>'+
-			'<cellXfs count="67">'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="left"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="center"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="right"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="fill"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment textRotation="90"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment wrapText="1"/>'+
-				'</xf>'+
-				'<xf numFmtId="9"   fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="166" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="167" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="168" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="169" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="3" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="4" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="1" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="2" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-			'</cellXfs>'+
-			'<cellStyles count="1">'+
-				'<cellStyle name="Normal" xfId="0" builtinId="0" />'+
-			'</cellStyles>'+
-			'<dxfs count="0" />'+
-			'<tableStyles count="0" defaultTableStyle="TableStyleMedium9" defaultPivotStyle="PivotStyleMedium4" />'+
-		'</styleSheet>'
-};
-// Note we could use 3 `for` loops for the styles, but when gzipped there is
-// virtually no difference in size, since the above can be easily compressed
-
-// Pattern matching for special number formats. Perhaps this should be exposed
-// via an API in future?
-// Ref: section 3.8.30 - built in formatters in open spreadsheet
-//   https://www.ecma-international.org/news/TC45_current_work/Office%20Open%20XML%20Part%204%20-%20Markup%20Language%20Reference.pdf
-var _excelSpecials = [
-	{ match: /^\-?\d+\.\d%$/,       style: 60, fmt: function (d) { return d/100; } }, // Precent with d.p.
-	{ match: /^\-?\d+\.?\d*%$/,     style: 56, fmt: function (d) { return d/100; } }, // Percent
-	{ match: /^\-?\$[\d,]+.?\d*$/,  style: 57 }, // Dollars
-	{ match: /^\-?£[\d,]+.?\d*$/,   style: 58 }, // Pounds
-	{ match: /^\-?€[\d,]+.?\d*$/,   style: 59 }, // Euros
-	{ match: /^\-?\d+$/,            style: 65 }, // Numbers without thousand separators
-	{ match: /^\-?\d+\.\d{2}$/,     style: 66 }, // Numbers 2 d.p. without thousands separators
-	{ match: /^\([\d,]+\)$/,        style: 61, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets
-	{ match: /^\([\d,]+\.\d{2}\)$/, style: 62, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets - 2d.p.
-	{ match: /^\-?[\d,]+$/,         style: 63 }, // Numbers with thousand separators
-	{ match: /^\-?[\d,]+\.\d{2}$/,  style: 64 }  // Numbers with 2 d.p. and thousands separators
-];
-
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Buttons
- */
-
-//
-// Copy to clipboard
-//
-DataTable.ext.buttons.copyHtml5 = {
-	className: 'buttons-copy buttons-html5',
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.copy', 'Copy' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		this.processing( true );
-
-		var that = this;
-		var exportData = _exportData( dt, config );
-		var info = dt.buttons.exportInfo( config );
-		var newline = _newLine(config);
-		var output = exportData.str;
-		var hiddenDiv = $('<div/>')
-			.css( {
-				height: 1,
-				width: 1,
-				overflow: 'hidden',
-				position: 'fixed',
-				top: 0,
-				left: 0
-			} );
-
-		if ( info.title ) {
-			output = info.title + newline + newline + output;
-		}
-
-		if ( info.messageTop ) {
-			output = info.messageTop + newline + newline + output;
-		}
-
-		if ( info.messageBottom ) {
-			output = output + newline + newline + info.messageBottom;
-		}
-
-		if ( config.customize ) {
-			output = config.customize( output, config, dt );
-		}
-
-		var textarea = $('<textarea readonly/>')
-			.val( output )
-			.appendTo( hiddenDiv );
-
-		// For browsers that support the copy execCommand, try to use it
-		if ( document.queryCommandSupported('copy') ) {
-			hiddenDiv.appendTo( dt.table().container() );
-			textarea[0].focus();
-			textarea[0].select();
-
-			try {
-				var successful = document.execCommand( 'copy' );
-				hiddenDiv.remove();
-
-				if (successful) {
-					dt.buttons.info(
-						dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
-						dt.i18n( 'buttons.copySuccess', {
-							1: 'Copied one row to clipboard',
-							_: 'Copied %d rows to clipboard'
-						}, exportData.rows ),
-						2000
-					);
-
-					this.processing( false );
-					return;
-				}
-			}
-			catch (t) {}
-		}
-
-		// Otherwise we show the text box and instruct the user to use it
-		var message = $('<span>'+dt.i18n( 'buttons.copyKeys',
-				'Press <i>ctrl</i> or <i>\u2318</i> + <i>C</i> to copy the table data<br>to your system clipboard.<br><br>'+
-				'To cancel, click this message or press escape.' )+'</span>'
-			)
-			.append( hiddenDiv );
-
-		dt.buttons.info( dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ), message, 0 );
-
-		// Select the text so when the user activates their system clipboard
-		// it will copy that text
-		textarea[0].focus();
-		textarea[0].select();
-
-		// Event to hide the message when the user is done
-		var container = $(message).closest('.dt-button-info');
-		var close = function () {
-			container.off( 'click.buttons-copy' );
-			$(document).off( '.buttons-copy' );
-			dt.buttons.info( false );
-		};
-
-		container.on( 'click.buttons-copy', close );
-		$(document)
-			.on( 'keydown.buttons-copy', function (e) {
-				if ( e.keyCode === 27 ) { // esc
-					close();
-					that.processing( false );
-				}
-			} )
-			.on( 'copy.buttons-copy cut.buttons-copy', function () {
-				close();
-				that.processing( false );
-			} );
-	},
-
-	exportOptions: {},
-
-	fieldSeparator: '\t',
-
-	fieldBoundary: '',
-
-	header: true,
-
-	footer: false,
-
-	title: '*',
-
-	messageTop: '*',
-
-	messageBottom: '*'
-};
-
-//
-// CSV export
-//
-DataTable.ext.buttons.csvHtml5 = {
-	bom: false,
-
-	className: 'buttons-csv buttons-html5',
-
-	available: function () {
-		return window.FileReader !== undefined && window.Blob;
-	},
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.csv', 'CSV' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		this.processing( true );
-
-		// Set the text
-		var output = _exportData( dt, config ).str;
-		var info = dt.buttons.exportInfo(config);
-		var charset = config.charset;
-
-		if ( config.customize ) {
-			output = config.customize( output, config, dt );
-		}
-
-		if ( charset !== false ) {
-			if ( ! charset ) {
-				charset = document.characterSet || document.charset;
-			}
-
-			if ( charset ) {
-				charset = ';charset='+charset;
-			}
-		}
-		else {
-			charset = '';
-		}
-
-		if ( config.bom ) {
-			output = '\ufeff' + output;
-		}
-
-		_saveAs(
-			new Blob( [output], {type: 'text/csv'+charset} ),
-			info.filename,
-			true
-		);
-
-		this.processing( false );
-	},
-
-	filename: '*',
-
-	extension: '.csv',
-
-	exportOptions: {},
-
-	fieldSeparator: ',',
-
-	fieldBoundary: '"',
-
-	escapeChar: '"',
-
-	charset: null,
-
-	header: true,
-
-	footer: false
-};
-
-//
-// Excel (xlsx) export
-//
-DataTable.ext.buttons.excelHtml5 = {
-	className: 'buttons-excel buttons-html5',
-
-	available: function () {
-		return window.FileReader !== undefined && _jsZip() !== undefined && ! _isDuffSafari() && _serialiser;
-	},
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.excel', 'Excel' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		this.processing( true );
-
-		var that = this;
-		var rowPos = 0;
-		var getXml = function ( type ) {
-			var str = excelStrings[ type ];
-
-			//str = str.replace( /xmlns:/g, 'xmlns_' ).replace( /mc:/g, 'mc_' );
-
-			return $.parseXML( str );
-		};
-		var rels = getXml('xl/worksheets/sheet1.xml');
-		var relsGet = rels.getElementsByTagName( "sheetData" )[0];
-
-		var xlsx = {
-			_rels: {
-				".rels": getXml('_rels/.rels')
-			},
-			xl: {
-				_rels: {
-					"workbook.xml.rels": getXml('xl/_rels/workbook.xml.rels')
-				},
-				"workbook.xml": getXml('xl/workbook.xml'),
-				"styles.xml": getXml('xl/styles.xml'),
-				"worksheets": {
-					"sheet1.xml": rels
-				}
-
-			},
-			"[Content_Types].xml": getXml('[Content_Types].xml')
-		};
-
-		var data = dt.buttons.exportData( config.exportOptions );
-		var currentRow, rowNode;
-		var addRow = function ( row ) {
-			currentRow = rowPos+1;
-			rowNode = _createNode( rels, "row", { attr: {r:currentRow} } );
-
-			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
-				// Concat both the Cell Columns as a letter and the Row of the cell.
-				var cellId = createCellPos(i) + '' + currentRow;
-				var cell = null;
-
-				// For null, undefined of blank cell, continue so it doesn't create the _createNode
-				if ( row[i] === null || row[i] === undefined || row[i] === '' ) {
-					if ( config.createEmptyCells === true ) {
-						row[i] = '';
-					}
-					else {
-						continue;
-					}
-				}
-
-				var originalContent = row[i];
-				row[i] = $.trim( row[i] );
-
-				// Special number formatting options
-				for ( var j=0, jen=_excelSpecials.length ; j<jen ; j++ ) {
-					var special = _excelSpecials[j];
-
-					// TODO Need to provide the ability for the specials to say
-					// if they are returning a string, since at the moment it is
-					// assumed to be a number
-					if ( row[i].match && ! row[i].match(/^0\d+/) && row[i].match( special.match ) ) {
-						var val = row[i].replace(/[^\d\.\-]/g, '');
-
-						if ( special.fmt ) {
-							val = special.fmt( val );
-						}
-
-						cell = _createNode( rels, 'c', {
-							attr: {
-								r: cellId,
-								s: special.style
-							},
-							children: [
-								_createNode( rels, 'v', { text: val } )
-							]
-						} );
-
-						break;
-					}
-				}
-
-				if ( ! cell ) {
-					if ( typeof row[i] === 'number' || (
-						row[i].match &&
-						row[i].match(/^-?\d+(\.\d+)?$/) &&
-						! row[i].match(/^0\d+/) )
-					) {
-						// Detect numbers - don't match numbers with leading zeros
-						// or a negative anywhere but the start
-						cell = _createNode( rels, 'c', {
-							attr: {
-								t: 'n',
-								r: cellId
-							},
-							children: [
-								_createNode( rels, 'v', { text: row[i] } )
-							]
-						} );
-					}
-					else {
-						// String output - replace non standard characters for text output
-						var text = ! originalContent.replace ?
-							originalContent :
-							originalContent.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
-
-						cell = _createNode( rels, 'c', {
-							attr: {
-								t: 'inlineStr',
-								r: cellId
-							},
-							children:{
-								row: _createNode( rels, 'is', {
-									children: {
-										row: _createNode( rels, 't', {
-											text: text,
-											attr: {
-												'xml:space': 'preserve'
-											}
-										} )
-									}
-								} )
-							}
-						} );
-					}
-				}
-
-				rowNode.appendChild( cell );
-			}
-
-			relsGet.appendChild(rowNode);
-			rowPos++;
-		};
-
-		$( 'sheets sheet', xlsx.xl['workbook.xml'] ).attr( 'name', _sheetname( config ) );
-
-		if ( config.customizeData ) {
-			config.customizeData( data );
-		}
-
-		var mergeCells = function ( row, colspan ) {
-			var mergeCells = $('mergeCells', rels);
-
-			mergeCells[0].appendChild( _createNode( rels, 'mergeCell', {
-				attr: {
-					ref: 'A'+row+':'+createCellPos(colspan)+row
-				}
-			} ) );
-			mergeCells.attr( 'count', parseFloat(mergeCells.attr( 'count' ))+1 );
-			$('row:eq('+(row-1)+') c', rels).attr( 's', '51' ); // centre
-		};
-
-		// Title and top messages
-		var exportInfo = dt.buttons.exportInfo( config );
-		if ( exportInfo.title ) {
-			addRow( [exportInfo.title], rowPos );
-			mergeCells( rowPos, data.header.length-1 );
-		}
-
-		if ( exportInfo.messageTop ) {
-			addRow( [exportInfo.messageTop], rowPos );
-			mergeCells( rowPos, data.header.length-1 );
-		}
-
-		// Table itself
-		if ( config.header ) {
-			addRow( data.header, rowPos );
-			$('row:last c', rels).attr( 's', '2' ); // bold
-		}
-
-		for ( var n=0, ie=data.body.length ; n<ie ; n++ ) {
-			addRow( data.body[n], rowPos );
-		}
-
-		if ( config.footer && data.footer ) {
-			addRow( data.footer, rowPos);
-			$('row:last c', rels).attr( 's', '2' ); // bold
-		}
-
-		// Below the table
-		if ( exportInfo.messageBottom ) {
-			addRow( [exportInfo.messageBottom], rowPos );
-			mergeCells( rowPos, data.header.length-1 );
-		}
-
-		// Set column widths
-		var cols = _createNode( rels, 'cols' );
-		$('worksheet', rels).prepend( cols );
-
-		for ( var i=0, ien=data.header.length ; i<ien ; i++ ) {
-			cols.appendChild( _createNode( rels, 'col', {
-				attr: {
-					min: i+1,
-					max: i+1,
-					width: _excelColWidth( data, i ),
-					customWidth: 1
-				}
-			} ) );
-		}
-
-		// Let the developer customise the document if they want to
-		if ( config.customize ) {
-			config.customize( xlsx, config, dt );
-		}
-
-		// Excel doesn't like an empty mergeCells tag
-		if ( $('mergeCells', rels).children().length === 0 ) {
-			$('mergeCells', rels).remove();
-		}
-
-		var jszip = _jsZip();
-		var zip = new jszip();
-		var zipConfig = {
-			type: 'blob',
-			mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-		};
-
-		_addToZip( zip, xlsx );
-
-		if ( zip.generateAsync ) {
-			// JSZip 3+
-			zip
-				.generateAsync( zipConfig )
-				.then( function ( blob ) {
-					_saveAs( blob, exportInfo.filename );
-					that.processing( false );
-				} );
-		}
-		else {
-			// JSZip 2.5
-			_saveAs(
-				zip.generate( zipConfig ),
-				exportInfo.filename
-			);
-			this.processing( false );
-		}
-	},
-
-	filename: '*',
-
-	extension: '.xlsx',
-
-	exportOptions: {},
-
-	header: true,
-
-	footer: false,
-
-	title: '*',
-
-	messageTop: '*',
-
-	messageBottom: '*',
-
-	createEmptyCells: false
-};
-
-//
-// PDF export - using pdfMake - http://pdfmake.org
-//
-DataTable.ext.buttons.pdfHtml5 = {
-	className: 'buttons-pdf buttons-html5',
-
-	available: function () {
-		return window.FileReader !== undefined && _pdfMake();
-	},
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.pdf', 'PDF' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		this.processing( true );
-
-		var that = this;
-		var data = dt.buttons.exportData( config.exportOptions );
-		var info = dt.buttons.exportInfo( config );
-		var rows = [];
-
-		if ( config.header ) {
-			rows.push( $.map( data.header, function ( d ) {
-				return {
-					text: typeof d === 'string' ? d : d+'',
-					style: 'tableHeader'
-				};
-			} ) );
-		}
-
-		for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
-			rows.push( $.map( data.body[i], function ( d ) {
-				return {
-					text: typeof d === 'string' ? d : d+'',
-					style: i % 2 ? 'tableBodyEven' : 'tableBodyOdd'
-				};
-			} ) );
-		}
-
-		if ( config.footer && data.footer) {
-			rows.push( $.map( data.footer, function ( d ) {
-				return {
-					text: typeof d === 'string' ? d : d+'',
-					style: 'tableFooter'
-				};
-			} ) );
-		}
-
-		var doc = {
-			pageSize: config.pageSize,
-			pageOrientation: config.orientation,
-			content: [
-				{
-					table: {
-						headerRows: 1,
-						body: rows
-					},
-					layout: 'noBorders'
-				}
-			],
-			styles: {
-				tableHeader: {
-					bold: true,
-					fontSize: 11,
-					color: 'white',
-					fillColor: '#2d4154',
-					alignment: 'center'
-				},
-				tableBodyEven: {},
-				tableBodyOdd: {
-					fillColor: '#f3f3f3'
-				},
-				tableFooter: {
-					bold: true,
-					fontSize: 11,
-					color: 'white',
-					fillColor: '#2d4154'
-				},
-				title: {
-					alignment: 'center',
-					fontSize: 15
-				},
-				message: {}
-			},
-			defaultStyle: {
-				fontSize: 10
-			}
-		};
-
-		if ( info.messageTop ) {
-			doc.content.unshift( {
-				text: info.messageTop,
-				style: 'message',
-				margin: [ 0, 0, 0, 12 ]
-			} );
-		}
-
-		if ( info.messageBottom ) {
-			doc.content.push( {
-				text: info.messageBottom,
-				style: 'message',
-				margin: [ 0, 0, 0, 12 ]
-			} );
-		}
-
-		if ( info.title ) {
-			doc.content.unshift( {
-				text: info.title,
-				style: 'title',
-				margin: [ 0, 0, 0, 12 ]
-			} );
-		}
-
-		if ( config.customize ) {
-			config.customize( doc, config, dt );
-		}
-
-		var pdf = _pdfMake().createPdf( doc );
-
-		if ( config.download === 'open' && ! _isDuffSafari() ) {
-			pdf.open();
-		}
-		else {
-			pdf.download( info.filename );
-		}
-
-		this.processing( false );
-	},
-
-	title: '*',
-
-	filename: '*',
-
-	extension: '.pdf',
-
-	exportOptions: {},
-
-	orientation: 'portrait',
-
-	pageSize: 'A4',
-
-	header: true,
-
-	footer: false,
-
-	messageTop: '*',
-
-	messageBottom: '*',
-
-	customize: null,
-
-	download: 'download'
-};
-
-
-return DataTable.Buttons;
-}));
-
-
-/***/ }),
-/* 245 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * Flash export buttons for Buttons and DataTables.
- * 2015-2017 SpryMedia Ltd - datatables.net/license
- *
- * ZeroClipbaord - MIT license
- * Copyright (c) 2012 Joseph Huckaby
- */
-
-(function( factory ){
-	if ( true ) {
-		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
-			return factory( $, window, document );
-		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			if ( ! $.fn.dataTable.Buttons ) {
-				require('datatables.net-buttons')(root, $);
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * ZeroClipboard dependency
- */
-
-/*
- * ZeroClipboard 1.0.4 with modifications
- * Author: Joseph Huckaby
- * License: MIT
- *
- * Copyright (c) 2012 Joseph Huckaby
- */
-var ZeroClipboard_TableTools = {
-	version: "1.0.4-TableTools2",
-	clients: {}, // registered upload clients on page, indexed by id
-	moviePath: '', // URL to movie
-	nextId: 1, // ID of next movie
-
-	$: function(thingy) {
-		// simple DOM lookup utility function
-		if (typeof(thingy) == 'string') {
-			thingy = document.getElementById(thingy);
-		}
-		if (!thingy.addClass) {
-			// extend element with a few useful methods
-			thingy.hide = function() { this.style.display = 'none'; };
-			thingy.show = function() { this.style.display = ''; };
-			thingy.addClass = function(name) { this.removeClass(name); this.className += ' ' + name; };
-			thingy.removeClass = function(name) {
-				this.className = this.className.replace( new RegExp("\\s*" + name + "\\s*"), " ").replace(/^\s+/, '').replace(/\s+$/, '');
-			};
-			thingy.hasClass = function(name) {
-				return !!this.className.match( new RegExp("\\s*" + name + "\\s*") );
-			};
-		}
-		return thingy;
-	},
-
-	setMoviePath: function(path) {
-		// set path to ZeroClipboard.swf
-		this.moviePath = path;
-	},
-
-	dispatch: function(id, eventName, args) {
-		// receive event from flash movie, send to client
-		var client = this.clients[id];
-		if (client) {
-			client.receiveEvent(eventName, args);
-		}
-	},
-
-	log: function ( str ) {
-		console.log( 'Flash: '+str );
-	},
-
-	register: function(id, client) {
-		// register new client to receive events
-		this.clients[id] = client;
-	},
-
-	getDOMObjectPosition: function(obj) {
-		// get absolute coordinates for dom element
-		var info = {
-			left: 0,
-			top: 0,
-			width: obj.width ? obj.width : obj.offsetWidth,
-			height: obj.height ? obj.height : obj.offsetHeight
-		};
-
-		if ( obj.style.width !== "" ) {
-			info.width = obj.style.width.replace("px","");
-		}
-
-		if ( obj.style.height !== "" ) {
-			info.height = obj.style.height.replace("px","");
-		}
-
-		while (obj) {
-			info.left += obj.offsetLeft;
-			info.top += obj.offsetTop;
-			obj = obj.offsetParent;
-		}
-
-		return info;
-	},
-
-	Client: function(elem) {
-		// constructor for new simple upload client
-		this.handlers = {};
-
-		// unique ID
-		this.id = ZeroClipboard_TableTools.nextId++;
-		this.movieId = 'ZeroClipboard_TableToolsMovie_' + this.id;
-
-		// register client with singleton to receive flash events
-		ZeroClipboard_TableTools.register(this.id, this);
-
-		// create movie
-		if (elem) {
-			this.glue(elem);
-		}
-	}
-};
-
-ZeroClipboard_TableTools.Client.prototype = {
-
-	id: 0, // unique ID for us
-	ready: false, // whether movie is ready to receive events or not
-	movie: null, // reference to movie object
-	clipText: '', // text to copy to clipboard
-	fileName: '', // default file save name
-	action: 'copy', // action to perform
-	handCursorEnabled: true, // whether to show hand cursor, or default pointer cursor
-	cssEffects: true, // enable CSS mouse effects on dom container
-	handlers: null, // user event handlers
-	sized: false,
-	sheetName: '', // default sheet name for excel export
-
-	glue: function(elem, title) {
-		// glue to DOM element
-		// elem can be ID or actual DOM element object
-		this.domElement = ZeroClipboard_TableTools.$(elem);
-
-		// float just above object, or zIndex 99 if dom element isn't set
-		var zIndex = 99;
-		if (this.domElement.style.zIndex) {
-			zIndex = parseInt(this.domElement.style.zIndex, 10) + 1;
-		}
-
-		// find X/Y position of domElement
-		var box = ZeroClipboard_TableTools.getDOMObjectPosition(this.domElement);
-
-		// create floating DIV above element
-		this.div = document.createElement('div');
-		var style = this.div.style;
-		style.position = 'absolute';
-		style.left = '0px';
-		style.top = '0px';
-		style.width = (box.width) + 'px';
-		style.height = box.height + 'px';
-		style.zIndex = zIndex;
-
-		if ( typeof title != "undefined" && title !== "" ) {
-			this.div.title = title;
-		}
-		if ( box.width !== 0 && box.height !== 0 ) {
-			this.sized = true;
-		}
-
-		// style.backgroundColor = '#f00'; // debug
-		if ( this.domElement ) {
-			this.domElement.appendChild(this.div);
-			this.div.innerHTML = this.getHTML( box.width, box.height ).replace(/&/g, '&amp;');
-		}
-	},
-
-	positionElement: function() {
-		var box = ZeroClipboard_TableTools.getDOMObjectPosition(this.domElement);
-		var style = this.div.style;
-
-		style.position = 'absolute';
-		//style.left = (this.domElement.offsetLeft)+'px';
-		//style.top = this.domElement.offsetTop+'px';
-		style.width = box.width + 'px';
-		style.height = box.height + 'px';
-
-		if ( box.width !== 0 && box.height !== 0 ) {
-			this.sized = true;
-		} else {
-			return;
-		}
-
-		var flash = this.div.childNodes[0];
-		flash.width = box.width;
-		flash.height = box.height;
-	},
-
-	getHTML: function(width, height) {
-		// return HTML for movie
-		var html = '';
-		var flashvars = 'id=' + this.id +
-			'&width=' + width +
-			'&height=' + height;
-
-		if (navigator.userAgent.match(/MSIE/)) {
-			// IE gets an OBJECT tag
-			var protocol = location.href.match(/^https/i) ? 'https://' : 'http://';
-			html += '<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="'+protocol+'download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" width="'+width+'" height="'+height+'" id="'+this.movieId+'" align="middle"><param name="allowScriptAccess" value="always" /><param name="allowFullScreen" value="false" /><param name="movie" value="'+ZeroClipboard_TableTools.moviePath+'" /><param name="loop" value="false" /><param name="menu" value="false" /><param name="quality" value="best" /><param name="bgcolor" value="#ffffff" /><param name="flashvars" value="'+flashvars+'"/><param name="wmode" value="transparent"/></object>';
-		}
-		else {
-			// all other browsers get an EMBED tag
-			html += '<embed id="'+this.movieId+'" src="'+ZeroClipboard_TableTools.moviePath+'" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="'+width+'" height="'+height+'" name="'+this.movieId+'" align="middle" allowScriptAccess="always" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="'+flashvars+'" wmode="transparent" />';
-		}
-		return html;
-	},
-
-	hide: function() {
-		// temporarily hide floater offscreen
-		if (this.div) {
-			this.div.style.left = '-2000px';
-		}
-	},
-
-	show: function() {
-		// show ourselves after a call to hide()
-		this.reposition();
-	},
-
-	destroy: function() {
-		// destroy control and floater
-		var that = this;
-
-		if (this.domElement && this.div) {
-			$(this.div).remove();
-
-			this.domElement = null;
-			this.div = null;
-
-			$.each( ZeroClipboard_TableTools.clients, function ( id, client ) {
-				if ( client === that ) {
-					delete ZeroClipboard_TableTools.clients[ id ];
-				}
-			} );
-		}
-	},
-
-	reposition: function(elem) {
-		// reposition our floating div, optionally to new container
-		// warning: container CANNOT change size, only position
-		if (elem) {
-			this.domElement = ZeroClipboard_TableTools.$(elem);
-			if (!this.domElement) {
-				this.hide();
-			}
-		}
-
-		if (this.domElement && this.div) {
-			var box = ZeroClipboard_TableTools.getDOMObjectPosition(this.domElement);
-			var style = this.div.style;
-			style.left = '' + box.left + 'px';
-			style.top = '' + box.top + 'px';
-		}
-	},
-
-	clearText: function() {
-		// clear the text to be copy / saved
-		this.clipText = '';
-		if (this.ready) {
-			this.movie.clearText();
-		}
-	},
-
-	appendText: function(newText) {
-		// append text to that which is to be copied / saved
-		this.clipText += newText;
-		if (this.ready) { this.movie.appendText(newText) ;}
-	},
-
-	setText: function(newText) {
-		// set text to be copied to be copied / saved
-		this.clipText = newText;
-		if (this.ready) { this.movie.setText(newText) ;}
-	},
-
-	setFileName: function(newText) {
-		// set the file name
-		this.fileName = newText;
-		if (this.ready) {
-			this.movie.setFileName(newText);
-		}
-	},
-
-	setSheetData: function(data) {
-		// set the xlsx sheet data
-		if (this.ready) {
-			this.movie.setSheetData( JSON.stringify( data ) );
-		}
-	},
-
-	setAction: function(newText) {
-		// set action (save or copy)
-		this.action = newText;
-		if (this.ready) {
-			this.movie.setAction(newText);
-		}
-	},
-
-	addEventListener: function(eventName, func) {
-		// add user event listener for event
-		// event types: load, queueStart, fileStart, fileComplete, queueComplete, progress, error, cancel
-		eventName = eventName.toString().toLowerCase().replace(/^on/, '');
-		if (!this.handlers[eventName]) {
-			this.handlers[eventName] = [];
-		}
-		this.handlers[eventName].push(func);
-	},
-
-	setHandCursor: function(enabled) {
-		// enable hand cursor (true), or default arrow cursor (false)
-		this.handCursorEnabled = enabled;
-		if (this.ready) {
-			this.movie.setHandCursor(enabled);
-		}
-	},
-
-	setCSSEffects: function(enabled) {
-		// enable or disable CSS effects on DOM container
-		this.cssEffects = !!enabled;
-	},
-
-	receiveEvent: function(eventName, args) {
-		var self;
-
-		// receive event from flash
-		eventName = eventName.toString().toLowerCase().replace(/^on/, '');
-
-		// special behavior for certain events
-		switch (eventName) {
-			case 'load':
-				// movie claims it is ready, but in IE this isn't always the case...
-				// bug fix: Cannot extend EMBED DOM elements in Firefox, must use traditional function
-				this.movie = document.getElementById(this.movieId);
-				if (!this.movie) {
-					self = this;
-					setTimeout( function() { self.receiveEvent('load', null); }, 1 );
-					return;
-				}
-
-				// firefox on pc needs a "kick" in order to set these in certain cases
-				if (!this.ready && navigator.userAgent.match(/Firefox/) && navigator.userAgent.match(/Windows/)) {
-					self = this;
-					setTimeout( function() { self.receiveEvent('load', null); }, 100 );
-					this.ready = true;
-					return;
-				}
-
-				this.ready = true;
-				this.movie.clearText();
-				this.movie.appendText( this.clipText );
-				this.movie.setFileName( this.fileName );
-				this.movie.setAction( this.action );
-				this.movie.setHandCursor( this.handCursorEnabled );
-				break;
-
-			case 'mouseover':
-				if (this.domElement && this.cssEffects) {
-					//this.domElement.addClass('hover');
-					if (this.recoverActive) {
-						this.domElement.addClass('active');
-					}
-				}
-				break;
-
-			case 'mouseout':
-				if (this.domElement && this.cssEffects) {
-					this.recoverActive = false;
-					if (this.domElement.hasClass('active')) {
-						this.domElement.removeClass('active');
-						this.recoverActive = true;
-					}
-					//this.domElement.removeClass('hover');
-				}
-				break;
-
-			case 'mousedown':
-				if (this.domElement && this.cssEffects) {
-					this.domElement.addClass('active');
-				}
-				break;
-
-			case 'mouseup':
-				if (this.domElement && this.cssEffects) {
-					this.domElement.removeClass('active');
-					this.recoverActive = false;
-				}
-				break;
-		} // switch eventName
-
-		if (this.handlers[eventName]) {
-			for (var idx = 0, len = this.handlers[eventName].length; idx < len; idx++) {
-				var func = this.handlers[eventName][idx];
-
-				if (typeof(func) == 'function') {
-					// actual function reference
-					func(this, args);
-				}
-				else if ((typeof(func) == 'object') && (func.length == 2)) {
-					// PHP style object + method, i.e. [myObject, 'myMethod']
-					func[0][ func[1] ](this, args);
-				}
-				else if (typeof(func) == 'string') {
-					// name of function
-					window[func](this, args);
-				}
-			} // foreach event handler defined
-		} // user defined handler for event
-	}
-};
-
-ZeroClipboard_TableTools.hasFlash = function ()
-{
-	try {
-		var fo = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
-		if (fo) {
-			return true;
-		}
-	}
-	catch (e) {
-		if (
-			navigator.mimeTypes &&
-			navigator.mimeTypes['application/x-shockwave-flash'] !== undefined &&
-			navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin
-		) {
-			return true;
-		}
-	}
-
-	return false;
-};
-
-// For the Flash binding to work, ZeroClipboard_TableTools must be on the global
-// object list
-window.ZeroClipboard_TableTools = ZeroClipboard_TableTools;
-
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Local (private) functions
- */
-
-/**
- * If a Buttons instance is initlaised before it is placed into the DOM, Flash
- * won't be able to bind to it, so we need to wait until it is available, this
- * method abstracts that out.
- *
- * @param {ZeroClipboard} flash ZeroClipboard instance
- * @param {jQuery} node  Button
- */
-var _glue = function ( flash, node )
-{
-	var id = node.attr('id');
-
-	if ( node.parents('html').length ) {
-		flash.glue( node[0], '' );
-	}
-	else {
-		setTimeout( function () {
-			_glue( flash, node );
-		}, 500 );
-	}
-};
-
-/**
- * Get the sheet name for Excel exports.
- *
- * @param {object}  config       Button configuration
- */
-var _sheetname = function ( config )
-{
-	var sheetName = 'Sheet1';
-
-	if ( config.sheetName ) {
-		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
-	}
-
-	return sheetName;
-};
-
-/**
- * Set the flash text. This has to be broken up into chunks as the Javascript /
- * Flash bridge has a size limit. There is no indication in the Flash
- * documentation what this is, and it probably depends upon the browser.
- * Experimentation shows that the point is around 50k when data starts to get
- * lost, so an 8K limit used here is safe.
- *
- * @param {ZeroClipboard} flash ZeroClipboard instance
- * @param {string}        data  Data to send to Flash
- */
-var _setText = function ( flash, data )
-{
-	var parts = data.match(/[\s\S]{1,8192}/g) || [];
-
-	flash.clearText();
-	for ( var i=0, len=parts.length ; i<len ; i++ )
-	{
-		flash.appendText( parts[i] );
-	}
-};
-
-/**
- * Get the newline character(s)
- *
- * @param {object}  config Button configuration
- * @return {string}        Newline character
- */
-var _newLine = function ( config )
-{
-	return config.newline ?
-		config.newline :
-		navigator.userAgent.match(/Windows/) ?
-			'\r\n' :
-			'\n';
-};
-
-/**
- * Combine the data from the `buttons.exportData` method into a string that
- * will be used in the export file.
- *
- * @param  {DataTable.Api} dt     DataTables API instance
- * @param  {object}        config Button configuration
- * @return {object}               The data to export
- */
-var _exportData = function ( dt, config )
-{
-	var newLine = _newLine( config );
-	var data = dt.buttons.exportData( config.exportOptions );
-	var boundary = config.fieldBoundary;
-	var separator = config.fieldSeparator;
-	var reBoundary = new RegExp( boundary, 'g' );
-	var escapeChar = config.escapeChar !== undefined ?
-		config.escapeChar :
-		'\\';
-	var join = function ( a ) {
-		var s = '';
-
-		// If there is a field boundary, then we might need to escape it in
-		// the source data
-		for ( var i=0, ien=a.length ; i<ien ; i++ ) {
-			if ( i > 0 ) {
-				s += separator;
-			}
-
-			s += boundary ?
-				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
-				a[i];
-		}
-
-		return s;
-	};
-
-	var header = config.header ? join( data.header )+newLine : '';
-	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
-	var body = [];
-
-	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
-		body.push( join( data.body[i] ) );
-	}
-
-	return {
-		str: header + body.join( newLine ) + footer,
-		rows: body.length
-	};
-};
-
-
-// Basic initialisation for the buttons is common between them
-var flashButton = {
-	available: function () {
-		return ZeroClipboard_TableTools.hasFlash();
-	},
-
-	init: function ( dt, button, config ) {
-		// Insert the Flash movie
-		ZeroClipboard_TableTools.moviePath = DataTable.Buttons.swfPath;
-		var flash = new ZeroClipboard_TableTools.Client();
-
-		flash.setHandCursor( true );
-		flash.addEventListener('mouseDown', function(client) {
-			config._fromFlash = true;
-			dt.button( button[0] ).trigger();
-			config._fromFlash = false;
-		} );
-
-		_glue( flash, button );
-
-		config._flash = flash;
-	},
-
-	destroy: function ( dt, button, config ) {
-		config._flash.destroy();
-	},
-
-	fieldSeparator: ',',
-
-	fieldBoundary: '"',
-
-	exportOptions: {},
-
-	title: '*',
-
-	messageTop: '*',
-
-	messageBottom: '*',
-
-	filename: '*',
-
-	extension: '.csv',
-
-	header: true,
-
-	footer: false
-};
-
-
-/**
- * Convert from numeric position to letter for column names in Excel
- * @param  {int} n Column number
- * @return {string} Column letter(s) name
- */
-function createCellPos( n ){
-	var ordA = 'A'.charCodeAt(0);
-	var ordZ = 'Z'.charCodeAt(0);
-	var len = ordZ - ordA + 1;
-	var s = "";
-
-	while( n >= 0 ) {
-		s = String.fromCharCode(n % len + ordA) + s;
-		n = Math.floor(n / len) - 1;
-	}
-
-	return s;
-}
-
-/**
- * Create an XML node and add any children, attributes, etc without needing to
- * be verbose in the DOM.
- *
- * @param  {object} doc      XML document
- * @param  {string} nodeName Node name
- * @param  {object} opts     Options - can be `attr` (attributes), `children`
- *   (child nodes) and `text` (text content)
- * @return {node}            Created node
- */
-function _createNode( doc, nodeName, opts ){
-	var tempNode = doc.createElement( nodeName );
-
-	if ( opts ) {
-		if ( opts.attr ) {
-			$(tempNode).attr( opts.attr );
-		}
-
-		if ( opts.children ) {
-			$.each( opts.children, function ( key, value ) {
-				tempNode.appendChild( value );
-			} );
-		}
-
-		if ( opts.text !== null && opts.text !== undefined ) {
-			tempNode.appendChild( doc.createTextNode( opts.text ) );
-		}
-	}
-
-	return tempNode;
-}
-
-/**
- * Get the width for an Excel column based on the contents of that column
- * @param  {object} data Data for export
- * @param  {int}    col  Column index
- * @return {int}         Column width
- */
-function _excelColWidth( data, col ) {
-	var max = data.header[col].length;
-	var len, lineSplit, str;
-
-	if ( data.footer && data.footer[col].length > max ) {
-		max = data.footer[col].length;
-	}
-
-	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
-		var point = data.body[i][col];
-		str = point !== null && point !== undefined ?
-			point.toString() :
-			'';
-
-		// If there is a newline character, workout the width of the column
-		// based on the longest line in the string
-		if ( str.indexOf('\n') !== -1 ) {
-			lineSplit = str.split('\n');
-			lineSplit.sort( function (a, b) {
-				return b.length - a.length;
-			} );
-
-			len = lineSplit[0].length;
-		}
-		else {
-			len = str.length;
-		}
-
-		if ( len > max ) {
-			max = len;
-		}
-
-		// Max width rather than having potentially massive column widths
-		if ( max > 40 ) {
-			return 52; // 40 * 1.3
-		}
-	}
-
-	max *= 1.3;
-
-	// And a min width
-	return max > 6 ? max : 6;
-}
-
-  var _serialiser = "";
-    if (typeof window.XMLSerializer === 'undefined') {
-        _serialiser = new function () {
-            this.serializeToString = function (input) {
-                return input.xml
-            }
-        };
-    } else {
-        _serialiser =  new XMLSerializer();
-    }
-
-    var _ieExcel;
-
-
-/**
- * Convert XML documents in an object to strings
- * @param  {object} obj XLSX document object
- */
-function _xlsxToStrings( obj ) {
-	if ( _ieExcel === undefined ) {
-		// Detect if we are dealing with IE's _awful_ serialiser by seeing if it
-		// drop attributes
-		_ieExcel = _serialiser
-			.serializeToString(
-				$.parseXML( excelStrings['xl/worksheets/sheet1.xml'] )
-			)
-			.indexOf( 'xmlns:r' ) === -1;
-	}
-
-	$.each( obj, function ( name, val ) {
-		if ( $.isPlainObject( val ) ) {
-			_xlsxToStrings( val );
-		}
-		else {
-			if ( _ieExcel ) {
-				// IE's XML serialiser will drop some name space attributes from
-				// from the root node, so we need to save them. Do this by
-				// replacing the namespace nodes with a regular attribute that
-				// we convert back when serialised. Edge does not have this
-				// issue
-				var worksheet = val.childNodes[0];
-				var i, ien;
-				var attrs = [];
-
-				for ( i=worksheet.attributes.length-1 ; i>=0 ; i-- ) {
-					var attrName = worksheet.attributes[i].nodeName;
-					var attrValue = worksheet.attributes[i].nodeValue;
-
-					if ( attrName.indexOf( ':' ) !== -1 ) {
-						attrs.push( { name: attrName, value: attrValue } );
-
-						worksheet.removeAttribute( attrName );
-					}
-				}
-
-				for ( i=0, ien=attrs.length ; i<ien ; i++ ) {
-					var attr = val.createAttribute( attrs[i].name.replace( ':', '_dt_b_namespace_token_' ) );
-					attr.value = attrs[i].value;
-					worksheet.setAttributeNode( attr );
-				}
-			}
-
-			var str = _serialiser.serializeToString(val);
-
-			// Fix IE's XML
-			if ( _ieExcel ) {
-				// IE doesn't include the XML declaration
-				if ( str.indexOf( '<?xml' ) === -1 ) {
-					str = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+str;
-				}
-
-				// Return namespace attributes to being as such
-				str = str.replace( /_dt_b_namespace_token_/g, ':' );
-			}
-
-			// Safari, IE and Edge will put empty name space attributes onto
-			// various elements making them useless. This strips them out
-			str = str.replace( /<([^<>]*?) xmlns=""([^<>]*?)>/g, '<$1 $2>' );
-
-			obj[ name ] = str;
-		}
-	} );
-}
-
-// Excel - Pre-defined strings to build a basic XLSX file
-var excelStrings = {
-	"_rels/.rels":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
-		'</Relationships>',
-
-	"xl/_rels/workbook.xml.rels":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
-			'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
-		'</Relationships>',
-
-	"[Content_Types].xml":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
-			'<Default Extension="xml" ContentType="application/xml" />'+
-			'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />'+
-			'<Default Extension="jpeg" ContentType="image/jpeg" />'+
-			'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />'+
-			'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />'+
-			'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />'+
-		'</Types>',
-
-	"xl/workbook.xml":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
-			'<fileVersion appName="xl" lastEdited="5" lowestEdited="5" rupBuild="24816"/>'+
-			'<workbookPr showInkAnnotation="0" autoCompressPictures="0"/>'+
-			'<bookViews>'+
-				'<workbookView xWindow="0" yWindow="0" windowWidth="25600" windowHeight="19020" tabRatio="500"/>'+
-			'</bookViews>'+
-			'<sheets>'+
-				'<sheet name="" sheetId="1" r:id="rId1"/>'+
-			'</sheets>'+
-		'</workbook>',
-
-	"xl/worksheets/sheet1.xml":
-		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-		'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
-			'<sheetData/>'+
-			'<mergeCells count="0"/>'+
-		'</worksheet>',
-
-	"xl/styles.xml":
-		'<?xml version="1.0" encoding="UTF-8"?>'+
-		'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
-			'<numFmts count="6">'+
-				'<numFmt numFmtId="164" formatCode="#,##0.00_-\ [$$-45C]"/>'+
-				'<numFmt numFmtId="165" formatCode="&quot;£&quot;#,##0.00"/>'+
-				'<numFmt numFmtId="166" formatCode="[$€-2]\ #,##0.00"/>'+
-				'<numFmt numFmtId="167" formatCode="0.0%"/>'+
-				'<numFmt numFmtId="168" formatCode="#,##0;(#,##0)"/>'+
-				'<numFmt numFmtId="169" formatCode="#,##0.00;(#,##0.00)"/>'+
-			'</numFmts>'+
-			'<fonts count="5" x14ac:knownFonts="1">'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<color rgb="FFFFFFFF" />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<b />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<i />'+
-				'</font>'+
-				'<font>'+
-					'<sz val="11" />'+
-					'<name val="Calibri" />'+
-					'<u />'+
-				'</font>'+
-			'</fonts>'+
-			'<fills count="6">'+
-				'<fill>'+
-					'<patternFill patternType="none" />'+
-				'</fill>'+
-				'<fill>'+ // Excel appears to use this as a dotted background regardless of values but
-					'<patternFill patternType="none" />'+ // to be valid to the schema, use a patternFill
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="FFD9D9D9" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="FFD99795" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="ffc6efce" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-				'<fill>'+
-					'<patternFill patternType="solid">'+
-						'<fgColor rgb="ffc6cfef" />'+
-						'<bgColor indexed="64" />'+
-					'</patternFill>'+
-				'</fill>'+
-			'</fills>'+
-			'<borders count="2">'+
-				'<border>'+
-					'<left />'+
-					'<right />'+
-					'<top />'+
-					'<bottom />'+
-					'<diagonal />'+
-				'</border>'+
-				'<border diagonalUp="false" diagonalDown="false">'+
-					'<left style="thin">'+
-						'<color auto="1" />'+
-					'</left>'+
-					'<right style="thin">'+
-						'<color auto="1" />'+
-					'</right>'+
-					'<top style="thin">'+
-						'<color auto="1" />'+
-					'</top>'+
-					'<bottom style="thin">'+
-						'<color auto="1" />'+
-					'</bottom>'+
-					'<diagonal />'+
-				'</border>'+
-			'</borders>'+
-			'<cellStyleXfs count="1">'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" />'+
-			'</cellStyleXfs>'+
-			'<cellXfs count="61">'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="1" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="3" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="4" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="left"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="center"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="right"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment horizontal="fill"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment textRotation="90"/>'+
-				'</xf>'+
-				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
-					'<alignment wrapText="1"/>'+
-				'</xf>'+
-				'<xf numFmtId="9"   fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="166" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="167" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="168" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="169" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="3" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-				'<xf numFmtId="4" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
-			'</cellXfs>'+
-			'<cellStyles count="1">'+
-				'<cellStyle name="Normal" xfId="0" builtinId="0" />'+
-			'</cellStyles>'+
-			'<dxfs count="0" />'+
-			'<tableStyles count="0" defaultTableStyle="TableStyleMedium9" defaultPivotStyle="PivotStyleMedium4" />'+
-		'</styleSheet>'
-};
-// Note we could use 3 `for` loops for the styles, but when gzipped there is
-// virtually no difference in size, since the above can be easily compressed
-
-// Pattern matching for special number formats. Perhaps this should be exposed
-// via an API in future?
-var _excelSpecials = [
-	{ match: /^\-?\d+\.\d%$/,       style: 60, fmt: function (d) { return d/100; } }, // Precent with d.p.
-	{ match: /^\-?\d+\.?\d*%$/,     style: 56, fmt: function (d) { return d/100; } }, // Percent
-	{ match: /^\-?\$[\d,]+.?\d*$/,  style: 57 }, // Dollars
-	{ match: /^\-?£[\d,]+.?\d*$/,   style: 58 }, // Pounds
-	{ match: /^\-?€[\d,]+.?\d*$/,   style: 59 }, // Euros
-	{ match: /^\([\d,]+\)$/,        style: 61, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets
-	{ match: /^\([\d,]+\.\d{2}\)$/, style: 62, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets - 2d.p.
-	{ match: /^[\d,]+$/,            style: 63 }, // Numbers with thousand separators
-	{ match: /^[\d,]+\.\d{2}$/,     style: 64 }  // Numbers with 2d.p. and thousands separators
-];
-
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * DataTables options and methods
- */
-
-// Set the default SWF path
-DataTable.Buttons.swfPath = '//cdn.datatables.net/buttons/'+DataTable.Buttons.version+'/swf/flashExport.swf';
-
-// Method to allow Flash buttons to be resized when made visible - as they are
-// of zero height and width if initialised hidden
-DataTable.Api.register( 'buttons.resize()', function () {
-	$.each( ZeroClipboard_TableTools.clients, function ( i, client ) {
-		if ( client.domElement !== undefined && client.domElement.parentNode ) {
-			client.positionElement();
-		}
-	} );
-} );
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Button definitions
- */
-
-// Copy to clipboard
-DataTable.ext.buttons.copyFlash = $.extend( {}, flashButton, {
-	className: 'buttons-copy buttons-flash',
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.copy', 'Copy' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		// Check that the trigger did actually occur due to a Flash activation
-		if ( ! config._fromFlash ) {
-			return;
-		}
-
-		this.processing( true );
-
-		var flash = config._flash;
-		var exportData = _exportData( dt, config );
-		var info = dt.buttons.exportInfo( config );
-		var newline = _newLine(config);
-		var output = exportData.str;
-
-		if ( info.title ) {
-			output = info.title + newline + newline + output;
-		}
-
-		if ( info.messageTop ) {
-			output = info.messageTop + newline + newline + output;
-		}
-
-		if ( info.messageBottom ) {
-			output = output + newline + newline + info.messageBottom;
-		}
-
-		if ( config.customize ) {
-			output = config.customize( output, config, dt );
-		}
-
-		flash.setAction( 'copy' );
-		_setText( flash, output );
-
-		this.processing( false );
-
-		dt.buttons.info(
-			dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
-			dt.i18n( 'buttons.copySuccess', {
-				_: 'Copied %d rows to clipboard',
-				1: 'Copied 1 row to clipboard'
-			}, data.rows ),
-			3000
-		);
-	},
-
-	fieldSeparator: '\t',
-
-	fieldBoundary: ''
-} );
-
-// CSV save file
-DataTable.ext.buttons.csvFlash = $.extend( {}, flashButton, {
-	className: 'buttons-csv buttons-flash',
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.csv', 'CSV' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		// Set the text
-		var flash = config._flash;
-		var data = _exportData( dt, config );
-		var info = dt.buttons.exportInfo( config );
-		var output = config.customize ?
-			config.customize( data.str, config, dt ) :
-			data.str;
-
-		flash.setAction( 'csv' );
-		flash.setFileName( info.filename );
-		_setText( flash, output );
-	},
-
-	escapeChar: '"'
-} );
-
-// Excel save file - this is really a CSV file using UTF-8 that Excel can read
-DataTable.ext.buttons.excelFlash = $.extend( {}, flashButton, {
-	className: 'buttons-excel buttons-flash',
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.excel', 'Excel' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		this.processing( true );
-
-		var flash = config._flash;
-		var rowPos = 0;
-		var rels = $.parseXML( excelStrings['xl/worksheets/sheet1.xml'] ) ; //Parses xml
-		var relsGet = rels.getElementsByTagName( "sheetData" )[0];
-
-		var xlsx = {
-			_rels: {
-				".rels": $.parseXML( excelStrings['_rels/.rels'] )
-			},
-			xl: {
-				_rels: {
-					"workbook.xml.rels": $.parseXML( excelStrings['xl/_rels/workbook.xml.rels'] )
-				},
-				"workbook.xml": $.parseXML( excelStrings['xl/workbook.xml'] ),
-				"styles.xml": $.parseXML( excelStrings['xl/styles.xml'] ),
-				"worksheets": {
-					"sheet1.xml": rels
-				}
-
-			},
-			"[Content_Types].xml": $.parseXML( excelStrings['[Content_Types].xml'])
-		};
-
-		var data = dt.buttons.exportData( config.exportOptions );
-		var currentRow, rowNode;
-		var addRow = function ( row ) {
-			currentRow = rowPos+1;
-			rowNode = _createNode( rels, "row", { attr: {r:currentRow} } );
-
-			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
-				// Concat both the Cell Columns as a letter and the Row of the cell.
-				var cellId = createCellPos(i) + '' + currentRow;
-				var cell = null;
-
-				// For null, undefined of blank cell, continue so it doesn't create the _createNode
-				if ( row[i] === null || row[i] === undefined || row[i] === '' ) {
-					if ( config.createEmptyCells === true ) {
-						row[i] = '';
-					}
-					else {
-						continue;
-					}
-				}
-
-				row[i] = $.trim( row[i] );
-
-				// Special number formatting options
-				for ( var j=0, jen=_excelSpecials.length ; j<jen ; j++ ) {
-					var special = _excelSpecials[j];
-
-					// TODO Need to provide the ability for the specials to say
-					// if they are returning a string, since at the moment it is
-					// assumed to be a number
-					if ( row[i].match && ! row[i].match(/^0\d+/) && row[i].match( special.match ) ) {
-						var val = row[i].replace(/[^\d\.\-]/g, '');
-
-						if ( special.fmt ) {
-							val = special.fmt( val );
-						}
-
-						cell = _createNode( rels, 'c', {
-							attr: {
-								r: cellId,
-								s: special.style
-							},
-							children: [
-								_createNode( rels, 'v', { text: val } )
-							]
-						} );
-
-						break;
-					}
-				}
-
-				if ( ! cell ) {
-					if ( typeof row[i] === 'number' || (
-						row[i].match &&
-						row[i].match(/^-?\d+(\.\d+)?$/) &&
-						! row[i].match(/^0\d+/) )
-					) {
-						// Detect numbers - don't match numbers with leading zeros
-						// or a negative anywhere but the start
-						cell = _createNode( rels, 'c', {
-							attr: {
-								t: 'n',
-								r: cellId
-							},
-							children: [
-								_createNode( rels, 'v', { text: row[i] } )
-							]
-						} );
-					}
-					else {
-						// String output - replace non standard characters for text output
-						var text = ! row[i].replace ?
-							row[i] :
-							row[i].replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
-
-						cell = _createNode( rels, 'c', {
-							attr: {
-								t: 'inlineStr',
-								r: cellId
-							},
-							children:{
-								row: _createNode( rels, 'is', {
-									children: {
-										row: _createNode( rels, 't', {
-											text: text
-										} )
-									}
-								} )
-							}
-						} );
-					}
-				}
-
-				rowNode.appendChild( cell );
-			}
-
-			relsGet.appendChild(rowNode);
-			rowPos++;
-		};
-
-		$( 'sheets sheet', xlsx.xl['workbook.xml'] ).attr( 'name', _sheetname( config ) );
-
-		if ( config.customizeData ) {
-			config.customizeData( data );
-		}
-
-		var mergeCells = function ( row, colspan ) {
-			var mergeCells = $('mergeCells', rels);
-
-			mergeCells[0].appendChild( _createNode( rels, 'mergeCell', {
-				attr: {
-					ref: 'A'+row+':'+createCellPos(colspan)+row
-				}
-			} ) );
-			mergeCells.attr( 'count', mergeCells.attr( 'count' )+1 );
-			$('row:eq('+(row-1)+') c', rels).attr( 's', '51' ); // centre
-		};
-
-		// Title and top messages
-		var exportInfo = dt.buttons.exportInfo( config );
-		if ( exportInfo.title ) {
-			addRow( [exportInfo.title], rowPos );
-			mergeCells( rowPos, data.header.length-1 );
-		}
-
-		if ( exportInfo.messageTop ) {
-			addRow( [exportInfo.messageTop], rowPos );
-			mergeCells( rowPos, data.header.length-1 );
-		}
-
-		// Table itself
-		if ( config.header ) {
-			addRow( data.header, rowPos );
-			$('row:last c', rels).attr( 's', '2' ); // bold
-		}
-
-		for ( var n=0, ie=data.body.length ; n<ie ; n++ ) {
-			addRow( data.body[n], rowPos );
-		}
-
-		if ( config.footer && data.footer ) {
-			addRow( data.footer, rowPos);
-			$('row:last c', rels).attr( 's', '2' ); // bold
-		}
-
-		// Below the table
-		if ( exportInfo.messageBottom ) {
-			addRow( [exportInfo.messageBottom], rowPos );
-			mergeCells( rowPos, data.header.length-1 );
-		}
-
-		// Set column widths
-		var cols = _createNode( rels, 'cols' );
-		$('worksheet', rels).prepend( cols );
-
-		for ( var i=0, ien=data.header.length ; i<ien ; i++ ) {
-			cols.appendChild( _createNode( rels, 'col', {
-				attr: {
-					min: i+1,
-					max: i+1,
-					width: _excelColWidth( data, i ),
-					customWidth: 1
-				}
-			} ) );
-		}
-
-		// Let the developer customise the document if they want to
-		if ( config.customize ) {
-			config.customize( xlsx, config, dt );
-		}
-
-		_xlsxToStrings( xlsx );
-
-		flash.setAction( 'excel' );
-		flash.setFileName( exportInfo.filename );
-		flash.setSheetData( xlsx );
-		_setText( flash, '' );
-
-		this.processing( false );
-	},
-
-	extension: '.xlsx',
-	
-	createEmptyCells: false
-} );
-
-
-
-// PDF export
-DataTable.ext.buttons.pdfFlash = $.extend( {}, flashButton, {
-	className: 'buttons-pdf buttons-flash',
-
-	text: function ( dt ) {
-		return dt.i18n( 'buttons.pdf', 'PDF' );
-	},
-
-	action: function ( e, dt, button, config ) {
-		this.processing( true );
-
-		// Set the text
-		var flash = config._flash;
-		var data = dt.buttons.exportData( config.exportOptions );
-		var info = dt.buttons.exportInfo( config );
-		var totalWidth = dt.table().node().offsetWidth;
-
-		// Calculate the column width ratios for layout of the table in the PDF
-		var ratios = dt.columns( config.columns ).indexes().map( function ( idx ) {
-			return dt.column( idx ).header().offsetWidth / totalWidth;
-		} );
-
-		flash.setAction( 'pdf' );
-		flash.setFileName( info.filename );
-
-		_setText( flash, JSON.stringify( {
-			title:         info.title || '',
-			messageTop:    info.messageTop || '',
-			messageBottom: info.messageBottom || '',
-			colWidth:      ratios.toArray(),
-			orientation:   config.orientation,
-			size:          config.pageSize,
-			header:        config.header ? data.header : null,
-			footer:        config.footer ? data.footer : null,
-			body:          data.body
-		} ) );
-
-		this.processing( false );
-	},
-
-	extension: '.pdf',
-
-	orientation: 'portrait',
-
-	pageSize: 'A4',
-
-	newline: '\n'
-} );
-
-
-return DataTable.Buttons;
-}));
-
-
-/***/ }),
+/* 245 */,
 /* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 styling wrapper for Select
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 styling wrapper for FixedHeader
  * ©2018 SpryMedia Ltd - datatables.net/license
  */
 
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(13), __webpack_require__(247)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(9), __webpack_require__(247)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -92678,8 +93909,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 
 				$ = require('datatables.net-bs4')(root, $).$;
 			}
 
-			if ( ! $.fn.dataTable.select ) {
-				require('datatables.net-select')(root, $);
+			if ( ! $.fn.dataTable.FixedHeader ) {
+				require('datatables.net-fixedheader')(root, $);
 			}
 
 			return factory( $, root, root.document );
@@ -92699,19 +93930,19 @@ return $.fn.dataTable;
 /* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Select for DataTables 1.2.7
- * 2015-2018 SpryMedia Ltd - datatables.net/license/mit
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! FixedHeader 3.1.5
+ * ©2009-2018 SpryMedia Ltd - datatables.net/license
  */
 
 /**
- * @summary     Select for DataTables
- * @description A collection of API methods, events and buttons for DataTables
- *   that provides selection options of the items in a DataTable
- * @version     1.2.7
- * @file        dataTables.select.js
+ * @summary     FixedHeader
+ * @description Fix a table's header or footer, so it is always visible while
+ *              scrolling
+ * @version     3.1.5
+ * @file        dataTables.fixedHeader.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
- * @contact     datatables.net/forums
- * @copyright   Copyright 2015-2018 SpryMedia Ltd.
+ * @contact     www.sprymedia.co.uk/contact
+ * @copyright   Copyright 2009-2018 SpryMedia Ltd.
  *
  * This source file is free software, available under the following license:
  *   MIT license - http://datatables.net/license/mit
@@ -92720,12 +93951,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Select for D
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
  *
- * For details please refer to: http://www.datatables.net/extensions/select
+ * For details please refer to: http://www.datatables.net
  */
+
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -92753,1128 +93985,689 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Select for D
 var DataTable = $.fn.dataTable;
 
 
-// Version information for debugger
-DataTable.select = {};
+var _instCounter = 0;
 
-DataTable.select.version = '1.2.7';
-
-DataTable.select.init = function ( dt ) {
-	var ctx = dt.settings()[0];
-	var init = ctx.oInit.select;
-	var defaults = DataTable.defaults.select;
-	var opts = init === undefined ?
-		defaults :
-		init;
-
-	// Set defaults
-	var items = 'row';
-	var style = 'api';
-	var blurable = false;
-	var info = true;
-	var selector = 'td, th';
-	var className = 'selected';
-	var setStyle = false;
-
-	ctx._select = {};
-
-	// Initialisation customisations
-	if ( opts === true ) {
-		style = 'os';
-		setStyle = true;
-	}
-	else if ( typeof opts === 'string' ) {
-		style = opts;
-		setStyle = true;
-	}
-	else if ( $.isPlainObject( opts ) ) {
-		if ( opts.blurable !== undefined ) {
-			blurable = opts.blurable;
-		}
-
-		if ( opts.info !== undefined ) {
-			info = opts.info;
-		}
-
-		if ( opts.items !== undefined ) {
-			items = opts.items;
-		}
-
-		if ( opts.style !== undefined ) {
-			style = opts.style;
-			setStyle = true;
-		}
-
-		if ( opts.selector !== undefined ) {
-			selector = opts.selector;
-		}
-
-		if ( opts.className !== undefined ) {
-			className = opts.className;
-		}
+var FixedHeader = function ( dt, config ) {
+	// Sanity check - you just know it will happen
+	if ( ! (this instanceof FixedHeader) ) {
+		throw "FixedHeader must be initialised with the 'new' keyword.";
 	}
 
-	dt.select.selector( selector );
-	dt.select.items( items );
-	dt.select.style( style );
-	dt.select.blurable( blurable );
-	dt.select.info( info );
-	ctx._select.className = className;
+	// Allow a boolean true for defaults
+	if ( config === true ) {
+		config = {};
+	}
 
+	dt = new DataTable.Api( dt );
 
-	// Sort table based on selected rows. Requires Select Datatables extension
-	$.fn.dataTable.ext.order['select-checkbox'] = function ( settings, col ) {
-		return this.api().column( col, {order: 'index'} ).nodes().map( function ( td ) {
-			if ( settings._select.items === 'row' ) {
-				return $( td ).parent().hasClass( settings._select.className );
-			} else if ( settings._select.items === 'cell' ) {
-				return $( td ).hasClass( settings._select.className );
-			}
-			return false;
-		});
+	this.c = $.extend( true, {}, FixedHeader.defaults, config );
+
+	this.s = {
+		dt: dt,
+		position: {
+			theadTop: 0,
+			tbodyTop: 0,
+			tfootTop: 0,
+			tfootBottom: 0,
+			width: 0,
+			left: 0,
+			tfootHeight: 0,
+			theadHeight: 0,
+			windowHeight: $(window).height(),
+			visible: true
+		},
+		headerMode: null,
+		footerMode: null,
+		autoWidth: dt.settings()[0].oFeatures.bAutoWidth,
+		namespace: '.dtfc'+(_instCounter++),
+		scrollLeft: {
+			header: -1,
+			footer: -1
+		},
+		enable: true
 	};
 
-	// If the init options haven't enabled select, but there is a selectable
-	// class name, then enable
-	if ( ! setStyle && $( dt.table().node() ).hasClass( 'selectable' ) ) {
-		dt.select.style( 'os' );
+	this.dom = {
+		floatingHeader: null,
+		thead: $(dt.table().header()),
+		tbody: $(dt.table().body()),
+		tfoot: $(dt.table().footer()),
+		header: {
+			host: null,
+			floating: null,
+			placeholder: null
+		},
+		footer: {
+			host: null,
+			floating: null,
+			placeholder: null
+		}
+	};
+
+	this.dom.header.host = this.dom.thead.parent();
+	this.dom.footer.host = this.dom.tfoot.parent();
+
+	var dtSettings = dt.settings()[0];
+	if ( dtSettings._fixedHeader ) {
+		throw "FixedHeader already initialised on table "+dtSettings.nTable.id;
 	}
+
+	dtSettings._fixedHeader = this;
+
+	this._constructor();
 };
 
+
 /*
-
-Select is a collection of API methods, event handlers, event emitters and
-buttons (for the `Buttons` extension) for DataTables. It provides the following
-features, with an overview of how they are implemented:
-
-## Selection of rows, columns and cells. Whether an item is selected or not is
-   stored in:
-
-* rows: a `_select_selected` property which contains a boolean value of the
-  DataTables' `aoData` object for each row
-* columns: a `_select_selected` property which contains a boolean value of the
-  DataTables' `aoColumns` object for each column
-* cells: a `_selected_cells` property which contains an array of boolean values
-  of the `aoData` object for each row. The array is the same length as the
-  columns array, with each element of it representing a cell.
-
-This method of using boolean flags allows Select to operate when nodes have not
-been created for rows / cells (DataTables' defer rendering feature).
-
-## API methods
-
-A range of API methods are available for triggering selection and de-selection
-of rows. Methods are also available to configure the selection events that can
-be triggered by an end user (such as which items are to be selected). To a large
-extent, these of API methods *is* Select. It is basically a collection of helper
-functions that can be used to select items in a DataTable.
-
-Configuration of select is held in the object `_select` which is attached to the
-DataTables settings object on initialisation. Select being available on a table
-is not optional when Select is loaded, but its default is for selection only to
-be available via the API - so the end user wouldn't be able to select rows
-without additional configuration.
-
-The `_select` object contains the following properties:
-
-```
-{
-	items:string     - Can be `rows`, `columns` or `cells`. Defines what item 
-	                   will be selected if the user is allowed to activate row
-	                   selection using the mouse.
-	style:string     - Can be `none`, `single`, `multi` or `os`. Defines the
-	                   interaction style when selecting items
-	blurable:boolean - If row selection can be cleared by clicking outside of
-	                   the table
-	info:boolean     - If the selection summary should be shown in the table
-	                   information elements
-}
-```
-
-In addition to the API methods, Select also extends the DataTables selector
-options for rows, columns and cells adding a `selected` option to the selector
-options object, allowing the developer to select only selected items or
-unselected items.
-
-## Mouse selection of items
-
-Clicking on items can be used to select items. This is done by a simple event
-handler that will select the items using the API methods.
-
+ * Variable: FixedHeader
+ * Purpose:  Prototype for FixedHeader
+ * Scope:    global
  */
+$.extend( FixedHeader.prototype, {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * API methods
+	 */
+	
+	/**
+	 * Enable / disable the fixed elements
+	 *
+	 * @param  {boolean} enable `true` to enable, `false` to disable
+	 */
+	enable: function ( enable )
+	{
+		this.s.enable = enable;
 
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Local functions
- */
-
-/**
- * Add one or more cells to the selection when shift clicking in OS selection
- * style cell selection.
- *
- * Cell range is more complicated than row and column as we want to select
- * in the visible grid rather than by index in sequence. For example, if you
- * click first in cell 1-1 and then shift click in 2-2 - cells 1-2 and 2-1
- * should also be selected (and not 1-3, 1-4. etc)
- * 
- * @param  {DataTable.Api} dt   DataTable
- * @param  {object}        idx  Cell index to select to
- * @param  {object}        last Cell index to select from
- * @private
- */
-function cellRange( dt, idx, last )
-{
-	var indexes;
-	var columnIndexes;
-	var rowIndexes;
-	var selectColumns = function ( start, end ) {
-		if ( start > end ) {
-			var tmp = end;
-			end = start;
-			start = tmp;
-		}
-		
-		var record = false;
-		return dt.columns( ':visible' ).indexes().filter( function (i) {
-			if ( i === start ) {
-				record = true;
-			}
-			
-			if ( i === end ) { // not else if, as start might === end
-				record = false;
-				return true;
-			}
-
-			return record;
-		} );
-	};
-
-	var selectRows = function ( start, end ) {
-		var indexes = dt.rows( { search: 'applied' } ).indexes();
-
-		// Which comes first - might need to swap
-		if ( indexes.indexOf( start ) > indexes.indexOf( end ) ) {
-			var tmp = end;
-			end = start;
-			start = tmp;
+		if ( this.c.header ) {
+			this._modeChange( 'in-place', 'header', true );
 		}
 
-		var record = false;
-		return indexes.filter( function (i) {
-			if ( i === start ) {
-				record = true;
-			}
-			
-			if ( i === end ) {
-				record = false;
-				return true;
-			}
-
-			return record;
-		} );
-	};
-
-	if ( ! dt.cells( { selected: true } ).any() && ! last ) {
-		// select from the top left cell to this one
-		columnIndexes = selectColumns( 0, idx.column );
-		rowIndexes = selectRows( 0 , idx.row );
-	}
-	else {
-		// Get column indexes between old and new
-		columnIndexes = selectColumns( last.column, idx.column );
-		rowIndexes = selectRows( last.row , idx.row );
-	}
-
-	indexes = dt.cells( rowIndexes, columnIndexes ).flatten();
-
-	if ( ! dt.cells( idx, { selected: true } ).any() ) {
-		// Select range
-		dt.cells( indexes ).select();
-	}
-	else {
-		// Deselect range
-		dt.cells( indexes ).deselect();
-	}
-}
-
-/**
- * Disable mouse selection by removing the selectors
- *
- * @param {DataTable.Api} dt DataTable to remove events from
- * @private
- */
-function disableMouseSelection( dt )
-{
-	var ctx = dt.settings()[0];
-	var selector = ctx._select.selector;
-
-	$( dt.table().container() )
-		.off( 'mousedown.dtSelect', selector )
-		.off( 'mouseup.dtSelect', selector )
-		.off( 'click.dtSelect', selector );
-
-	$('body').off( 'click.dtSelect' + dt.table().node().id );
-}
-
-/**
- * Attach mouse listeners to the table to allow mouse selection of items
- *
- * @param {DataTable.Api} dt DataTable to remove events from
- * @private
- */
-function enableMouseSelection ( dt )
-{
-	var container = $( dt.table().container() );
-	var ctx = dt.settings()[0];
-	var selector = ctx._select.selector;
-	var matchSelection;
-
-	container
-		.on( 'mousedown.dtSelect', selector, function(e) {
-			// Disallow text selection for shift clicking on the table so multi
-			// element selection doesn't look terrible!
-			if ( e.shiftKey || e.metaKey || e.ctrlKey ) {
-				container
-					.css( '-moz-user-select', 'none' )
-					.one('selectstart.dtSelect', selector, function () {
-						return false;
-					} );
-			}
-
-			if ( window.getSelection ) {
-				matchSelection = window.getSelection();
-			}
-		} )
-		.on( 'mouseup.dtSelect', selector, function() {
-			// Allow text selection to occur again, Mozilla style (tested in FF
-			// 35.0.1 - still required)
-			container.css( '-moz-user-select', '' );
-		} )
-		.on( 'click.dtSelect', selector, function ( e ) {
-			var items = dt.select.items();
-			var idx;
-
-			// If text was selected (click and drag), then we shouldn't change
-			// the row's selected state
-			if ( window.getSelection ) {
-				var selection = window.getSelection();
-
-				// If the element that contains the selection is not in the table, we can ignore it
-				// This can happen if the developer selects text from the click event
-				if ( ! selection.anchorNode || $(selection.anchorNode).closest('table')[0] === dt.table().node() ) {
-					if ( selection !== matchSelection ) {
-						return;
-					}
-				}
-			}
-
-			var ctx = dt.settings()[0];
-			var wrapperClass = dt.settings()[0].oClasses.sWrapper.replace(/ /g, '.');
-
-			// Ignore clicks inside a sub-table
-			if ( $(e.target).closest('div.'+wrapperClass)[0] != dt.table().container() ) {
-				return;
-			}
-
-			var cell = dt.cell( $(e.target).closest('td, th') );
-
-			// Check the cell actually belongs to the host DataTable (so child
-			// rows, etc, are ignored)
-			if ( ! cell.any() ) {
-				return;
-			}
-
-			var event = $.Event('user-select.dt');
-			eventTrigger( dt, event, [ items, cell, e ] );
-
-			if ( event.isDefaultPrevented() ) {
-				return;
-			}
-
-			var cellIndex = cell.index();
-			if ( items === 'row' ) {
-				idx = cellIndex.row;
-				typeSelect( e, dt, ctx, 'row', idx );
-			}
-			else if ( items === 'column' ) {
-				idx = cell.index().column;
-				typeSelect( e, dt, ctx, 'column', idx );
-			}
-			else if ( items === 'cell' ) {
-				idx = cell.index();
-				typeSelect( e, dt, ctx, 'cell', idx );
-			}
-
-			ctx._select_lastCell = cellIndex;
-		} );
-
-	// Blurable
-	$('body').on( 'click.dtSelect' + dt.table().node().id, function ( e ) {
-		if ( ctx._select.blurable ) {
-			// If the click was inside the DataTables container, don't blur
-			if ( $(e.target).parents().filter( dt.table().container() ).length ) {
-				return;
-			}
-
-			// Ignore elements which have been removed from the DOM (i.e. paging
-			// buttons)
-			if ( $(e.target).parents('html').length === 0 ) {
-			 	return;
-			}
-
-			// Don't blur in Editor form
-			if ( $(e.target).parents('div.DTE').length ) {
-				return;
-			}
-
-			clear( ctx, true );
-		}
-	} );
-}
-
-/**
- * Trigger an event on a DataTable
- *
- * @param {DataTable.Api} api      DataTable to trigger events on
- * @param  {boolean}      selected true if selected, false if deselected
- * @param  {string}       type     Item type acting on
- * @param  {boolean}      any      Require that there are values before
- *     triggering
- * @private
- */
-function eventTrigger ( api, type, args, any )
-{
-	if ( any && ! api.flatten().length ) {
-		return;
-	}
-
-	if ( typeof type === 'string' ) {
-		type = type +'.dt';
-	}
-
-	args.unshift( api );
-
-	$(api.table().node()).trigger( type, args );
-}
-
-/**
- * Update the information element of the DataTable showing information about the
- * items selected. This is done by adding tags to the existing text
- * 
- * @param {DataTable.Api} api DataTable to update
- * @private
- */
-function info ( api )
-{
-	var ctx = api.settings()[0];
-
-	if ( ! ctx._select.info || ! ctx.aanFeatures.i ) {
-		return;
-	}
-
-	if ( api.select.style() === 'api' ) {
-		return;
-	}
-
-	var rows    = api.rows( { selected: true } ).flatten().length;
-	var columns = api.columns( { selected: true } ).flatten().length;
-	var cells   = api.cells( { selected: true } ).flatten().length;
-
-	var add = function ( el, name, num ) {
-		el.append( $('<span class="select-item"/>').append( api.i18n(
-			'select.'+name+'s',
-			{ _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
-			num
-		) ) );
-	};
-
-	// Internal knowledge of DataTables to loop over all information elements
-	$.each( ctx.aanFeatures.i, function ( i, el ) {
-		el = $(el);
-
-		var output  = $('<span class="select-info"/>');
-		add( output, 'row', rows );
-		add( output, 'column', columns );
-		add( output, 'cell', cells  );
-
-		var exisiting = el.children('span.select-info');
-		if ( exisiting.length ) {
-			exisiting.remove();
+		if ( this.c.footer && this.dom.tfoot.length ) {
+			this._modeChange( 'in-place', 'footer', true );
 		}
 
-		if ( output.text() !== '' ) {
-			el.append( output );
+		this.update();
+	},
+	
+	/**
+	 * Set header offset 
+	 *
+	 * @param  {int} new value for headerOffset
+	 */
+	headerOffset: function ( offset )
+	{
+		if ( offset !== undefined ) {
+			this.c.headerOffset = offset;
+			this.update();
 		}
-	} );
-}
 
-/**
- * Initialisation of a new table. Attach event handlers and callbacks to allow
- * Select to operate correctly.
- *
- * This will occur _after_ the initial DataTables initialisation, although
- * before Ajax data is rendered, if there is ajax data
- *
- * @param  {DataTable.settings} ctx Settings object to operate on
- * @private
- */
-function init ( ctx ) {
-	var api = new DataTable.Api( ctx );
+		return this.c.headerOffset;
+	},
+	
+	/**
+	 * Set footer offset
+	 *
+	 * @param  {int} new value for footerOffset
+	 */
+	footerOffset: function ( offset )
+	{
+		if ( offset !== undefined ) {
+			this.c.footerOffset = offset;
+			this.update();
+		}
 
-	// Row callback so that classes can be added to rows and cells if the item
-	// was selected before the element was created. This will happen with the
-	// `deferRender` option enabled.
-	// 
-	// This method of attaching to `aoRowCreatedCallback` is a hack until
-	// DataTables has proper events for row manipulation If you are reviewing
-	// this code to create your own plug-ins, please do not do this!
-	ctx.aoRowCreatedCallback.push( {
-		fn: function ( row, data, index ) {
-			var i, ien;
-			var d = ctx.aoData[ index ];
+		return this.c.footerOffset;
+	},
 
-			// Row
-			if ( d._select_selected ) {
-				$( row ).addClass( ctx._select.className );
-			}
+	
+	/**
+	 * Recalculate the position of the fixed elements and force them into place
+	 */
+	update: function ()
+	{
+		this._positions();
+		this._scroll( true );
+	},
 
-			// Cells and columns - if separated out, we would need to do two
-			// loops, so it makes sense to combine them into a single one
-			for ( i=0, ien=ctx.aoColumns.length ; i<ien ; i++ ) {
-				if ( ctx.aoColumns[i]._select_selected || (d._selected_cells && d._selected_cells[i]) ) {
-					$(d.anCells[i]).addClass( ctx._select.className );
-				}
-			}
-		},
-		sName: 'select-deferRender'
-	} );
 
-	// On Ajax reload we want to reselect all rows which are currently selected,
-	// if there is an rowId (i.e. a unique value to identify each row with)
-	api.on( 'preXhr.dt.dtSelect', function () {
-		// note that column selection doesn't need to be cached and then
-		// reselected, as they are already selected
-		var rows = api.rows( { selected: true } ).ids( true ).filter( function ( d ) {
-			return d !== undefined;
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Constructor
+	 */
+	
+	/**
+	 * FixedHeader constructor - adding the required event listeners and
+	 * simple initialisation
+	 *
+	 * @private
+	 */
+	_constructor: function ()
+	{
+		var that = this;
+		var dt = this.s.dt;
+
+		$(window)
+			.on( 'scroll'+this.s.namespace, function () {
+				that._scroll();
+			} )
+			.on( 'resize'+this.s.namespace, DataTable.util.throttle( function () {
+				that.s.position.windowHeight = $(window).height();
+				that.update();
+			}, 50 ) );
+
+		var autoHeader = $('.fh-fixedHeader');
+		if ( ! this.c.headerOffset && autoHeader.length ) {
+			this.c.headerOffset = autoHeader.outerHeight();
+		}
+
+		var autoFooter = $('.fh-fixedFooter');
+		if ( ! this.c.footerOffset && autoFooter.length ) {
+			this.c.footerOffset = autoFooter.outerHeight();
+		}
+
+		dt.on( 'column-reorder.dt.dtfc column-visibility.dt.dtfc draw.dt.dtfc column-sizing.dt.dtfc responsive-display.dt.dtfc', function () {
+			that.update();
 		} );
 
-		var cells = api.cells( { selected: true } ).eq(0).map( function ( cellIdx ) {
-			var id = api.row( cellIdx.row ).id( true );
-			return id ?
-				{ row: id, column: cellIdx.column } :
-				undefined;
-		} ).filter( function ( d ) {
-			return d !== undefined;
+		dt.on( 'destroy.dtfc', function () {
+			if ( that.c.header ) {
+				that._modeChange( 'in-place', 'header', true );
+			}
+
+			if ( that.c.footer && that.dom.tfoot.length ) {
+				that._modeChange( 'in-place', 'footer', true );
+			}
+
+			dt.off( '.dtfc' );
+			$(window).off( that.s.namespace );
 		} );
 
-		// On the next draw, reselect the currently selected items
-		api.one( 'draw.dt.dtSelect', function () {
-			api.rows( rows ).select();
+		this._positions();
+		this._scroll();
+	},
 
-			// `cells` is not a cell index selector, so it needs a loop
-			if ( cells.any() ) {
-				cells.each( function ( id ) {
-					api.cells( id.row, id.column ).select();
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Private methods
+	 */
+
+	/**
+	 * Clone a fixed item to act as a place holder for the original element
+	 * which is moved into a clone of the table element, and moved around the
+	 * document to give the fixed effect.
+	 *
+	 * @param  {string}  item  'header' or 'footer'
+	 * @param  {boolean} force Force the clone to happen, or allow automatic
+	 *   decision (reuse existing if available)
+	 * @private
+	 */
+	_clone: function ( item, force )
+	{
+		var dt = this.s.dt;
+		var itemDom = this.dom[ item ];
+		var itemElement = item === 'header' ?
+			this.dom.thead :
+			this.dom.tfoot;
+
+		if ( ! force && itemDom.floating ) {
+			// existing floating element - reuse it
+			itemDom.floating.removeClass( 'fixedHeader-floating fixedHeader-locked' );
+		}
+		else {
+			if ( itemDom.floating ) {
+				itemDom.placeholder.remove();
+				this._unsize( item );
+				itemDom.floating.children().detach();
+				itemDom.floating.remove();
+			}
+
+			itemDom.floating = $( dt.table().node().cloneNode( false ) )
+				.css( 'table-layout', 'fixed' )
+				.attr( 'aria-hidden', 'true' )
+				.removeAttr( 'id' )
+				.append( itemElement )
+				.appendTo( 'body' );
+
+			// Insert a fake thead/tfoot into the DataTable to stop it jumping around
+			itemDom.placeholder = itemElement.clone( false )
+			itemDom.placeholder
+				.find( '*[id]' )
+				.removeAttr( 'id' );
+
+			itemDom.host.prepend( itemDom.placeholder );
+
+			// Clone widths
+			this._matchWidths( itemDom.placeholder, itemDom.floating );
+		}
+	},
+
+	/**
+	 * Copy widths from the cells in one element to another. This is required
+	 * for the footer as the footer in the main table takes its sizes from the
+	 * header columns. That isn't present in the footer so to have it still
+	 * align correctly, the sizes need to be copied over. It is also required
+	 * for the header when auto width is not enabled
+	 *
+	 * @param  {jQuery} from Copy widths from
+	 * @param  {jQuery} to   Copy widths to
+	 * @private
+	 */
+	_matchWidths: function ( from, to ) {
+		var get = function ( name ) {
+			return $(name, from)
+				.map( function () {
+					return $(this).width();
+				} ).toArray();
+		};
+
+		var set = function ( name, toWidths ) {
+			$(name, to).each( function ( i ) {
+				$(this).css( {
+					width: toWidths[i],
+					minWidth: toWidths[i]
 				} );
-			}
-		} );
-	} );
+			} );
+		};
 
-	// Update the table information element with selected item summary
-	api.on( 'draw.dtSelect.dt select.dtSelect.dt deselect.dtSelect.dt info.dt', function () {
-		info( api );
-	} );
+		var thWidths = get( 'th' );
+		var tdWidths = get( 'td' );
 
-	// Clean up and release
-	api.on( 'destroy.dtSelect', function () {
-		disableMouseSelection( api );
-		api.off( '.dtSelect' );
-	} );
-}
+		set( 'th', thWidths );
+		set( 'td', tdWidths );
+	},
 
-/**
- * Add one or more items (rows or columns) to the selection when shift clicking
- * in OS selection style
- *
- * @param  {DataTable.Api} dt   DataTable
- * @param  {string}        type Row or column range selector
- * @param  {object}        idx  Item index to select to
- * @param  {object}        last Item index to select from
- * @private
- */
-function rowColumnRange( dt, type, idx, last )
-{
-	// Add a range of rows from the last selected row to this one
-	var indexes = dt[type+'s']( { search: 'applied' } ).indexes();
-	var idx1 = $.inArray( last, indexes );
-	var idx2 = $.inArray( idx, indexes );
+	/**
+	 * Remove assigned widths from the cells in an element. This is required
+	 * when inserting the footer back into the main table so the size is defined
+	 * by the header columns and also when auto width is disabled in the
+	 * DataTable.
+	 *
+	 * @param  {string} item The `header` or `footer`
+	 * @private
+	 */
+	_unsize: function ( item ) {
+		var el = this.dom[ item ].floating;
 
-	if ( ! dt[type+'s']( { selected: true } ).any() && idx1 === -1 ) {
-		// select from top to here - slightly odd, but both Windows and Mac OS
-		// do this
-		indexes.splice( $.inArray( idx, indexes )+1, indexes.length );
-	}
-	else {
-		// reverse so we can shift click 'up' as well as down
-		if ( idx1 > idx2 ) {
-			var tmp = idx2;
-			idx2 = idx1;
-			idx1 = tmp;
+		if ( el && (item === 'footer' || (item === 'header' && ! this.s.autoWidth)) ) {
+			$('th, td', el).css( {
+				width: '',
+				minWidth: ''
+			} );
 		}
+		else if ( el && item === 'header' ) {
+			$('th, td', el).css( 'min-width', '' );
+		}
+	},
 
-		indexes.splice( idx2+1, indexes.length );
-		indexes.splice( 0, idx1 );
-	}
+	/**
+	 * Reposition the floating elements to take account of horizontal page
+	 * scroll
+	 *
+	 * @param  {string} item       The `header` or `footer`
+	 * @param  {int}    scrollLeft Document scrollLeft
+	 * @private
+	 */
+	_horizontal: function ( item, scrollLeft )
+	{
+		var itemDom = this.dom[ item ];
+		var position = this.s.position;
+		var lastScrollLeft = this.s.scrollLeft;
 
-	if ( ! dt[type]( idx, { selected: true } ).any() ) {
-		// Select range
-		dt[type+'s']( indexes ).select();
-	}
-	else {
-		// Deselect range - need to keep the clicked on row selected
-		indexes.splice( $.inArray( idx, indexes ), 1 );
-		dt[type+'s']( indexes ).deselect();
-	}
-}
+		if ( itemDom.floating && lastScrollLeft[ item ] !== scrollLeft ) {
+			itemDom.floating.css( 'left', position.left - scrollLeft );
 
-/**
- * Clear all selected items
- *
- * @param  {DataTable.settings} ctx Settings object of the host DataTable
- * @param  {boolean} [force=false] Force the de-selection to happen, regardless
- *     of selection style
- * @private
- */
-function clear( ctx, force )
-{
-	if ( force || ctx._select.style === 'single' ) {
-		var api = new DataTable.Api( ctx );
+			lastScrollLeft[ item ] = scrollLeft;
+		}
+	},
+
+	/**
+	 * Change from one display mode to another. Each fixed item can be in one
+	 * of:
+	 *
+	 * * `in-place` - In the main DataTable
+	 * * `in` - Floating over the DataTable
+	 * * `below` - (Header only) Fixed to the bottom of the table body
+	 * * `above` - (Footer only) Fixed to the top of the table body
+	 * 
+	 * @param  {string}  mode        Mode that the item should be shown in
+	 * @param  {string}  item        'header' or 'footer'
+	 * @param  {boolean} forceChange Force a redraw of the mode, even if already
+	 *     in that mode.
+	 * @private
+	 */
+	_modeChange: function ( mode, item, forceChange )
+	{
+		var dt = this.s.dt;
+		var itemDom = this.dom[ item ];
+		var position = this.s.position;
+
+		// Record focus. Browser's will cause input elements to loose focus if
+		// they are inserted else where in the doc
+		var tablePart = this.dom[ item==='footer' ? 'tfoot' : 'thead' ];
+		var focus = $.contains( tablePart[0], document.activeElement ) ?
+			document.activeElement :
+			null;
 		
-		api.rows( { selected: true } ).deselect();
-		api.columns( { selected: true } ).deselect();
-		api.cells( { selected: true } ).deselect();
-	}
-}
-
-/**
- * Select items based on the current configuration for style and items.
- *
- * @param  {object}             e    Mouse event object
- * @param  {DataTables.Api}     dt   DataTable
- * @param  {DataTable.settings} ctx  Settings object of the host DataTable
- * @param  {string}             type Items to select
- * @param  {int|object}         idx  Index of the item to select
- * @private
- */
-function typeSelect ( e, dt, ctx, type, idx )
-{
-	var style = dt.select.style();
-	var isSelected = dt[type]( idx, { selected: true } ).any();
-
-	if ( style === 'os' ) {
-		if ( e.ctrlKey || e.metaKey ) {
-			// Add or remove from the selection
-			dt[type]( idx ).select( ! isSelected );
+		if ( focus ) {
+			focus.blur();
 		}
-		else if ( e.shiftKey ) {
-			if ( type === 'cell' ) {
-				cellRange( dt, idx, ctx._select_lastCell || null );
+
+		if ( mode === 'in-place' ) {
+			// Insert the header back into the table's real header
+			if ( itemDom.placeholder ) {
+				itemDom.placeholder.remove();
+				itemDom.placeholder = null;
+			}
+
+			this._unsize( item );
+
+			if ( item === 'header' ) {
+				itemDom.host.prepend( tablePart );
 			}
 			else {
-				rowColumnRange( dt, type, idx, ctx._select_lastCell ?
-					ctx._select_lastCell[type] :
-					null
-				);
+				itemDom.host.append( tablePart );
 			}
+
+			if ( itemDom.floating ) {
+				itemDom.floating.remove();
+				itemDom.floating = null;
+			}
+		}
+		else if ( mode === 'in' ) {
+			// Remove the header from the read header and insert into a fixed
+			// positioned floating table clone
+			this._clone( item, forceChange );
+
+			itemDom.floating
+				.addClass( 'fixedHeader-floating' )
+				.css( item === 'header' ? 'top' : 'bottom', this.c[item+'Offset'] )
+				.css( 'left', position.left+'px' )
+				.css( 'width', position.width+'px' );
+
+			if ( item === 'footer' ) {
+				itemDom.floating.css( 'top', '' );
+			}
+		}
+		else if ( mode === 'below' ) { // only used for the header
+			// Fix the position of the floating header at base of the table body
+			this._clone( item, forceChange );
+
+			itemDom.floating
+				.addClass( 'fixedHeader-locked' )
+				.css( 'top', position.tfootTop - position.theadHeight )
+				.css( 'left', position.left+'px' )
+				.css( 'width', position.width+'px' );
+		}
+		else if ( mode === 'above' ) { // only used for the footer
+			// Fix the position of the floating footer at top of the table body
+			this._clone( item, forceChange );
+
+			itemDom.floating
+				.addClass( 'fixedHeader-locked' )
+				.css( 'top', position.tbodyTop )
+				.css( 'left', position.left+'px' )
+				.css( 'width', position.width+'px' );
+		}
+
+		// Restore focus if it was lost
+		if ( focus && focus !== document.activeElement ) {
+			setTimeout( function () {
+				focus.focus();
+			}, 10 );
+		}
+
+		this.s.scrollLeft.header = -1;
+		this.s.scrollLeft.footer = -1;
+		this.s[item+'Mode'] = mode;
+	},
+
+	/**
+	 * Cache the positional information that is required for the mode
+	 * calculations that FixedHeader performs.
+	 *
+	 * @private
+	 */
+	_positions: function ()
+	{
+		var dt = this.s.dt;
+		var table = dt.table();
+		var position = this.s.position;
+		var dom = this.dom;
+		var tableNode = $(table.node());
+
+		// Need to use the header and footer that are in the main table,
+		// regardless of if they are clones, since they hold the positions we
+		// want to measure from
+		var thead = tableNode.children('thead');
+		var tfoot = tableNode.children('tfoot');
+		var tbody = dom.tbody;
+
+		position.visible = tableNode.is(':visible');
+		position.width = tableNode.outerWidth();
+		position.left = tableNode.offset().left;
+		position.theadTop = thead.offset().top;
+		position.tbodyTop = tbody.offset().top;
+		position.theadHeight = position.tbodyTop - position.theadTop;
+
+		if ( tfoot.length ) {
+			position.tfootTop = tfoot.offset().top;
+			position.tfootBottom = position.tfootTop + tfoot.outerHeight();
+			position.tfootHeight = position.tfootBottom - position.tfootTop;
 		}
 		else {
-			// No cmd or shift click - deselect if selected, or select
-			// this row only
-			var selected = dt[type+'s']( { selected: true } );
+			position.tfootTop = position.tbodyTop + tbody.outerHeight();
+			position.tfootBottom = position.tfootTop;
+			position.tfootHeight = position.tfootTop;
+		}
+	},
 
-			if ( isSelected && selected.flatten().length === 1 ) {
-				dt[type]( idx ).deselect();
+
+	/**
+	 * Mode calculation - determine what mode the fixed items should be placed
+	 * into.
+	 *
+	 * @param  {boolean} forceChange Force a redraw of the mode, even if already
+	 *     in that mode.
+	 * @private
+	 */
+	_scroll: function ( forceChange )
+	{
+		var windowTop = $(document).scrollTop();
+		var windowLeft = $(document).scrollLeft();
+		var position = this.s.position;
+		var headerMode, footerMode;
+
+		if ( ! this.s.enable ) {
+			return;
+		}
+
+		if ( this.c.header ) {
+			if ( ! position.visible || windowTop <= position.theadTop - this.c.headerOffset ) {
+				headerMode = 'in-place';
+			}
+			else if ( windowTop <= position.tfootTop - position.theadHeight - this.c.headerOffset ) {
+				headerMode = 'in';
 			}
 			else {
-				selected.deselect();
-				dt[type]( idx ).select();
+				headerMode = 'below';
 			}
+
+			if ( forceChange || headerMode !== this.s.headerMode ) {
+				this._modeChange( headerMode, 'header', forceChange );
+			}
+
+			this._horizontal( 'header', windowLeft );
 		}
-	} else if ( style == 'multi+shift' ) {
-		if ( e.shiftKey ) {
-			if ( type === 'cell' ) {
-				cellRange( dt, idx, ctx._select_lastCell || null );
+
+		if ( this.c.footer && this.dom.tfoot.length ) {
+			if ( ! position.visible || windowTop + position.windowHeight >= position.tfootBottom + this.c.footerOffset ) {
+				footerMode = 'in-place';
+			}
+			else if ( position.windowHeight + windowTop > position.tbodyTop + position.tfootHeight + this.c.footerOffset ) {
+				footerMode = 'in';
 			}
 			else {
-				rowColumnRange( dt, type, idx, ctx._select_lastCell ?
-					ctx._select_lastCell[type] :
-					null
-				);
+				footerMode = 'above';
 			}
-		}
-		else {
-			dt[ type ]( idx ).select( ! isSelected );
-		}
-	}
-	else {
-		dt[ type ]( idx ).select( ! isSelected );
-	}
-}
 
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * DataTables selectors
- */
-
-// row and column are basically identical just assigned to different properties
-// and checking a different array, so we can dynamically create the functions to
-// reduce the code size
-$.each( [
-	{ type: 'row', prop: 'aoData' },
-	{ type: 'column', prop: 'aoColumns' }
-], function ( i, o ) {
-	DataTable.ext.selector[ o.type ].push( function ( settings, opts, indexes ) {
-		var selected = opts.selected;
-		var data;
-		var out = [];
-
-		if ( selected !== true && selected !== false ) {
-			return indexes;
-		}
-
-		for ( var i=0, ien=indexes.length ; i<ien ; i++ ) {
-			data = settings[ o.prop ][ indexes[i] ];
-
-			if ( (selected === true && data._select_selected === true) ||
-			     (selected === false && ! data._select_selected )
-			) {
-				out.push( indexes[i] );
+			if ( forceChange || footerMode !== this.s.footerMode ) {
+				this._modeChange( footerMode, 'footer', forceChange );
 			}
-		}
 
-		return out;
-	} );
-} );
-
-DataTable.ext.selector.cell.push( function ( settings, opts, cells ) {
-	var selected = opts.selected;
-	var rowData;
-	var out = [];
-
-	if ( selected === undefined ) {
-		return cells;
-	}
-
-	for ( var i=0, ien=cells.length ; i<ien ; i++ ) {
-		rowData = settings.aoData[ cells[i].row ];
-
-		if ( (selected === true && rowData._selected_cells && rowData._selected_cells[ cells[i].column ] === true) ||
-		     (selected === false && ( ! rowData._selected_cells || ! rowData._selected_cells[ cells[i].column ] ) )
-		) {
-			out.push( cells[i] );
+			this._horizontal( 'footer', windowLeft );
 		}
 	}
-
-	return out;
 } );
 
 
+/**
+ * Version
+ * @type {String}
+ * @static
+ */
+FixedHeader.version = "3.1.5";
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * DataTables API
- *
- * For complete documentation, please refer to the docs/api directory or the
- * DataTables site
+/**
+ * Defaults
+ * @type {Object}
+ * @static
+ */
+FixedHeader.defaults = {
+	header: true,
+	footer: false,
+	headerOffset: 0,
+	footerOffset: 0
+};
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables interfaces
  */
 
-// Local variables to improve compression
-var apiRegister = DataTable.Api.register;
-var apiRegisterPlural = DataTable.Api.registerPlural;
+// Attach for constructor access
+$.fn.dataTable.FixedHeader = FixedHeader;
+$.fn.DataTable.FixedHeader = FixedHeader;
 
-apiRegister( 'select()', function () {
-	return this.iterator( 'table', function ( ctx ) {
-		DataTable.select.init( new DataTable.Api( ctx ) );
-	} );
-} );
 
-apiRegister( 'select.blurable()', function ( flag ) {
-	if ( flag === undefined ) {
-		return this.context[0]._select.blurable;
-	}
-
-	return this.iterator( 'table', function ( ctx ) {
-		ctx._select.blurable = flag;
-	} );
-} );
-
-apiRegister( 'select.info()', function ( flag ) {
-	if ( info === undefined ) {
-		return this.context[0]._select.info;
-	}
-
-	return this.iterator( 'table', function ( ctx ) {
-		ctx._select.info = flag;
-	} );
-} );
-
-apiRegister( 'select.items()', function ( items ) {
-	if ( items === undefined ) {
-		return this.context[0]._select.items;
-	}
-
-	return this.iterator( 'table', function ( ctx ) {
-		ctx._select.items = items;
-
-		eventTrigger( new DataTable.Api( ctx ), 'selectItems', [ items ] );
-	} );
-} );
-
-// Takes effect from the _next_ selection. None disables future selection, but
-// does not clear the current selection. Use the `deselect` methods for that
-apiRegister( 'select.style()', function ( style ) {
-	if ( style === undefined ) {
-		return this.context[0]._select.style;
-	}
-
-	return this.iterator( 'table', function ( ctx ) {
-		ctx._select.style = style;
-
-		if ( ! ctx._select_init ) {
-			init( ctx );
-		}
-
-		// Add / remove mouse event handlers. They aren't required when only
-		// API selection is available
-		var dt = new DataTable.Api( ctx );
-		disableMouseSelection( dt );
-		
-		if ( style !== 'api' ) {
-			enableMouseSelection( dt );
-		}
-
-		eventTrigger( new DataTable.Api( ctx ), 'selectStyle', [ style ] );
-	} );
-} );
-
-apiRegister( 'select.selector()', function ( selector ) {
-	if ( selector === undefined ) {
-		return this.context[0]._select.selector;
-	}
-
-	return this.iterator( 'table', function ( ctx ) {
-		disableMouseSelection( new DataTable.Api( ctx ) );
-
-		ctx._select.selector = selector;
-
-		if ( ctx._select.style !== 'api' ) {
-			enableMouseSelection( new DataTable.Api( ctx ) );
-		}
-	} );
-} );
-
-
-
-apiRegisterPlural( 'rows().select()', 'row().select()', function ( select ) {
-	var api = this;
-
-	if ( select === false ) {
-		return this.deselect();
-	}
-
-	this.iterator( 'row', function ( ctx, idx ) {
-		clear( ctx );
-
-		ctx.aoData[ idx ]._select_selected = true;
-		$( ctx.aoData[ idx ].nTr ).addClass( ctx._select.className );
-	} );
-
-	this.iterator( 'table', function ( ctx, i ) {
-		eventTrigger( api, 'select', [ 'row', api[i] ], true );
-	} );
-
-	return this;
-} );
-
-apiRegisterPlural( 'columns().select()', 'column().select()', function ( select ) {
-	var api = this;
-
-	if ( select === false ) {
-		return this.deselect();
-	}
-
-	this.iterator( 'column', function ( ctx, idx ) {
-		clear( ctx );
-
-		ctx.aoColumns[ idx ]._select_selected = true;
-
-		var column = new DataTable.Api( ctx ).column( idx );
-
-		$( column.header() ).addClass( ctx._select.className );
-		$( column.footer() ).addClass( ctx._select.className );
-
-		column.nodes().to$().addClass( ctx._select.className );
-	} );
-
-	this.iterator( 'table', function ( ctx, i ) {
-		eventTrigger( api, 'select', [ 'column', api[i] ], true );
-	} );
-
-	return this;
-} );
-
-apiRegisterPlural( 'cells().select()', 'cell().select()', function ( select ) {
-	var api = this;
-
-	if ( select === false ) {
-		return this.deselect();
-	}
-
-	this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
-		clear( ctx );
-
-		var data = ctx.aoData[ rowIdx ];
-
-		if ( data._selected_cells === undefined ) {
-			data._selected_cells = [];
-		}
-
-		data._selected_cells[ colIdx ] = true;
-
-		if ( data.anCells ) {
-			$( data.anCells[ colIdx ] ).addClass( ctx._select.className );
-		}
-	} );
-
-	this.iterator( 'table', function ( ctx, i ) {
-		eventTrigger( api, 'select', [ 'cell', api[i] ], true );
-	} );
-
-	return this;
-} );
-
-
-apiRegisterPlural( 'rows().deselect()', 'row().deselect()', function () {
-	var api = this;
-
-	this.iterator( 'row', function ( ctx, idx ) {
-		ctx.aoData[ idx ]._select_selected = false;
-		$( ctx.aoData[ idx ].nTr ).removeClass( ctx._select.className );
-	} );
-
-	this.iterator( 'table', function ( ctx, i ) {
-		eventTrigger( api, 'deselect', [ 'row', api[i] ], true );
-	} );
-
-	return this;
-} );
-
-apiRegisterPlural( 'columns().deselect()', 'column().deselect()', function () {
-	var api = this;
-
-	this.iterator( 'column', function ( ctx, idx ) {
-		ctx.aoColumns[ idx ]._select_selected = false;
-
-		var api = new DataTable.Api( ctx );
-		var column = api.column( idx );
-
-		$( column.header() ).removeClass( ctx._select.className );
-		$( column.footer() ).removeClass( ctx._select.className );
-
-		// Need to loop over each cell, rather than just using
-		// `column().nodes()` as cells which are individually selected should
-		// not have the `selected` class removed from them
-		api.cells( null, idx ).indexes().each( function (cellIdx) {
-			var data = ctx.aoData[ cellIdx.row ];
-			var cellSelected = data._selected_cells;
-
-			if ( data.anCells && (! cellSelected || ! cellSelected[ cellIdx.column ]) ) {
-				$( data.anCells[ cellIdx.column  ] ).removeClass( ctx._select.className );
-			}
-		} );
-	} );
-
-	this.iterator( 'table', function ( ctx, i ) {
-		eventTrigger( api, 'deselect', [ 'column', api[i] ], true );
-	} );
-
-	return this;
-} );
-
-apiRegisterPlural( 'cells().deselect()', 'cell().deselect()', function () {
-	var api = this;
-
-	this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
-		var data = ctx.aoData[ rowIdx ];
-
-		data._selected_cells[ colIdx ] = false;
-
-		// Remove class only if the cells exist, and the cell is not column
-		// selected, in which case the class should remain (since it is selected
-		// in the column)
-		if ( data.anCells && ! ctx.aoColumns[ colIdx ]._select_selected ) {
-			$( data.anCells[ colIdx ] ).removeClass( ctx._select.className );
-		}
-	} );
-
-	this.iterator( 'table', function ( ctx, i ) {
-		eventTrigger( api, 'deselect', [ 'cell', api[i] ], true );
-	} );
-
-	return this;
-} );
-
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Buttons
- */
-function i18n( label, def ) {
-	return function (dt) {
-		return dt.i18n( 'buttons.'+label, def );
-	};
-}
-
-// Common events with suitable namespaces
-function namespacedEvents ( config ) {
-	var unique = config._eventNamespace;
-
-	return 'draw.dt.DT'+unique+' select.dt.DT'+unique+' deselect.dt.DT'+unique;
-}
-
-function enabled ( dt, config ) {
-	if ( $.inArray( 'rows', config.limitTo ) !== -1 && dt.rows( { selected: true } ).any() ) {
-		return true;
-	}
-
-	if ( $.inArray( 'columns', config.limitTo ) !== -1 && dt.columns( { selected: true } ).any() ) {
-		return true;
-	}
-
-	if ( $.inArray( 'cells', config.limitTo ) !== -1 && dt.cells( { selected: true } ).any() ) {
-		return true;
-	}
-
-	return false;
-}
-
-var _buttonNamespace = 0;
-
-$.extend( DataTable.ext.buttons, {
-	selected: {
-		text: i18n( 'selected', 'Selected' ),
-		className: 'buttons-selected',
-		limitTo: [ 'rows', 'columns', 'cells' ],
-		init: function ( dt, node, config ) {
-			var that = this;
-			config._eventNamespace = '.select'+(_buttonNamespace++);
-
-			// .DT namespace listeners are removed by DataTables automatically
-			// on table destroy
-			dt.on( namespacedEvents(config), function () {
-				that.enable( enabled(dt, config) );
-			} );
-
-			this.disable();
-		},
-		destroy: function ( dt, node, config ) {
-			dt.off( config._eventNamespace );
-		}
-	},
-	selectedSingle: {
-		text: i18n( 'selectedSingle', 'Selected single' ),
-		className: 'buttons-selected-single',
-		init: function ( dt, node, config ) {
-			var that = this;
-			config._eventNamespace = '.select'+(_buttonNamespace++);
-
-			dt.on( namespacedEvents(config), function () {
-				var count = dt.rows( { selected: true } ).flatten().length +
-				            dt.columns( { selected: true } ).flatten().length +
-				            dt.cells( { selected: true } ).flatten().length;
-
-				that.enable( count === 1 );
-			} );
-
-			this.disable();
-		},
-		destroy: function ( dt, node, config ) {
-			dt.off( config._eventNamespace );
-		}
-	},
-	selectAll: {
-		text: i18n( 'selectAll', 'Select all' ),
-		className: 'buttons-select-all',
-		action: function () {
-			var items = this.select.items();
-			this[ items+'s' ]().select();
-		}
-	},
-	selectNone: {
-		text: i18n( 'selectNone', 'Deselect all' ),
-		className: 'buttons-select-none',
-		action: function () {
-			clear( this.settings()[0], true );
-		},
-		init: function ( dt, node, config ) {
-			var that = this;
-			config._eventNamespace = '.select'+(_buttonNamespace++);
-
-			dt.on( namespacedEvents(config), function () {
-				var count = dt.rows( { selected: true } ).flatten().length +
-				            dt.columns( { selected: true } ).flatten().length +
-				            dt.cells( { selected: true } ).flatten().length;
-
-				that.enable( count > 0 );
-			} );
-
-			this.disable();
-		},
-		destroy: function ( dt, node, config ) {
-			dt.off( config._eventNamespace );
-		}
-	}
-} );
-
-$.each( [ 'Row', 'Column', 'Cell' ], function ( i, item ) {
-	var lc = item.toLowerCase();
-
-	DataTable.ext.buttons[ 'select'+item+'s' ] = {
-		text: i18n( 'select'+item+'s', 'Select '+lc+'s' ),
-		className: 'buttons-select-'+lc+'s',
-		action: function () {
-			this.select.items( lc );
-		},
-		init: function ( dt ) {
-			var that = this;
-
-			dt.on( 'selectItems.dt.DT', function ( e, ctx, items ) {
-				that.active( items === lc );
-			} );
-		}
-	};
-} );
-
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Initialisation
- */
-
-// DataTables creation - check if select has been defined in the options. Note
-// this required that the table be in the document! If it isn't then something
-// needs to trigger this method unfortunately. The next major release of
-// DataTables will rework the events and address this.
-$(document).on( 'preInit.dt.dtSelect', function (e, ctx) {
+// DataTables creation - check if the FixedHeader option has been defined on the
+// table and if so, initialise
+$(document).on( 'init.dt.dtfh', function (e, settings, json) {
 	if ( e.namespace !== 'dt' ) {
 		return;
 	}
 
-	DataTable.select.init( new DataTable.Api( ctx ) );
+	var init = settings.oInit.fixedHeader;
+	var defaults = DataTable.defaults.fixedHeader;
+
+	if ( (init || defaults) && ! settings._fixedHeader ) {
+		var opts = $.extend( {}, defaults, init );
+
+		if ( init !== false ) {
+			new FixedHeader( settings, opts );
+		}
+	}
+} );
+
+// DataTables API methods
+DataTable.Api.register( 'fixedHeader()', function () {} );
+
+DataTable.Api.register( 'fixedHeader.adjust()', function () {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+
+		if ( fh ) {
+			fh.update();
+		}
+	} );
+} );
+
+DataTable.Api.register( 'fixedHeader.enable()', function ( flag ) {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+
+		flag = ( flag !== undefined ? flag : true );
+		if ( fh && flag !== fh.s.enable ) {
+			fh.enable( flag );
+		}
+	} );
+} );
+
+DataTable.Api.register( 'fixedHeader.disable()', function ( ) {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+
+		if ( fh && fh.s.enable ) {
+			fh.enable( false );
+		}
+	} );
+} );
+
+$.each( ['header', 'footer'], function ( i, el ) {
+	DataTable.Api.register( 'fixedHeader.'+el+'Offset()', function ( offset ) {
+		var ctx = this.context;
+
+		if ( offset === undefined ) {
+			return ctx.length && ctx[0]._fixedHeader ?
+				ctx[0]._fixedHeader[el +'Offset']() :
+				undefined;
+		}
+
+		return this.iterator( 'table', function ( ctx ) {
+			var fh = ctx._fixedHeader;
+
+			if ( fh ) {
+				fh[ el +'Offset' ]( offset );
+			}
+		} );
+	} );
 } );
 
 
-return DataTable.select;
+return FixedHeader;
 }));
+
+
+/***/ }),
+/* 248 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(249);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(11)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../css-loader/index.js!./fixedHeader.bootstrap4.css", function() {
+			var newContent = require("!!../../css-loader/index.js!./fixedHeader.bootstrap4.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 249 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(5)(false);
+// imports
+
+
+// module
+exports.push([module.i, "table.dataTable.fixedHeader-floating,\ntable.dataTable.fixedHeader-locked {\n  background-color: white;\n  margin-top: 0 !important;\n  margin-bottom: 0 !important;\n}\n\ntable.dataTable.fixedHeader-floating {\n  position: fixed !important;\n}\n\ntable.dataTable.fixedHeader-locked {\n  position: absolute !important;\n}\n\n@media print {\n  table.fixedHeader-floating {\n    display: none;\n  }\n}\n", ""]);
+
+// exports
 
 
 /***/ })

@@ -20,6 +20,7 @@ try {
     require('datatables.net-buttons/js/buttons.flash');
     require('datatables.net-buttons/js/dataTables.buttons');
     require('datatables.net-select-bs4');
+    require('datatables.net-fixedheader-bs4');
 } catch (e) {}
 
 /**

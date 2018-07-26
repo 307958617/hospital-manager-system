@@ -51,7 +51,7 @@
                     <button class="btn btn-outline-dark" @click="unSelect()">不选</button>
                 </div>
                 <br><br>
-                <table id="dataTable" class="table table-bordered table-striped table-hover">
+                <table id="dataTable" class="table table-bordered">
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -68,7 +68,7 @@
                     </tfoot>
 
                     <tbody>
-                    <tr v-for="department in departments" @click="selectDepartment(department,$event)" :class="selectedDepartmentId.indexOf(department.id) !== -1?'selected table-info':''">
+                    <tr v-for="department in departments" @click="selectDepartment(department,$event)">
                         <td>{{ department.id }}</td>
                         <td>{{ department.name }}</td>
                         <td>{{ department.created_at }}</td>
@@ -92,7 +92,6 @@
         data() {
             return {
                 departments:[],
-                selectedDepartmentId:[],
                 searchedData:[],
                 search:{
                     name:'',
@@ -124,8 +123,17 @@
                         "infoEmpty": "无记录",
                         "sSearch": "搜索:",
                         "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
+                        "select": {
+                            rows:" , %d 条记录被选中"
+                        },
+                        buttons: {
+                            selectAll: "全选",
+                            selectNone: "全不选",
+                            colvis: '控制列'
+                        }
                     },
-                    stateSave:false,
+                    fixedHeader:true,
+                    stateSave:true
                 });
                 this.initDataTableButtons(table);
                 this.initDataTableSelect(table);
@@ -134,61 +142,69 @@
                 new $.fn.dataTable.Buttons( table, {
                     buttons: [
                         'copy',
-                        'excel',
-                        'pdf',
-                        { extend:'print', text:'<i class="fa fa-print"></i>',attr:{title:'打印全部或选中数据',id: 'copyButton'},key:{ key:'p',ctrlKey:true } },
                         {
-                            text: 'Copy to div',
-                            action: function ( e, dt, node, config ) {
-                                // Copy an array based DataTables' data to another element
-                                $('.output').html( dt.data().map( function (row) {
-                                    return row.join(' | ' );
-                                } ).join('<br>'));
-                            }
-                        }
+                            extend:'collection',
+                            text:'导出',
+                            postfixButtons: [ 'colvisRestore' ],
+                            buttons: [
+                                {
+                                    text:'cs',
+                                    action: function (e,dt,node,config) {
+                                        alert(dt.rows('.selected').data().length)
+                                    }
+                                },
+                                {
+                                    text: 'Copy 2',
+                                    action: function ( e, dt, node, config ) {
+                                        // Copy an array based DataTables' data to another element
+                                        $('.output').html( dt.rows('.selected').data().map( function (row) {
+                                            return row.join(' | ' );
+                                        } ).join('<br>'));
+                                    }
+                                },
+                            ]
+                        },
+                        'pdf',
+                        'excel',
+                        'selectAll',
+                        'selectNone',
+                        {
+                            extend: 'colvis',
+                            columns: ':gt(0)'
+                        },
+                        { extend:'print', text:'<i class="fa fa-print"></i>',attr:{title:'打印全部或选中数据',id: 'copyButton'},modifier: {
+                            selected: true
+                        },key:{ key:'p',ctrlKey:true } },
                     ]
                 });
                 //将自动生成的按钮放到指定的位置
 //                table.buttons().container().appendTo($('.dataTableButtons'));
                 table.buttons().container().appendTo($('.dataTables_length>label'));
+                table.columns( [1] ).visible( false );
             },
             initDataTableSelect(table) {
                 table.select.style('os');
-                table.select.items('row')
+                table.select.items('row');
             },
             getDepartments() {
                return axios.get('/department/org/get')
             },
-            selectDepartment(department,e) {
-//                if(e.currentTarget.className.indexOf('selected table-info') !== -1) {
-//                    this.selectedDepartmentId.splice(this.selectedDepartmentId.indexOf(department.id),1);
-//                }else {
-//                    this.selectedDepartmentId.push(department.id) ;
-//                }
-//                console.log(this.selectedDepartmentId);
-
-                console.log($(e.currentTarget).parent().children('.selected').addClass('table-info'));
-
+            selectDepartment(department,ee) {
                 let table = $('#dataTable').DataTable();
-                let rows = table.rows('.selected').data().map( function (rowData) {
-                    return rowData[0];
-                });
-                this.selectedDepartmentId = rows;
-//                console.log(this.selectedDepartmentId);
-//                console.log(this.selectedDepartmentId[0]);
+//                console.log(ee.currentTarget);
+                $(ee.currentTarget).toggleClass('selected');
 
+                table.on( 'select', function ( e, dt, type, ix ) {  //监听选择事件
+                    let selected = dt.rows({selected:true});
+//                    if ( selected.count() > 5 ) {      //限制选择的个数
+//                        dt.rows(ix).deselect();
+//                    }
+                });
             },
             delt() {
                 let table = $('#dataTable').DataTable();
                 table.rows({selected:true}).remove().draw( false );
-                this.selectedDepartmentId = []
-            },
-            selectAll() {
-                this.selectedDepartmentId = this.searchedData.map((department)=>{return parseInt(department.id)});
-                console.log(this.selectedDepartmentId)
-            },
-            unSelect() {
-                this.selectedDepartmentId = []
+
             },
 //            这个方法只适合单独查询某条记录有用，不能多条件查询
 //            searchName() {
@@ -273,4 +289,5 @@
     .card-header{padding: 6px}
     .row .card-body .btn{width: 30%;}
     .card-body>.datepicker>input {height: 27px;width:157px;font-size: 12px;padding-left: 2px}
+    tr.selected{background-color: #B0BED9}
 </style>
