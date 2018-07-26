@@ -1902,7 +1902,7 @@
             try {
                 oldLocale = globalLocale._abbr;
                 var aliasedRequire = require;
-                __webpack_require__(233)("./" + name);
+                __webpack_require__(237)("./" + name);
                 getSetGlobalLocale(oldLocale);
             } catch (e) {}
         }
@@ -14955,7 +14955,7 @@ return jQuery;
 
 
 var bind = __webpack_require__(14);
-var isBuffer = __webpack_require__(163);
+var isBuffer = __webpack_require__(165);
 
 /*global toString:true*/
 
@@ -32689,234 +32689,6 @@ return Buttons;
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/*
-  MIT License http://www.opensource.org/licenses/mit-license.php
-  Author Tobias Koppers @sokra
-  Modified by Evan You @yyx990803
-*/
-
-var hasDocument = typeof document !== 'undefined'
-
-if (typeof DEBUG !== 'undefined' && DEBUG) {
-  if (!hasDocument) {
-    throw new Error(
-    'vue-style-loader cannot be used in a non-browser environment. ' +
-    "Use { target: 'node' } in your Webpack config to indicate a server-rendering environment."
-  ) }
-}
-
-var listToStyles = __webpack_require__(200)
-
-/*
-type StyleObject = {
-  id: number;
-  parts: Array<StyleObjectPart>
-}
-
-type StyleObjectPart = {
-  css: string;
-  media: string;
-  sourceMap: ?string
-}
-*/
-
-var stylesInDom = {/*
-  [id: number]: {
-    id: number,
-    refs: number,
-    parts: Array<(obj?: StyleObjectPart) => void>
-  }
-*/}
-
-var head = hasDocument && (document.head || document.getElementsByTagName('head')[0])
-var singletonElement = null
-var singletonCounter = 0
-var isProduction = false
-var noop = function () {}
-var options = null
-var ssrIdKey = 'data-vue-ssr-id'
-
-// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-// tags it will allow on a page
-var isOldIE = typeof navigator !== 'undefined' && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase())
-
-module.exports = function (parentId, list, _isProduction, _options) {
-  isProduction = _isProduction
-
-  options = _options || {}
-
-  var styles = listToStyles(parentId, list)
-  addStylesToDom(styles)
-
-  return function update (newList) {
-    var mayRemove = []
-    for (var i = 0; i < styles.length; i++) {
-      var item = styles[i]
-      var domStyle = stylesInDom[item.id]
-      domStyle.refs--
-      mayRemove.push(domStyle)
-    }
-    if (newList) {
-      styles = listToStyles(parentId, newList)
-      addStylesToDom(styles)
-    } else {
-      styles = []
-    }
-    for (var i = 0; i < mayRemove.length; i++) {
-      var domStyle = mayRemove[i]
-      if (domStyle.refs === 0) {
-        for (var j = 0; j < domStyle.parts.length; j++) {
-          domStyle.parts[j]()
-        }
-        delete stylesInDom[domStyle.id]
-      }
-    }
-  }
-}
-
-function addStylesToDom (styles /* Array<StyleObject> */) {
-  for (var i = 0; i < styles.length; i++) {
-    var item = styles[i]
-    var domStyle = stylesInDom[item.id]
-    if (domStyle) {
-      domStyle.refs++
-      for (var j = 0; j < domStyle.parts.length; j++) {
-        domStyle.parts[j](item.parts[j])
-      }
-      for (; j < item.parts.length; j++) {
-        domStyle.parts.push(addStyle(item.parts[j]))
-      }
-      if (domStyle.parts.length > item.parts.length) {
-        domStyle.parts.length = item.parts.length
-      }
-    } else {
-      var parts = []
-      for (var j = 0; j < item.parts.length; j++) {
-        parts.push(addStyle(item.parts[j]))
-      }
-      stylesInDom[item.id] = { id: item.id, refs: 1, parts: parts }
-    }
-  }
-}
-
-function createStyleElement () {
-  var styleElement = document.createElement('style')
-  styleElement.type = 'text/css'
-  head.appendChild(styleElement)
-  return styleElement
-}
-
-function addStyle (obj /* StyleObjectPart */) {
-  var update, remove
-  var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
-
-  if (styleElement) {
-    if (isProduction) {
-      // has SSR styles and in production mode.
-      // simply do nothing.
-      return noop
-    } else {
-      // has SSR styles but in dev mode.
-      // for some reason Chrome can't handle source map in server-rendered
-      // style tags - source maps in <style> only works if the style tag is
-      // created and inserted dynamically. So we remove the server rendered
-      // styles and inject new ones.
-      styleElement.parentNode.removeChild(styleElement)
-    }
-  }
-
-  if (isOldIE) {
-    // use singleton mode for IE9.
-    var styleIndex = singletonCounter++
-    styleElement = singletonElement || (singletonElement = createStyleElement())
-    update = applyToSingletonTag.bind(null, styleElement, styleIndex, false)
-    remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
-  } else {
-    // use multi-style-tag mode in all other cases
-    styleElement = createStyleElement()
-    update = applyToTag.bind(null, styleElement)
-    remove = function () {
-      styleElement.parentNode.removeChild(styleElement)
-    }
-  }
-
-  update(obj)
-
-  return function updateStyle (newObj /* StyleObjectPart */) {
-    if (newObj) {
-      if (newObj.css === obj.css &&
-          newObj.media === obj.media &&
-          newObj.sourceMap === obj.sourceMap) {
-        return
-      }
-      update(obj = newObj)
-    } else {
-      remove()
-    }
-  }
-}
-
-var replaceText = (function () {
-  var textStore = []
-
-  return function (index, replacement) {
-    textStore[index] = replacement
-    return textStore.filter(Boolean).join('\n')
-  }
-})()
-
-function applyToSingletonTag (styleElement, index, remove, obj) {
-  var css = remove ? '' : obj.css
-
-  if (styleElement.styleSheet) {
-    styleElement.styleSheet.cssText = replaceText(index, css)
-  } else {
-    var cssNode = document.createTextNode(css)
-    var childNodes = styleElement.childNodes
-    if (childNodes[index]) styleElement.removeChild(childNodes[index])
-    if (childNodes.length) {
-      styleElement.insertBefore(cssNode, childNodes[index])
-    } else {
-      styleElement.appendChild(cssNode)
-    }
-  }
-}
-
-function applyToTag (styleElement, obj) {
-  var css = obj.css
-  var media = obj.media
-  var sourceMap = obj.sourceMap
-
-  if (media) {
-    styleElement.setAttribute('media', media)
-  }
-  if (options.ssrId) {
-    styleElement.setAttribute(ssrIdKey, obj.id)
-  }
-
-  if (sourceMap) {
-    // https://developer.chrome.com/devtools/docs/javascript-debugging
-    // this makes source maps inside style tags work properly in Chrome
-    css += '\n/*# sourceURL=' + sourceMap.sources[0] + ' */'
-    // http://stackoverflow.com/a/26603875
-    css += '\n/*# sourceMappingURL=data:application/json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + ' */'
-  }
-
-  if (styleElement.styleSheet) {
-    styleElement.styleSheet.cssText = css
-  } else {
-    while (styleElement.firstChild) {
-      styleElement.removeChild(styleElement.firstChild)
-    }
-    styleElement.appendChild(document.createTextNode(css))
-  }
-}
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! DataTables Bootstrap 4 integration
  * ©2011-2017 SpryMedia Ltd - datatables.net/license
  */
@@ -33105,111 +32877,7 @@ return DataTable;
 
 
 /***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var utils = __webpack_require__(2);
-var normalizeHeaderName = __webpack_require__(165);
-
-var DEFAULT_CONTENT_TYPE = {
-  'Content-Type': 'application/x-www-form-urlencoded'
-};
-
-function setContentTypeIfUnset(headers, value) {
-  if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
-    headers['Content-Type'] = value;
-  }
-}
-
-function getDefaultAdapter() {
-  var adapter;
-  if (typeof XMLHttpRequest !== 'undefined') {
-    // For browsers use XHR adapter
-    adapter = __webpack_require__(16);
-  } else if (typeof process !== 'undefined') {
-    // For node use HTTP adapter
-    adapter = __webpack_require__(16);
-  }
-  return adapter;
-}
-
-var defaults = {
-  adapter: getDefaultAdapter(),
-
-  transformRequest: [function transformRequest(data, headers) {
-    normalizeHeaderName(headers, 'Content-Type');
-    if (utils.isFormData(data) ||
-      utils.isArrayBuffer(data) ||
-      utils.isBuffer(data) ||
-      utils.isStream(data) ||
-      utils.isFile(data) ||
-      utils.isBlob(data)
-    ) {
-      return data;
-    }
-    if (utils.isArrayBufferView(data)) {
-      return data.buffer;
-    }
-    if (utils.isURLSearchParams(data)) {
-      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
-      return data.toString();
-    }
-    if (utils.isObject(data)) {
-      setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
-      return JSON.stringify(data);
-    }
-    return data;
-  }],
-
-  transformResponse: [function transformResponse(data) {
-    /*eslint no-param-reassign:0*/
-    if (typeof data === 'string') {
-      try {
-        data = JSON.parse(data);
-      } catch (e) { /* Ignore */ }
-    }
-    return data;
-  }],
-
-  /**
-   * A timeout in milliseconds to abort a request. If set to 0 (default) a
-   * timeout is not created.
-   */
-  timeout: 0,
-
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN',
-
-  maxContentLength: -1,
-
-  validateStatus: function validateStatus(status) {
-    return status >= 200 && status < 300;
-  }
-};
-
-defaults.headers = {
-  common: {
-    'Accept': 'application/json, text/plain, */*'
-  }
-};
-
-utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
-  defaults.headers[method] = {};
-});
-
-utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
-});
-
-module.exports = defaults;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
-
-/***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -33255,7 +32923,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(192);
+var	fixUrls = __webpack_require__(194);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -33566,6 +33234,338 @@ function updateLink (link, options, obj) {
 	if(oldSrc) URL.revokeObjectURL(oldSrc);
 }
 
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Author Tobias Koppers @sokra
+  Modified by Evan You @yyx990803
+*/
+
+var hasDocument = typeof document !== 'undefined'
+
+if (typeof DEBUG !== 'undefined' && DEBUG) {
+  if (!hasDocument) {
+    throw new Error(
+    'vue-style-loader cannot be used in a non-browser environment. ' +
+    "Use { target: 'node' } in your Webpack config to indicate a server-rendering environment."
+  ) }
+}
+
+var listToStyles = __webpack_require__(204)
+
+/*
+type StyleObject = {
+  id: number;
+  parts: Array<StyleObjectPart>
+}
+
+type StyleObjectPart = {
+  css: string;
+  media: string;
+  sourceMap: ?string
+}
+*/
+
+var stylesInDom = {/*
+  [id: number]: {
+    id: number,
+    refs: number,
+    parts: Array<(obj?: StyleObjectPart) => void>
+  }
+*/}
+
+var head = hasDocument && (document.head || document.getElementsByTagName('head')[0])
+var singletonElement = null
+var singletonCounter = 0
+var isProduction = false
+var noop = function () {}
+var options = null
+var ssrIdKey = 'data-vue-ssr-id'
+
+// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+// tags it will allow on a page
+var isOldIE = typeof navigator !== 'undefined' && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase())
+
+module.exports = function (parentId, list, _isProduction, _options) {
+  isProduction = _isProduction
+
+  options = _options || {}
+
+  var styles = listToStyles(parentId, list)
+  addStylesToDom(styles)
+
+  return function update (newList) {
+    var mayRemove = []
+    for (var i = 0; i < styles.length; i++) {
+      var item = styles[i]
+      var domStyle = stylesInDom[item.id]
+      domStyle.refs--
+      mayRemove.push(domStyle)
+    }
+    if (newList) {
+      styles = listToStyles(parentId, newList)
+      addStylesToDom(styles)
+    } else {
+      styles = []
+    }
+    for (var i = 0; i < mayRemove.length; i++) {
+      var domStyle = mayRemove[i]
+      if (domStyle.refs === 0) {
+        for (var j = 0; j < domStyle.parts.length; j++) {
+          domStyle.parts[j]()
+        }
+        delete stylesInDom[domStyle.id]
+      }
+    }
+  }
+}
+
+function addStylesToDom (styles /* Array<StyleObject> */) {
+  for (var i = 0; i < styles.length; i++) {
+    var item = styles[i]
+    var domStyle = stylesInDom[item.id]
+    if (domStyle) {
+      domStyle.refs++
+      for (var j = 0; j < domStyle.parts.length; j++) {
+        domStyle.parts[j](item.parts[j])
+      }
+      for (; j < item.parts.length; j++) {
+        domStyle.parts.push(addStyle(item.parts[j]))
+      }
+      if (domStyle.parts.length > item.parts.length) {
+        domStyle.parts.length = item.parts.length
+      }
+    } else {
+      var parts = []
+      for (var j = 0; j < item.parts.length; j++) {
+        parts.push(addStyle(item.parts[j]))
+      }
+      stylesInDom[item.id] = { id: item.id, refs: 1, parts: parts }
+    }
+  }
+}
+
+function createStyleElement () {
+  var styleElement = document.createElement('style')
+  styleElement.type = 'text/css'
+  head.appendChild(styleElement)
+  return styleElement
+}
+
+function addStyle (obj /* StyleObjectPart */) {
+  var update, remove
+  var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
+
+  if (styleElement) {
+    if (isProduction) {
+      // has SSR styles and in production mode.
+      // simply do nothing.
+      return noop
+    } else {
+      // has SSR styles but in dev mode.
+      // for some reason Chrome can't handle source map in server-rendered
+      // style tags - source maps in <style> only works if the style tag is
+      // created and inserted dynamically. So we remove the server rendered
+      // styles and inject new ones.
+      styleElement.parentNode.removeChild(styleElement)
+    }
+  }
+
+  if (isOldIE) {
+    // use singleton mode for IE9.
+    var styleIndex = singletonCounter++
+    styleElement = singletonElement || (singletonElement = createStyleElement())
+    update = applyToSingletonTag.bind(null, styleElement, styleIndex, false)
+    remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
+  } else {
+    // use multi-style-tag mode in all other cases
+    styleElement = createStyleElement()
+    update = applyToTag.bind(null, styleElement)
+    remove = function () {
+      styleElement.parentNode.removeChild(styleElement)
+    }
+  }
+
+  update(obj)
+
+  return function updateStyle (newObj /* StyleObjectPart */) {
+    if (newObj) {
+      if (newObj.css === obj.css &&
+          newObj.media === obj.media &&
+          newObj.sourceMap === obj.sourceMap) {
+        return
+      }
+      update(obj = newObj)
+    } else {
+      remove()
+    }
+  }
+}
+
+var replaceText = (function () {
+  var textStore = []
+
+  return function (index, replacement) {
+    textStore[index] = replacement
+    return textStore.filter(Boolean).join('\n')
+  }
+})()
+
+function applyToSingletonTag (styleElement, index, remove, obj) {
+  var css = remove ? '' : obj.css
+
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = replaceText(index, css)
+  } else {
+    var cssNode = document.createTextNode(css)
+    var childNodes = styleElement.childNodes
+    if (childNodes[index]) styleElement.removeChild(childNodes[index])
+    if (childNodes.length) {
+      styleElement.insertBefore(cssNode, childNodes[index])
+    } else {
+      styleElement.appendChild(cssNode)
+    }
+  }
+}
+
+function applyToTag (styleElement, obj) {
+  var css = obj.css
+  var media = obj.media
+  var sourceMap = obj.sourceMap
+
+  if (media) {
+    styleElement.setAttribute('media', media)
+  }
+  if (options.ssrId) {
+    styleElement.setAttribute(ssrIdKey, obj.id)
+  }
+
+  if (sourceMap) {
+    // https://developer.chrome.com/devtools/docs/javascript-debugging
+    // this makes source maps inside style tags work properly in Chrome
+    css += '\n/*# sourceURL=' + sourceMap.sources[0] + ' */'
+    // http://stackoverflow.com/a/26603875
+    css += '\n/*# sourceMappingURL=data:application/json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + ' */'
+  }
+
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = css
+  } else {
+    while (styleElement.firstChild) {
+      styleElement.removeChild(styleElement.firstChild)
+    }
+    styleElement.appendChild(document.createTextNode(css))
+  }
+}
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var utils = __webpack_require__(2);
+var normalizeHeaderName = __webpack_require__(167);
+
+var DEFAULT_CONTENT_TYPE = {
+  'Content-Type': 'application/x-www-form-urlencoded'
+};
+
+function setContentTypeIfUnset(headers, value) {
+  if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
+    headers['Content-Type'] = value;
+  }
+}
+
+function getDefaultAdapter() {
+  var adapter;
+  if (typeof XMLHttpRequest !== 'undefined') {
+    // For browsers use XHR adapter
+    adapter = __webpack_require__(16);
+  } else if (typeof process !== 'undefined') {
+    // For node use HTTP adapter
+    adapter = __webpack_require__(16);
+  }
+  return adapter;
+}
+
+var defaults = {
+  adapter: getDefaultAdapter(),
+
+  transformRequest: [function transformRequest(data, headers) {
+    normalizeHeaderName(headers, 'Content-Type');
+    if (utils.isFormData(data) ||
+      utils.isArrayBuffer(data) ||
+      utils.isBuffer(data) ||
+      utils.isStream(data) ||
+      utils.isFile(data) ||
+      utils.isBlob(data)
+    ) {
+      return data;
+    }
+    if (utils.isArrayBufferView(data)) {
+      return data.buffer;
+    }
+    if (utils.isURLSearchParams(data)) {
+      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+      return data.toString();
+    }
+    if (utils.isObject(data)) {
+      setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
+      return JSON.stringify(data);
+    }
+    return data;
+  }],
+
+  transformResponse: [function transformResponse(data) {
+    /*eslint no-param-reassign:0*/
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (e) { /* Ignore */ }
+    }
+    return data;
+  }],
+
+  /**
+   * A timeout in milliseconds to abort a request. If set to 0 (default) a
+   * timeout is not created.
+   */
+  timeout: 0,
+
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+
+  maxContentLength: -1,
+
+  validateStatus: function validateStatus(status) {
+    return status >= 200 && status < 300;
+  }
+};
+
+defaults.headers = {
+  common: {
+    'Accept': 'application/json, text/plain, */*'
+  }
+};
+
+utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+  defaults.headers[method] = {};
+});
+
+utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
+});
+
+module.exports = defaults;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
 
 /***/ }),
 /* 12 */
@@ -36340,12 +36340,12 @@ process.umask = function() { return 0; };
 
 
 var utils = __webpack_require__(2);
-var settle = __webpack_require__(166);
-var buildURL = __webpack_require__(168);
-var parseHeaders = __webpack_require__(169);
-var isURLSameOrigin = __webpack_require__(170);
+var settle = __webpack_require__(168);
+var buildURL = __webpack_require__(170);
+var parseHeaders = __webpack_require__(171);
+var isURLSameOrigin = __webpack_require__(172);
 var createError = __webpack_require__(17);
-var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(171);
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(173);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -36442,7 +36442,7 @@ module.exports = function xhrAdapter(config) {
     // This is only done if running in a standard browser environment.
     // Specifically not if we're in a web worker, or react-native.
     if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(172);
+      var cookies = __webpack_require__(174);
 
       // Add xsrf header
       var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -36526,7 +36526,7 @@ module.exports = function xhrAdapter(config) {
 "use strict";
 
 
-var enhanceError = __webpack_require__(167);
+var enhanceError = __webpack_require__(169);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -36589,9 +36589,9 @@ module.exports = Cancel;
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(197)
+var __vue_script__ = __webpack_require__(201)
 /* template */
-var __vue_template__ = __webpack_require__(203)
+var __vue_template__ = __webpack_require__(207)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -37115,13 +37115,13 @@ module.exports = Component.exports
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(198)
+  __webpack_require__(202)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(201)
+var __vue_script__ = __webpack_require__(205)
 /* template */
-var __vue_template__ = __webpack_require__(202)
+var __vue_template__ = __webpack_require__(206)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -37200,7 +37200,7 @@ module.exports = isObject;
 /* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var freeGlobal = __webpack_require__(208);
+var freeGlobal = __webpack_require__(212);
 
 /** Detect free variable `self`. */
 var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
@@ -49073,7 +49073,7 @@ module.exports = Symbol;
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(150);
-module.exports = __webpack_require__(244);
+module.exports = __webpack_require__(248);
 
 
 /***/ }),
@@ -49082,12 +49082,14 @@ module.exports = __webpack_require__(244);
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css__ = __webpack_require__(183);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css__ = __webpack_require__(185);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_font_awesome_css_font_awesome_min_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css__ = __webpack_require__(193);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css__ = __webpack_require__(195);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_datatables_net_bs4_css_dataTables_bootstrap4_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css__ = __webpack_require__(248);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css__ = __webpack_require__(197);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_datatables_net_fixedheader_bs4_css_fixedHeader_bootstrap4_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_datatables_net_rowreorder_bs4_css_rowReorder_bootstrap4_css__ = __webpack_require__(252);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_datatables_net_rowreorder_bs4_css_rowReorder_bootstrap4_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_datatables_net_rowreorder_bs4_css_rowReorder_bootstrap4_css__);
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -49097,11 +49099,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 __webpack_require__(151);
 
-window.Vue = __webpack_require__(180);
+window.Vue = __webpack_require__(182);
 
 // 引入font-awesome
 
 // 下面是必须引入的dataTables的样式
+
 
 
 
@@ -49111,13 +49114,13 @@ window.Vue = __webpack_require__(180);
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('department-component', __webpack_require__(195));
+Vue.component('department-component', __webpack_require__(199));
 Vue.component('department-tree', __webpack_require__(20));
 Vue.component('department-model', __webpack_require__(22));
-Vue.component('department-lists', __webpack_require__(218));
-Vue.component('department-users', __webpack_require__(235));
-Vue.component('my-detail-row', __webpack_require__(238));
-Vue.component('filter-bar', __webpack_require__(241));
+Vue.component('department-lists', __webpack_require__(222));
+Vue.component('department-users', __webpack_require__(239));
+Vue.component('my-detail-row', __webpack_require__(242));
+Vue.component('filter-bar', __webpack_require__(245));
 
 var app = new Vue({
   el: '#app'
@@ -49141,7 +49144,7 @@ try {
   window.$ = window.jQuery = __webpack_require__(1);
 
   __webpack_require__(153);
-  __webpack_require__(9);
+  __webpack_require__(8);
   __webpack_require__(154);
   __webpack_require__(155);
   __webpack_require__(156);
@@ -49149,7 +49152,8 @@ try {
   __webpack_require__(158);
   __webpack_require__(7);
   __webpack_require__(159);
-  __webpack_require__(246);
+  __webpack_require__(161);
+  __webpack_require__(250);
 } catch (e) {}
 
 /**
@@ -49158,7 +49162,7 @@ try {
  * CSRF token as a header based on the value of the "XSRF" token cookie.
  */
 
-window.axios = __webpack_require__(161);
+window.axios = __webpack_require__(163);
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -70250,7 +70254,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap in
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(9), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(8), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -72064,7 +72068,8 @@ DataTable.ext.buttons.pdfHtml5 = {
 				message: {}
 			},
 			defaultStyle: {
-				fontSize: 10
+				fontSize: 10,
+				font:'st'
 			}
 		};
 
@@ -72096,7 +72101,28 @@ DataTable.ext.buttons.pdfHtml5 = {
 			config.customize( doc, config, dt );
 		}
 
-		var pdf = _pdfMake().createPdf( doc );
+        _pdfMake().fonts = {
+            Roboto: {
+                normal: 'Roboto-Regular.ttf',
+                bold: 'Roboto-Medium.ttf',
+                italics: 'Roboto-Italic.ttf',
+                bolditalics: 'Roboto-Italic.ttf'
+            },
+            st: {
+                normal: 'FZYTK.TTF',
+                bold: 'FZYTK.TTF',
+                italics: 'FZYTK.TTF',
+                bolditalics: 'FZYTK.TTF',
+            },
+            //    微软雅黑: {
+            //     normal: '微软雅黑.ttf',
+            //     bold: '微软雅黑.ttf',
+            //     italics: '微软雅黑.ttf',
+            //     bolditalics: '微软雅黑.ttf',
+            // }
+        };
+
+        var pdf = _pdfMake().createPdf( doc );
 
 		if ( config.download === 'open' && ! _isDuffSafari() ) {
 			pdf.open();
@@ -73612,7 +73638,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(9), __webpack_require__(160)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(8), __webpack_require__(160)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -74831,10 +74857,753 @@ return DataTable.select;
 /* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(162);
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 styling wrapper for FixedHeader
+ * ©2018 SpryMedia Ltd - datatables.net/license
+ */
+
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(8), __webpack_require__(162)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net-bs4')(root, $).$;
+			}
+
+			if ( ! $.fn.dataTable.FixedHeader ) {
+				require('datatables.net-fixedheader')(root, $);
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+
+return $.fn.dataTable;
+
+}));
 
 /***/ }),
 /* 162 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! FixedHeader 3.1.5
+ * ©2009-2018 SpryMedia Ltd - datatables.net/license
+ */
+
+/**
+ * @summary     FixedHeader
+ * @description Fix a table's header or footer, so it is always visible while
+ *              scrolling
+ * @version     3.1.5
+ * @file        dataTables.fixedHeader.js
+ * @author      SpryMedia Ltd (www.sprymedia.co.uk)
+ * @contact     www.sprymedia.co.uk/contact
+ * @copyright   Copyright 2009-2018 SpryMedia Ltd.
+ *
+ * This source file is free software, available under the following license:
+ *   MIT license - http://datatables.net/license/mit
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
+ *
+ * For details please refer to: http://www.datatables.net
+ */
+
+(function( factory ){
+	if ( true ) {
+		// AMD
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+			return factory( $, window, document );
+		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+var _instCounter = 0;
+
+var FixedHeader = function ( dt, config ) {
+	// Sanity check - you just know it will happen
+	if ( ! (this instanceof FixedHeader) ) {
+		throw "FixedHeader must be initialised with the 'new' keyword.";
+	}
+
+	// Allow a boolean true for defaults
+	if ( config === true ) {
+		config = {};
+	}
+
+	dt = new DataTable.Api( dt );
+
+	this.c = $.extend( true, {}, FixedHeader.defaults, config );
+
+	this.s = {
+		dt: dt,
+		position: {
+			theadTop: 0,
+			tbodyTop: 0,
+			tfootTop: 0,
+			tfootBottom: 0,
+			width: 0,
+			left: 0,
+			tfootHeight: 0,
+			theadHeight: 0,
+			windowHeight: $(window).height(),
+			visible: true
+		},
+		headerMode: null,
+		footerMode: null,
+		autoWidth: dt.settings()[0].oFeatures.bAutoWidth,
+		namespace: '.dtfc'+(_instCounter++),
+		scrollLeft: {
+			header: -1,
+			footer: -1
+		},
+		enable: true
+	};
+
+	this.dom = {
+		floatingHeader: null,
+		thead: $(dt.table().header()),
+		tbody: $(dt.table().body()),
+		tfoot: $(dt.table().footer()),
+		header: {
+			host: null,
+			floating: null,
+			placeholder: null
+		},
+		footer: {
+			host: null,
+			floating: null,
+			placeholder: null
+		}
+	};
+
+	this.dom.header.host = this.dom.thead.parent();
+	this.dom.footer.host = this.dom.tfoot.parent();
+
+	var dtSettings = dt.settings()[0];
+	if ( dtSettings._fixedHeader ) {
+		throw "FixedHeader already initialised on table "+dtSettings.nTable.id;
+	}
+
+	dtSettings._fixedHeader = this;
+
+	this._constructor();
+};
+
+
+/*
+ * Variable: FixedHeader
+ * Purpose:  Prototype for FixedHeader
+ * Scope:    global
+ */
+$.extend( FixedHeader.prototype, {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * API methods
+	 */
+	
+	/**
+	 * Enable / disable the fixed elements
+	 *
+	 * @param  {boolean} enable `true` to enable, `false` to disable
+	 */
+	enable: function ( enable )
+	{
+		this.s.enable = enable;
+
+		if ( this.c.header ) {
+			this._modeChange( 'in-place', 'header', true );
+		}
+
+		if ( this.c.footer && this.dom.tfoot.length ) {
+			this._modeChange( 'in-place', 'footer', true );
+		}
+
+		this.update();
+	},
+	
+	/**
+	 * Set header offset 
+	 *
+	 * @param  {int} new value for headerOffset
+	 */
+	headerOffset: function ( offset )
+	{
+		if ( offset !== undefined ) {
+			this.c.headerOffset = offset;
+			this.update();
+		}
+
+		return this.c.headerOffset;
+	},
+	
+	/**
+	 * Set footer offset
+	 *
+	 * @param  {int} new value for footerOffset
+	 */
+	footerOffset: function ( offset )
+	{
+		if ( offset !== undefined ) {
+			this.c.footerOffset = offset;
+			this.update();
+		}
+
+		return this.c.footerOffset;
+	},
+
+	
+	/**
+	 * Recalculate the position of the fixed elements and force them into place
+	 */
+	update: function ()
+	{
+		this._positions();
+		this._scroll( true );
+	},
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Constructor
+	 */
+	
+	/**
+	 * FixedHeader constructor - adding the required event listeners and
+	 * simple initialisation
+	 *
+	 * @private
+	 */
+	_constructor: function ()
+	{
+		var that = this;
+		var dt = this.s.dt;
+
+		$(window)
+			.on( 'scroll'+this.s.namespace, function () {
+				that._scroll();
+			} )
+			.on( 'resize'+this.s.namespace, DataTable.util.throttle( function () {
+				that.s.position.windowHeight = $(window).height();
+				that.update();
+			}, 50 ) );
+
+		var autoHeader = $('.fh-fixedHeader');
+		if ( ! this.c.headerOffset && autoHeader.length ) {
+			this.c.headerOffset = autoHeader.outerHeight();
+		}
+
+		var autoFooter = $('.fh-fixedFooter');
+		if ( ! this.c.footerOffset && autoFooter.length ) {
+			this.c.footerOffset = autoFooter.outerHeight();
+		}
+
+		dt.on( 'column-reorder.dt.dtfc column-visibility.dt.dtfc draw.dt.dtfc column-sizing.dt.dtfc responsive-display.dt.dtfc', function () {
+			that.update();
+		} );
+
+		dt.on( 'destroy.dtfc', function () {
+			if ( that.c.header ) {
+				that._modeChange( 'in-place', 'header', true );
+			}
+
+			if ( that.c.footer && that.dom.tfoot.length ) {
+				that._modeChange( 'in-place', 'footer', true );
+			}
+
+			dt.off( '.dtfc' );
+			$(window).off( that.s.namespace );
+		} );
+
+		this._positions();
+		this._scroll();
+	},
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Private methods
+	 */
+
+	/**
+	 * Clone a fixed item to act as a place holder for the original element
+	 * which is moved into a clone of the table element, and moved around the
+	 * document to give the fixed effect.
+	 *
+	 * @param  {string}  item  'header' or 'footer'
+	 * @param  {boolean} force Force the clone to happen, or allow automatic
+	 *   decision (reuse existing if available)
+	 * @private
+	 */
+	_clone: function ( item, force )
+	{
+		var dt = this.s.dt;
+		var itemDom = this.dom[ item ];
+		var itemElement = item === 'header' ?
+			this.dom.thead :
+			this.dom.tfoot;
+
+		if ( ! force && itemDom.floating ) {
+			// existing floating element - reuse it
+			itemDom.floating.removeClass( 'fixedHeader-floating fixedHeader-locked' );
+		}
+		else {
+			if ( itemDom.floating ) {
+				itemDom.placeholder.remove();
+				this._unsize( item );
+				itemDom.floating.children().detach();
+				itemDom.floating.remove();
+			}
+
+			itemDom.floating = $( dt.table().node().cloneNode( false ) )
+				.css( 'table-layout', 'fixed' )
+				.attr( 'aria-hidden', 'true' )
+				.removeAttr( 'id' )
+				.append( itemElement )
+				.appendTo( 'body' );
+
+			// Insert a fake thead/tfoot into the DataTable to stop it jumping around
+			itemDom.placeholder = itemElement.clone( false )
+			itemDom.placeholder
+				.find( '*[id]' )
+				.removeAttr( 'id' );
+
+			itemDom.host.prepend( itemDom.placeholder );
+
+			// Clone widths
+			this._matchWidths( itemDom.placeholder, itemDom.floating );
+		}
+	},
+
+	/**
+	 * Copy widths from the cells in one element to another. This is required
+	 * for the footer as the footer in the main table takes its sizes from the
+	 * header columns. That isn't present in the footer so to have it still
+	 * align correctly, the sizes need to be copied over. It is also required
+	 * for the header when auto width is not enabled
+	 *
+	 * @param  {jQuery} from Copy widths from
+	 * @param  {jQuery} to   Copy widths to
+	 * @private
+	 */
+	_matchWidths: function ( from, to ) {
+		var get = function ( name ) {
+			return $(name, from)
+				.map( function () {
+					return $(this).width();
+				} ).toArray();
+		};
+
+		var set = function ( name, toWidths ) {
+			$(name, to).each( function ( i ) {
+				$(this).css( {
+					width: toWidths[i],
+					minWidth: toWidths[i]
+				} );
+			} );
+		};
+
+		var thWidths = get( 'th' );
+		var tdWidths = get( 'td' );
+
+		set( 'th', thWidths );
+		set( 'td', tdWidths );
+	},
+
+	/**
+	 * Remove assigned widths from the cells in an element. This is required
+	 * when inserting the footer back into the main table so the size is defined
+	 * by the header columns and also when auto width is disabled in the
+	 * DataTable.
+	 *
+	 * @param  {string} item The `header` or `footer`
+	 * @private
+	 */
+	_unsize: function ( item ) {
+		var el = this.dom[ item ].floating;
+
+		if ( el && (item === 'footer' || (item === 'header' && ! this.s.autoWidth)) ) {
+			$('th, td', el).css( {
+				width: '',
+				minWidth: ''
+			} );
+		}
+		else if ( el && item === 'header' ) {
+			$('th, td', el).css( 'min-width', '' );
+		}
+	},
+
+	/**
+	 * Reposition the floating elements to take account of horizontal page
+	 * scroll
+	 *
+	 * @param  {string} item       The `header` or `footer`
+	 * @param  {int}    scrollLeft Document scrollLeft
+	 * @private
+	 */
+	_horizontal: function ( item, scrollLeft )
+	{
+		var itemDom = this.dom[ item ];
+		var position = this.s.position;
+		var lastScrollLeft = this.s.scrollLeft;
+
+		if ( itemDom.floating && lastScrollLeft[ item ] !== scrollLeft ) {
+			itemDom.floating.css( 'left', position.left - scrollLeft );
+
+			lastScrollLeft[ item ] = scrollLeft;
+		}
+	},
+
+	/**
+	 * Change from one display mode to another. Each fixed item can be in one
+	 * of:
+	 *
+	 * * `in-place` - In the main DataTable
+	 * * `in` - Floating over the DataTable
+	 * * `below` - (Header only) Fixed to the bottom of the table body
+	 * * `above` - (Footer only) Fixed to the top of the table body
+	 * 
+	 * @param  {string}  mode        Mode that the item should be shown in
+	 * @param  {string}  item        'header' or 'footer'
+	 * @param  {boolean} forceChange Force a redraw of the mode, even if already
+	 *     in that mode.
+	 * @private
+	 */
+	_modeChange: function ( mode, item, forceChange )
+	{
+		var dt = this.s.dt;
+		var itemDom = this.dom[ item ];
+		var position = this.s.position;
+
+		// Record focus. Browser's will cause input elements to loose focus if
+		// they are inserted else where in the doc
+		var tablePart = this.dom[ item==='footer' ? 'tfoot' : 'thead' ];
+		var focus = $.contains( tablePart[0], document.activeElement ) ?
+			document.activeElement :
+			null;
+		
+		if ( focus ) {
+			focus.blur();
+		}
+
+		if ( mode === 'in-place' ) {
+			// Insert the header back into the table's real header
+			if ( itemDom.placeholder ) {
+				itemDom.placeholder.remove();
+				itemDom.placeholder = null;
+			}
+
+			this._unsize( item );
+
+			if ( item === 'header' ) {
+				itemDom.host.prepend( tablePart );
+			}
+			else {
+				itemDom.host.append( tablePart );
+			}
+
+			if ( itemDom.floating ) {
+				itemDom.floating.remove();
+				itemDom.floating = null;
+			}
+		}
+		else if ( mode === 'in' ) {
+			// Remove the header from the read header and insert into a fixed
+			// positioned floating table clone
+			this._clone( item, forceChange );
+
+			itemDom.floating
+				.addClass( 'fixedHeader-floating' )
+				.css( item === 'header' ? 'top' : 'bottom', this.c[item+'Offset'] )
+				.css( 'left', position.left+'px' )
+				.css( 'width', position.width+'px' );
+
+			if ( item === 'footer' ) {
+				itemDom.floating.css( 'top', '' );
+			}
+		}
+		else if ( mode === 'below' ) { // only used for the header
+			// Fix the position of the floating header at base of the table body
+			this._clone( item, forceChange );
+
+			itemDom.floating
+				.addClass( 'fixedHeader-locked' )
+				.css( 'top', position.tfootTop - position.theadHeight )
+				.css( 'left', position.left+'px' )
+				.css( 'width', position.width+'px' );
+		}
+		else if ( mode === 'above' ) { // only used for the footer
+			// Fix the position of the floating footer at top of the table body
+			this._clone( item, forceChange );
+
+			itemDom.floating
+				.addClass( 'fixedHeader-locked' )
+				.css( 'top', position.tbodyTop )
+				.css( 'left', position.left+'px' )
+				.css( 'width', position.width+'px' );
+		}
+
+		// Restore focus if it was lost
+		if ( focus && focus !== document.activeElement ) {
+			setTimeout( function () {
+				focus.focus();
+			}, 10 );
+		}
+
+		this.s.scrollLeft.header = -1;
+		this.s.scrollLeft.footer = -1;
+		this.s[item+'Mode'] = mode;
+	},
+
+	/**
+	 * Cache the positional information that is required for the mode
+	 * calculations that FixedHeader performs.
+	 *
+	 * @private
+	 */
+	_positions: function ()
+	{
+		var dt = this.s.dt;
+		var table = dt.table();
+		var position = this.s.position;
+		var dom = this.dom;
+		var tableNode = $(table.node());
+
+		// Need to use the header and footer that are in the main table,
+		// regardless of if they are clones, since they hold the positions we
+		// want to measure from
+		var thead = tableNode.children('thead');
+		var tfoot = tableNode.children('tfoot');
+		var tbody = dom.tbody;
+
+		position.visible = tableNode.is(':visible');
+		position.width = tableNode.outerWidth();
+		position.left = tableNode.offset().left;
+		position.theadTop = thead.offset().top;
+		position.tbodyTop = tbody.offset().top;
+		position.theadHeight = position.tbodyTop - position.theadTop;
+
+		if ( tfoot.length ) {
+			position.tfootTop = tfoot.offset().top;
+			position.tfootBottom = position.tfootTop + tfoot.outerHeight();
+			position.tfootHeight = position.tfootBottom - position.tfootTop;
+		}
+		else {
+			position.tfootTop = position.tbodyTop + tbody.outerHeight();
+			position.tfootBottom = position.tfootTop;
+			position.tfootHeight = position.tfootTop;
+		}
+	},
+
+
+	/**
+	 * Mode calculation - determine what mode the fixed items should be placed
+	 * into.
+	 *
+	 * @param  {boolean} forceChange Force a redraw of the mode, even if already
+	 *     in that mode.
+	 * @private
+	 */
+	_scroll: function ( forceChange )
+	{
+		var windowTop = $(document).scrollTop();
+		var windowLeft = $(document).scrollLeft();
+		var position = this.s.position;
+		var headerMode, footerMode;
+
+		if ( ! this.s.enable ) {
+			return;
+		}
+
+		if ( this.c.header ) {
+			if ( ! position.visible || windowTop <= position.theadTop - this.c.headerOffset ) {
+				headerMode = 'in-place';
+			}
+			else if ( windowTop <= position.tfootTop - position.theadHeight - this.c.headerOffset ) {
+				headerMode = 'in';
+			}
+			else {
+				headerMode = 'below';
+			}
+
+			if ( forceChange || headerMode !== this.s.headerMode ) {
+				this._modeChange( headerMode, 'header', forceChange );
+			}
+
+			this._horizontal( 'header', windowLeft );
+		}
+
+		if ( this.c.footer && this.dom.tfoot.length ) {
+			if ( ! position.visible || windowTop + position.windowHeight >= position.tfootBottom + this.c.footerOffset ) {
+				footerMode = 'in-place';
+			}
+			else if ( position.windowHeight + windowTop > position.tbodyTop + position.tfootHeight + this.c.footerOffset ) {
+				footerMode = 'in';
+			}
+			else {
+				footerMode = 'above';
+			}
+
+			if ( forceChange || footerMode !== this.s.footerMode ) {
+				this._modeChange( footerMode, 'footer', forceChange );
+			}
+
+			this._horizontal( 'footer', windowLeft );
+		}
+	}
+} );
+
+
+/**
+ * Version
+ * @type {String}
+ * @static
+ */
+FixedHeader.version = "3.1.5";
+
+/**
+ * Defaults
+ * @type {Object}
+ * @static
+ */
+FixedHeader.defaults = {
+	header: true,
+	footer: false,
+	headerOffset: 0,
+	footerOffset: 0
+};
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables interfaces
+ */
+
+// Attach for constructor access
+$.fn.dataTable.FixedHeader = FixedHeader;
+$.fn.DataTable.FixedHeader = FixedHeader;
+
+
+// DataTables creation - check if the FixedHeader option has been defined on the
+// table and if so, initialise
+$(document).on( 'init.dt.dtfh', function (e, settings, json) {
+	if ( e.namespace !== 'dt' ) {
+		return;
+	}
+
+	var init = settings.oInit.fixedHeader;
+	var defaults = DataTable.defaults.fixedHeader;
+
+	if ( (init || defaults) && ! settings._fixedHeader ) {
+		var opts = $.extend( {}, defaults, init );
+
+		if ( init !== false ) {
+			new FixedHeader( settings, opts );
+		}
+	}
+} );
+
+// DataTables API methods
+DataTable.Api.register( 'fixedHeader()', function () {} );
+
+DataTable.Api.register( 'fixedHeader.adjust()', function () {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+
+		if ( fh ) {
+			fh.update();
+		}
+	} );
+} );
+
+DataTable.Api.register( 'fixedHeader.enable()', function ( flag ) {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+
+		flag = ( flag !== undefined ? flag : true );
+		if ( fh && flag !== fh.s.enable ) {
+			fh.enable( flag );
+		}
+	} );
+} );
+
+DataTable.Api.register( 'fixedHeader.disable()', function ( ) {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+
+		if ( fh && fh.s.enable ) {
+			fh.enable( false );
+		}
+	} );
+} );
+
+$.each( ['header', 'footer'], function ( i, el ) {
+	DataTable.Api.register( 'fixedHeader.'+el+'Offset()', function ( offset ) {
+		var ctx = this.context;
+
+		if ( offset === undefined ) {
+			return ctx.length && ctx[0]._fixedHeader ?
+				ctx[0]._fixedHeader[el +'Offset']() :
+				undefined;
+		}
+
+		return this.iterator( 'table', function ( ctx ) {
+			var fh = ctx._fixedHeader;
+
+			if ( fh ) {
+				fh[ el +'Offset' ]( offset );
+			}
+		} );
+	} );
+} );
+
+
+return FixedHeader;
+}));
+
+
+/***/ }),
+/* 163 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(164);
+
+/***/ }),
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -74842,8 +75611,8 @@ module.exports = __webpack_require__(162);
 
 var utils = __webpack_require__(2);
 var bind = __webpack_require__(14);
-var Axios = __webpack_require__(164);
-var defaults = __webpack_require__(10);
+var Axios = __webpack_require__(166);
+var defaults = __webpack_require__(11);
 
 /**
  * Create an instance of Axios
@@ -74877,14 +75646,14 @@ axios.create = function create(instanceConfig) {
 
 // Expose Cancel & CancelToken
 axios.Cancel = __webpack_require__(19);
-axios.CancelToken = __webpack_require__(178);
+axios.CancelToken = __webpack_require__(180);
 axios.isCancel = __webpack_require__(18);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(179);
+axios.spread = __webpack_require__(181);
 
 module.exports = axios;
 
@@ -74893,7 +75662,7 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 163 */
+/* 165 */
 /***/ (function(module, exports) {
 
 /*!
@@ -74920,16 +75689,16 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 164 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var defaults = __webpack_require__(10);
+var defaults = __webpack_require__(11);
 var utils = __webpack_require__(2);
-var InterceptorManager = __webpack_require__(173);
-var dispatchRequest = __webpack_require__(174);
+var InterceptorManager = __webpack_require__(175);
+var dispatchRequest = __webpack_require__(176);
 
 /**
  * Create a new instance of Axios
@@ -75006,7 +75775,7 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 165 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75025,7 +75794,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 166 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75058,7 +75827,7 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 167 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75086,7 +75855,7 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 168 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75159,7 +75928,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 169 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75219,7 +75988,7 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 170 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75294,7 +76063,7 @@ module.exports = (
 
 
 /***/ }),
-/* 171 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75337,7 +76106,7 @@ module.exports = btoa;
 
 
 /***/ }),
-/* 172 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75397,7 +76166,7 @@ module.exports = (
 
 
 /***/ }),
-/* 173 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75456,18 +76225,18 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 174 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var utils = __webpack_require__(2);
-var transformData = __webpack_require__(175);
+var transformData = __webpack_require__(177);
 var isCancel = __webpack_require__(18);
-var defaults = __webpack_require__(10);
-var isAbsoluteURL = __webpack_require__(176);
-var combineURLs = __webpack_require__(177);
+var defaults = __webpack_require__(11);
+var isAbsoluteURL = __webpack_require__(178);
+var combineURLs = __webpack_require__(179);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -75549,7 +76318,7 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 175 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75576,7 +76345,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 176 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75597,7 +76366,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 177 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75618,7 +76387,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 178 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75682,7 +76451,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 179 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -75716,7 +76485,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 180 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86679,10 +87448,10 @@ Vue.compile = compileToFunctions;
 
 module.exports = Vue;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(181).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(183).setImmediate))
 
 /***/ }),
-/* 181 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -86738,7 +87507,7 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(182);
+__webpack_require__(184);
 // On some exotic environments, it's not clear which object `setimmediate` was
 // able to install onto.  Search each possibility in the same order as the
 // `setimmediate` library.
@@ -86752,7 +87521,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 182 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -86945,13 +87714,13 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(15)))
 
 /***/ }),
-/* 183 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(184);
+var content = __webpack_require__(186);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -86959,7 +87728,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(11)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -86976,22 +87745,22 @@ if(false) {
 }
 
 /***/ }),
-/* 184 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var escape = __webpack_require__(185);
+var escape = __webpack_require__(187);
 exports = module.exports = __webpack_require__(5)(false);
 // imports
 
 
 // module
-exports.push([module.i, "/*!\n *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome\n *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)\n */@font-face{font-family:'FontAwesome';src:url(" + escape(__webpack_require__(186)) + ");src:url(" + escape(__webpack_require__(187)) + "?#iefix&v=4.7.0) format('embedded-opentype'),url(" + escape(__webpack_require__(188)) + ") format('woff2'),url(" + escape(__webpack_require__(189)) + ") format('woff'),url(" + escape(__webpack_require__(190)) + ") format('truetype'),url(" + escape(__webpack_require__(191)) + "#fontawesomeregular) format('svg');font-weight:normal;font-style:normal}.fa{display:inline-block;font:normal normal normal 14px/1 FontAwesome;font-size:inherit;text-rendering:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.fa-lg{font-size:1.33333333em;line-height:.75em;vertical-align:-15%}.fa-2x{font-size:2em}.fa-3x{font-size:3em}.fa-4x{font-size:4em}.fa-5x{font-size:5em}.fa-fw{width:1.28571429em;text-align:center}.fa-ul{padding-left:0;margin-left:2.14285714em;list-style-type:none}.fa-ul>li{position:relative}.fa-li{position:absolute;left:-2.14285714em;width:2.14285714em;top:.14285714em;text-align:center}.fa-li.fa-lg{left:-1.85714286em}.fa-border{padding:.2em .25em .15em;border:solid .08em #eee;border-radius:.1em}.fa-pull-left{float:left}.fa-pull-right{float:right}.fa.fa-pull-left{margin-right:.3em}.fa.fa-pull-right{margin-left:.3em}.pull-right{float:right}.pull-left{float:left}.fa.pull-left{margin-right:.3em}.fa.pull-right{margin-left:.3em}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}.fa-pulse{-webkit-animation:fa-spin 1s infinite steps(8);animation:fa-spin 1s infinite steps(8)}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}.fa-rotate-90{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.fa-rotate-180{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}.fa-rotate-270{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";-webkit-transform:rotate(270deg);-ms-transform:rotate(270deg);transform:rotate(270deg)}.fa-flip-horizontal{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1)}.fa-flip-vertical{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";-webkit-transform:scale(1, -1);-ms-transform:scale(1, -1);transform:scale(1, -1)}:root .fa-rotate-90,:root .fa-rotate-180,:root .fa-rotate-270,:root .fa-flip-horizontal,:root .fa-flip-vertical{filter:none}.fa-stack{position:relative;display:inline-block;width:2em;height:2em;line-height:2em;vertical-align:middle}.fa-stack-1x,.fa-stack-2x{position:absolute;left:0;width:100%;text-align:center}.fa-stack-1x{line-height:inherit}.fa-stack-2x{font-size:2em}.fa-inverse{color:#fff}.fa-glass:before{content:\"\\F000\"}.fa-music:before{content:\"\\F001\"}.fa-search:before{content:\"\\F002\"}.fa-envelope-o:before{content:\"\\F003\"}.fa-heart:before{content:\"\\F004\"}.fa-star:before{content:\"\\F005\"}.fa-star-o:before{content:\"\\F006\"}.fa-user:before{content:\"\\F007\"}.fa-film:before{content:\"\\F008\"}.fa-th-large:before{content:\"\\F009\"}.fa-th:before{content:\"\\F00A\"}.fa-th-list:before{content:\"\\F00B\"}.fa-check:before{content:\"\\F00C\"}.fa-remove:before,.fa-close:before,.fa-times:before{content:\"\\F00D\"}.fa-search-plus:before{content:\"\\F00E\"}.fa-search-minus:before{content:\"\\F010\"}.fa-power-off:before{content:\"\\F011\"}.fa-signal:before{content:\"\\F012\"}.fa-gear:before,.fa-cog:before{content:\"\\F013\"}.fa-trash-o:before{content:\"\\F014\"}.fa-home:before{content:\"\\F015\"}.fa-file-o:before{content:\"\\F016\"}.fa-clock-o:before{content:\"\\F017\"}.fa-road:before{content:\"\\F018\"}.fa-download:before{content:\"\\F019\"}.fa-arrow-circle-o-down:before{content:\"\\F01A\"}.fa-arrow-circle-o-up:before{content:\"\\F01B\"}.fa-inbox:before{content:\"\\F01C\"}.fa-play-circle-o:before{content:\"\\F01D\"}.fa-rotate-right:before,.fa-repeat:before{content:\"\\F01E\"}.fa-refresh:before{content:\"\\F021\"}.fa-list-alt:before{content:\"\\F022\"}.fa-lock:before{content:\"\\F023\"}.fa-flag:before{content:\"\\F024\"}.fa-headphones:before{content:\"\\F025\"}.fa-volume-off:before{content:\"\\F026\"}.fa-volume-down:before{content:\"\\F027\"}.fa-volume-up:before{content:\"\\F028\"}.fa-qrcode:before{content:\"\\F029\"}.fa-barcode:before{content:\"\\F02A\"}.fa-tag:before{content:\"\\F02B\"}.fa-tags:before{content:\"\\F02C\"}.fa-book:before{content:\"\\F02D\"}.fa-bookmark:before{content:\"\\F02E\"}.fa-print:before{content:\"\\F02F\"}.fa-camera:before{content:\"\\F030\"}.fa-font:before{content:\"\\F031\"}.fa-bold:before{content:\"\\F032\"}.fa-italic:before{content:\"\\F033\"}.fa-text-height:before{content:\"\\F034\"}.fa-text-width:before{content:\"\\F035\"}.fa-align-left:before{content:\"\\F036\"}.fa-align-center:before{content:\"\\F037\"}.fa-align-right:before{content:\"\\F038\"}.fa-align-justify:before{content:\"\\F039\"}.fa-list:before{content:\"\\F03A\"}.fa-dedent:before,.fa-outdent:before{content:\"\\F03B\"}.fa-indent:before{content:\"\\F03C\"}.fa-video-camera:before{content:\"\\F03D\"}.fa-photo:before,.fa-image:before,.fa-picture-o:before{content:\"\\F03E\"}.fa-pencil:before{content:\"\\F040\"}.fa-map-marker:before{content:\"\\F041\"}.fa-adjust:before{content:\"\\F042\"}.fa-tint:before{content:\"\\F043\"}.fa-edit:before,.fa-pencil-square-o:before{content:\"\\F044\"}.fa-share-square-o:before{content:\"\\F045\"}.fa-check-square-o:before{content:\"\\F046\"}.fa-arrows:before{content:\"\\F047\"}.fa-step-backward:before{content:\"\\F048\"}.fa-fast-backward:before{content:\"\\F049\"}.fa-backward:before{content:\"\\F04A\"}.fa-play:before{content:\"\\F04B\"}.fa-pause:before{content:\"\\F04C\"}.fa-stop:before{content:\"\\F04D\"}.fa-forward:before{content:\"\\F04E\"}.fa-fast-forward:before{content:\"\\F050\"}.fa-step-forward:before{content:\"\\F051\"}.fa-eject:before{content:\"\\F052\"}.fa-chevron-left:before{content:\"\\F053\"}.fa-chevron-right:before{content:\"\\F054\"}.fa-plus-circle:before{content:\"\\F055\"}.fa-minus-circle:before{content:\"\\F056\"}.fa-times-circle:before{content:\"\\F057\"}.fa-check-circle:before{content:\"\\F058\"}.fa-question-circle:before{content:\"\\F059\"}.fa-info-circle:before{content:\"\\F05A\"}.fa-crosshairs:before{content:\"\\F05B\"}.fa-times-circle-o:before{content:\"\\F05C\"}.fa-check-circle-o:before{content:\"\\F05D\"}.fa-ban:before{content:\"\\F05E\"}.fa-arrow-left:before{content:\"\\F060\"}.fa-arrow-right:before{content:\"\\F061\"}.fa-arrow-up:before{content:\"\\F062\"}.fa-arrow-down:before{content:\"\\F063\"}.fa-mail-forward:before,.fa-share:before{content:\"\\F064\"}.fa-expand:before{content:\"\\F065\"}.fa-compress:before{content:\"\\F066\"}.fa-plus:before{content:\"\\F067\"}.fa-minus:before{content:\"\\F068\"}.fa-asterisk:before{content:\"\\F069\"}.fa-exclamation-circle:before{content:\"\\F06A\"}.fa-gift:before{content:\"\\F06B\"}.fa-leaf:before{content:\"\\F06C\"}.fa-fire:before{content:\"\\F06D\"}.fa-eye:before{content:\"\\F06E\"}.fa-eye-slash:before{content:\"\\F070\"}.fa-warning:before,.fa-exclamation-triangle:before{content:\"\\F071\"}.fa-plane:before{content:\"\\F072\"}.fa-calendar:before{content:\"\\F073\"}.fa-random:before{content:\"\\F074\"}.fa-comment:before{content:\"\\F075\"}.fa-magnet:before{content:\"\\F076\"}.fa-chevron-up:before{content:\"\\F077\"}.fa-chevron-down:before{content:\"\\F078\"}.fa-retweet:before{content:\"\\F079\"}.fa-shopping-cart:before{content:\"\\F07A\"}.fa-folder:before{content:\"\\F07B\"}.fa-folder-open:before{content:\"\\F07C\"}.fa-arrows-v:before{content:\"\\F07D\"}.fa-arrows-h:before{content:\"\\F07E\"}.fa-bar-chart-o:before,.fa-bar-chart:before{content:\"\\F080\"}.fa-twitter-square:before{content:\"\\F081\"}.fa-facebook-square:before{content:\"\\F082\"}.fa-camera-retro:before{content:\"\\F083\"}.fa-key:before{content:\"\\F084\"}.fa-gears:before,.fa-cogs:before{content:\"\\F085\"}.fa-comments:before{content:\"\\F086\"}.fa-thumbs-o-up:before{content:\"\\F087\"}.fa-thumbs-o-down:before{content:\"\\F088\"}.fa-star-half:before{content:\"\\F089\"}.fa-heart-o:before{content:\"\\F08A\"}.fa-sign-out:before{content:\"\\F08B\"}.fa-linkedin-square:before{content:\"\\F08C\"}.fa-thumb-tack:before{content:\"\\F08D\"}.fa-external-link:before{content:\"\\F08E\"}.fa-sign-in:before{content:\"\\F090\"}.fa-trophy:before{content:\"\\F091\"}.fa-github-square:before{content:\"\\F092\"}.fa-upload:before{content:\"\\F093\"}.fa-lemon-o:before{content:\"\\F094\"}.fa-phone:before{content:\"\\F095\"}.fa-square-o:before{content:\"\\F096\"}.fa-bookmark-o:before{content:\"\\F097\"}.fa-phone-square:before{content:\"\\F098\"}.fa-twitter:before{content:\"\\F099\"}.fa-facebook-f:before,.fa-facebook:before{content:\"\\F09A\"}.fa-github:before{content:\"\\F09B\"}.fa-unlock:before{content:\"\\F09C\"}.fa-credit-card:before{content:\"\\F09D\"}.fa-feed:before,.fa-rss:before{content:\"\\F09E\"}.fa-hdd-o:before{content:\"\\F0A0\"}.fa-bullhorn:before{content:\"\\F0A1\"}.fa-bell:before{content:\"\\F0F3\"}.fa-certificate:before{content:\"\\F0A3\"}.fa-hand-o-right:before{content:\"\\F0A4\"}.fa-hand-o-left:before{content:\"\\F0A5\"}.fa-hand-o-up:before{content:\"\\F0A6\"}.fa-hand-o-down:before{content:\"\\F0A7\"}.fa-arrow-circle-left:before{content:\"\\F0A8\"}.fa-arrow-circle-right:before{content:\"\\F0A9\"}.fa-arrow-circle-up:before{content:\"\\F0AA\"}.fa-arrow-circle-down:before{content:\"\\F0AB\"}.fa-globe:before{content:\"\\F0AC\"}.fa-wrench:before{content:\"\\F0AD\"}.fa-tasks:before{content:\"\\F0AE\"}.fa-filter:before{content:\"\\F0B0\"}.fa-briefcase:before{content:\"\\F0B1\"}.fa-arrows-alt:before{content:\"\\F0B2\"}.fa-group:before,.fa-users:before{content:\"\\F0C0\"}.fa-chain:before,.fa-link:before{content:\"\\F0C1\"}.fa-cloud:before{content:\"\\F0C2\"}.fa-flask:before{content:\"\\F0C3\"}.fa-cut:before,.fa-scissors:before{content:\"\\F0C4\"}.fa-copy:before,.fa-files-o:before{content:\"\\F0C5\"}.fa-paperclip:before{content:\"\\F0C6\"}.fa-save:before,.fa-floppy-o:before{content:\"\\F0C7\"}.fa-square:before{content:\"\\F0C8\"}.fa-navicon:before,.fa-reorder:before,.fa-bars:before{content:\"\\F0C9\"}.fa-list-ul:before{content:\"\\F0CA\"}.fa-list-ol:before{content:\"\\F0CB\"}.fa-strikethrough:before{content:\"\\F0CC\"}.fa-underline:before{content:\"\\F0CD\"}.fa-table:before{content:\"\\F0CE\"}.fa-magic:before{content:\"\\F0D0\"}.fa-truck:before{content:\"\\F0D1\"}.fa-pinterest:before{content:\"\\F0D2\"}.fa-pinterest-square:before{content:\"\\F0D3\"}.fa-google-plus-square:before{content:\"\\F0D4\"}.fa-google-plus:before{content:\"\\F0D5\"}.fa-money:before{content:\"\\F0D6\"}.fa-caret-down:before{content:\"\\F0D7\"}.fa-caret-up:before{content:\"\\F0D8\"}.fa-caret-left:before{content:\"\\F0D9\"}.fa-caret-right:before{content:\"\\F0DA\"}.fa-columns:before{content:\"\\F0DB\"}.fa-unsorted:before,.fa-sort:before{content:\"\\F0DC\"}.fa-sort-down:before,.fa-sort-desc:before{content:\"\\F0DD\"}.fa-sort-up:before,.fa-sort-asc:before{content:\"\\F0DE\"}.fa-envelope:before{content:\"\\F0E0\"}.fa-linkedin:before{content:\"\\F0E1\"}.fa-rotate-left:before,.fa-undo:before{content:\"\\F0E2\"}.fa-legal:before,.fa-gavel:before{content:\"\\F0E3\"}.fa-dashboard:before,.fa-tachometer:before{content:\"\\F0E4\"}.fa-comment-o:before{content:\"\\F0E5\"}.fa-comments-o:before{content:\"\\F0E6\"}.fa-flash:before,.fa-bolt:before{content:\"\\F0E7\"}.fa-sitemap:before{content:\"\\F0E8\"}.fa-umbrella:before{content:\"\\F0E9\"}.fa-paste:before,.fa-clipboard:before{content:\"\\F0EA\"}.fa-lightbulb-o:before{content:\"\\F0EB\"}.fa-exchange:before{content:\"\\F0EC\"}.fa-cloud-download:before{content:\"\\F0ED\"}.fa-cloud-upload:before{content:\"\\F0EE\"}.fa-user-md:before{content:\"\\F0F0\"}.fa-stethoscope:before{content:\"\\F0F1\"}.fa-suitcase:before{content:\"\\F0F2\"}.fa-bell-o:before{content:\"\\F0A2\"}.fa-coffee:before{content:\"\\F0F4\"}.fa-cutlery:before{content:\"\\F0F5\"}.fa-file-text-o:before{content:\"\\F0F6\"}.fa-building-o:before{content:\"\\F0F7\"}.fa-hospital-o:before{content:\"\\F0F8\"}.fa-ambulance:before{content:\"\\F0F9\"}.fa-medkit:before{content:\"\\F0FA\"}.fa-fighter-jet:before{content:\"\\F0FB\"}.fa-beer:before{content:\"\\F0FC\"}.fa-h-square:before{content:\"\\F0FD\"}.fa-plus-square:before{content:\"\\F0FE\"}.fa-angle-double-left:before{content:\"\\F100\"}.fa-angle-double-right:before{content:\"\\F101\"}.fa-angle-double-up:before{content:\"\\F102\"}.fa-angle-double-down:before{content:\"\\F103\"}.fa-angle-left:before{content:\"\\F104\"}.fa-angle-right:before{content:\"\\F105\"}.fa-angle-up:before{content:\"\\F106\"}.fa-angle-down:before{content:\"\\F107\"}.fa-desktop:before{content:\"\\F108\"}.fa-laptop:before{content:\"\\F109\"}.fa-tablet:before{content:\"\\F10A\"}.fa-mobile-phone:before,.fa-mobile:before{content:\"\\F10B\"}.fa-circle-o:before{content:\"\\F10C\"}.fa-quote-left:before{content:\"\\F10D\"}.fa-quote-right:before{content:\"\\F10E\"}.fa-spinner:before{content:\"\\F110\"}.fa-circle:before{content:\"\\F111\"}.fa-mail-reply:before,.fa-reply:before{content:\"\\F112\"}.fa-github-alt:before{content:\"\\F113\"}.fa-folder-o:before{content:\"\\F114\"}.fa-folder-open-o:before{content:\"\\F115\"}.fa-smile-o:before{content:\"\\F118\"}.fa-frown-o:before{content:\"\\F119\"}.fa-meh-o:before{content:\"\\F11A\"}.fa-gamepad:before{content:\"\\F11B\"}.fa-keyboard-o:before{content:\"\\F11C\"}.fa-flag-o:before{content:\"\\F11D\"}.fa-flag-checkered:before{content:\"\\F11E\"}.fa-terminal:before{content:\"\\F120\"}.fa-code:before{content:\"\\F121\"}.fa-mail-reply-all:before,.fa-reply-all:before{content:\"\\F122\"}.fa-star-half-empty:before,.fa-star-half-full:before,.fa-star-half-o:before{content:\"\\F123\"}.fa-location-arrow:before{content:\"\\F124\"}.fa-crop:before{content:\"\\F125\"}.fa-code-fork:before{content:\"\\F126\"}.fa-unlink:before,.fa-chain-broken:before{content:\"\\F127\"}.fa-question:before{content:\"\\F128\"}.fa-info:before{content:\"\\F129\"}.fa-exclamation:before{content:\"\\F12A\"}.fa-superscript:before{content:\"\\F12B\"}.fa-subscript:before{content:\"\\F12C\"}.fa-eraser:before{content:\"\\F12D\"}.fa-puzzle-piece:before{content:\"\\F12E\"}.fa-microphone:before{content:\"\\F130\"}.fa-microphone-slash:before{content:\"\\F131\"}.fa-shield:before{content:\"\\F132\"}.fa-calendar-o:before{content:\"\\F133\"}.fa-fire-extinguisher:before{content:\"\\F134\"}.fa-rocket:before{content:\"\\F135\"}.fa-maxcdn:before{content:\"\\F136\"}.fa-chevron-circle-left:before{content:\"\\F137\"}.fa-chevron-circle-right:before{content:\"\\F138\"}.fa-chevron-circle-up:before{content:\"\\F139\"}.fa-chevron-circle-down:before{content:\"\\F13A\"}.fa-html5:before{content:\"\\F13B\"}.fa-css3:before{content:\"\\F13C\"}.fa-anchor:before{content:\"\\F13D\"}.fa-unlock-alt:before{content:\"\\F13E\"}.fa-bullseye:before{content:\"\\F140\"}.fa-ellipsis-h:before{content:\"\\F141\"}.fa-ellipsis-v:before{content:\"\\F142\"}.fa-rss-square:before{content:\"\\F143\"}.fa-play-circle:before{content:\"\\F144\"}.fa-ticket:before{content:\"\\F145\"}.fa-minus-square:before{content:\"\\F146\"}.fa-minus-square-o:before{content:\"\\F147\"}.fa-level-up:before{content:\"\\F148\"}.fa-level-down:before{content:\"\\F149\"}.fa-check-square:before{content:\"\\F14A\"}.fa-pencil-square:before{content:\"\\F14B\"}.fa-external-link-square:before{content:\"\\F14C\"}.fa-share-square:before{content:\"\\F14D\"}.fa-compass:before{content:\"\\F14E\"}.fa-toggle-down:before,.fa-caret-square-o-down:before{content:\"\\F150\"}.fa-toggle-up:before,.fa-caret-square-o-up:before{content:\"\\F151\"}.fa-toggle-right:before,.fa-caret-square-o-right:before{content:\"\\F152\"}.fa-euro:before,.fa-eur:before{content:\"\\F153\"}.fa-gbp:before{content:\"\\F154\"}.fa-dollar:before,.fa-usd:before{content:\"\\F155\"}.fa-rupee:before,.fa-inr:before{content:\"\\F156\"}.fa-cny:before,.fa-rmb:before,.fa-yen:before,.fa-jpy:before{content:\"\\F157\"}.fa-ruble:before,.fa-rouble:before,.fa-rub:before{content:\"\\F158\"}.fa-won:before,.fa-krw:before{content:\"\\F159\"}.fa-bitcoin:before,.fa-btc:before{content:\"\\F15A\"}.fa-file:before{content:\"\\F15B\"}.fa-file-text:before{content:\"\\F15C\"}.fa-sort-alpha-asc:before{content:\"\\F15D\"}.fa-sort-alpha-desc:before{content:\"\\F15E\"}.fa-sort-amount-asc:before{content:\"\\F160\"}.fa-sort-amount-desc:before{content:\"\\F161\"}.fa-sort-numeric-asc:before{content:\"\\F162\"}.fa-sort-numeric-desc:before{content:\"\\F163\"}.fa-thumbs-up:before{content:\"\\F164\"}.fa-thumbs-down:before{content:\"\\F165\"}.fa-youtube-square:before{content:\"\\F166\"}.fa-youtube:before{content:\"\\F167\"}.fa-xing:before{content:\"\\F168\"}.fa-xing-square:before{content:\"\\F169\"}.fa-youtube-play:before{content:\"\\F16A\"}.fa-dropbox:before{content:\"\\F16B\"}.fa-stack-overflow:before{content:\"\\F16C\"}.fa-instagram:before{content:\"\\F16D\"}.fa-flickr:before{content:\"\\F16E\"}.fa-adn:before{content:\"\\F170\"}.fa-bitbucket:before{content:\"\\F171\"}.fa-bitbucket-square:before{content:\"\\F172\"}.fa-tumblr:before{content:\"\\F173\"}.fa-tumblr-square:before{content:\"\\F174\"}.fa-long-arrow-down:before{content:\"\\F175\"}.fa-long-arrow-up:before{content:\"\\F176\"}.fa-long-arrow-left:before{content:\"\\F177\"}.fa-long-arrow-right:before{content:\"\\F178\"}.fa-apple:before{content:\"\\F179\"}.fa-windows:before{content:\"\\F17A\"}.fa-android:before{content:\"\\F17B\"}.fa-linux:before{content:\"\\F17C\"}.fa-dribbble:before{content:\"\\F17D\"}.fa-skype:before{content:\"\\F17E\"}.fa-foursquare:before{content:\"\\F180\"}.fa-trello:before{content:\"\\F181\"}.fa-female:before{content:\"\\F182\"}.fa-male:before{content:\"\\F183\"}.fa-gittip:before,.fa-gratipay:before{content:\"\\F184\"}.fa-sun-o:before{content:\"\\F185\"}.fa-moon-o:before{content:\"\\F186\"}.fa-archive:before{content:\"\\F187\"}.fa-bug:before{content:\"\\F188\"}.fa-vk:before{content:\"\\F189\"}.fa-weibo:before{content:\"\\F18A\"}.fa-renren:before{content:\"\\F18B\"}.fa-pagelines:before{content:\"\\F18C\"}.fa-stack-exchange:before{content:\"\\F18D\"}.fa-arrow-circle-o-right:before{content:\"\\F18E\"}.fa-arrow-circle-o-left:before{content:\"\\F190\"}.fa-toggle-left:before,.fa-caret-square-o-left:before{content:\"\\F191\"}.fa-dot-circle-o:before{content:\"\\F192\"}.fa-wheelchair:before{content:\"\\F193\"}.fa-vimeo-square:before{content:\"\\F194\"}.fa-turkish-lira:before,.fa-try:before{content:\"\\F195\"}.fa-plus-square-o:before{content:\"\\F196\"}.fa-space-shuttle:before{content:\"\\F197\"}.fa-slack:before{content:\"\\F198\"}.fa-envelope-square:before{content:\"\\F199\"}.fa-wordpress:before{content:\"\\F19A\"}.fa-openid:before{content:\"\\F19B\"}.fa-institution:before,.fa-bank:before,.fa-university:before{content:\"\\F19C\"}.fa-mortar-board:before,.fa-graduation-cap:before{content:\"\\F19D\"}.fa-yahoo:before{content:\"\\F19E\"}.fa-google:before{content:\"\\F1A0\"}.fa-reddit:before{content:\"\\F1A1\"}.fa-reddit-square:before{content:\"\\F1A2\"}.fa-stumbleupon-circle:before{content:\"\\F1A3\"}.fa-stumbleupon:before{content:\"\\F1A4\"}.fa-delicious:before{content:\"\\F1A5\"}.fa-digg:before{content:\"\\F1A6\"}.fa-pied-piper-pp:before{content:\"\\F1A7\"}.fa-pied-piper-alt:before{content:\"\\F1A8\"}.fa-drupal:before{content:\"\\F1A9\"}.fa-joomla:before{content:\"\\F1AA\"}.fa-language:before{content:\"\\F1AB\"}.fa-fax:before{content:\"\\F1AC\"}.fa-building:before{content:\"\\F1AD\"}.fa-child:before{content:\"\\F1AE\"}.fa-paw:before{content:\"\\F1B0\"}.fa-spoon:before{content:\"\\F1B1\"}.fa-cube:before{content:\"\\F1B2\"}.fa-cubes:before{content:\"\\F1B3\"}.fa-behance:before{content:\"\\F1B4\"}.fa-behance-square:before{content:\"\\F1B5\"}.fa-steam:before{content:\"\\F1B6\"}.fa-steam-square:before{content:\"\\F1B7\"}.fa-recycle:before{content:\"\\F1B8\"}.fa-automobile:before,.fa-car:before{content:\"\\F1B9\"}.fa-cab:before,.fa-taxi:before{content:\"\\F1BA\"}.fa-tree:before{content:\"\\F1BB\"}.fa-spotify:before{content:\"\\F1BC\"}.fa-deviantart:before{content:\"\\F1BD\"}.fa-soundcloud:before{content:\"\\F1BE\"}.fa-database:before{content:\"\\F1C0\"}.fa-file-pdf-o:before{content:\"\\F1C1\"}.fa-file-word-o:before{content:\"\\F1C2\"}.fa-file-excel-o:before{content:\"\\F1C3\"}.fa-file-powerpoint-o:before{content:\"\\F1C4\"}.fa-file-photo-o:before,.fa-file-picture-o:before,.fa-file-image-o:before{content:\"\\F1C5\"}.fa-file-zip-o:before,.fa-file-archive-o:before{content:\"\\F1C6\"}.fa-file-sound-o:before,.fa-file-audio-o:before{content:\"\\F1C7\"}.fa-file-movie-o:before,.fa-file-video-o:before{content:\"\\F1C8\"}.fa-file-code-o:before{content:\"\\F1C9\"}.fa-vine:before{content:\"\\F1CA\"}.fa-codepen:before{content:\"\\F1CB\"}.fa-jsfiddle:before{content:\"\\F1CC\"}.fa-life-bouy:before,.fa-life-buoy:before,.fa-life-saver:before,.fa-support:before,.fa-life-ring:before{content:\"\\F1CD\"}.fa-circle-o-notch:before{content:\"\\F1CE\"}.fa-ra:before,.fa-resistance:before,.fa-rebel:before{content:\"\\F1D0\"}.fa-ge:before,.fa-empire:before{content:\"\\F1D1\"}.fa-git-square:before{content:\"\\F1D2\"}.fa-git:before{content:\"\\F1D3\"}.fa-y-combinator-square:before,.fa-yc-square:before,.fa-hacker-news:before{content:\"\\F1D4\"}.fa-tencent-weibo:before{content:\"\\F1D5\"}.fa-qq:before{content:\"\\F1D6\"}.fa-wechat:before,.fa-weixin:before{content:\"\\F1D7\"}.fa-send:before,.fa-paper-plane:before{content:\"\\F1D8\"}.fa-send-o:before,.fa-paper-plane-o:before{content:\"\\F1D9\"}.fa-history:before{content:\"\\F1DA\"}.fa-circle-thin:before{content:\"\\F1DB\"}.fa-header:before{content:\"\\F1DC\"}.fa-paragraph:before{content:\"\\F1DD\"}.fa-sliders:before{content:\"\\F1DE\"}.fa-share-alt:before{content:\"\\F1E0\"}.fa-share-alt-square:before{content:\"\\F1E1\"}.fa-bomb:before{content:\"\\F1E2\"}.fa-soccer-ball-o:before,.fa-futbol-o:before{content:\"\\F1E3\"}.fa-tty:before{content:\"\\F1E4\"}.fa-binoculars:before{content:\"\\F1E5\"}.fa-plug:before{content:\"\\F1E6\"}.fa-slideshare:before{content:\"\\F1E7\"}.fa-twitch:before{content:\"\\F1E8\"}.fa-yelp:before{content:\"\\F1E9\"}.fa-newspaper-o:before{content:\"\\F1EA\"}.fa-wifi:before{content:\"\\F1EB\"}.fa-calculator:before{content:\"\\F1EC\"}.fa-paypal:before{content:\"\\F1ED\"}.fa-google-wallet:before{content:\"\\F1EE\"}.fa-cc-visa:before{content:\"\\F1F0\"}.fa-cc-mastercard:before{content:\"\\F1F1\"}.fa-cc-discover:before{content:\"\\F1F2\"}.fa-cc-amex:before{content:\"\\F1F3\"}.fa-cc-paypal:before{content:\"\\F1F4\"}.fa-cc-stripe:before{content:\"\\F1F5\"}.fa-bell-slash:before{content:\"\\F1F6\"}.fa-bell-slash-o:before{content:\"\\F1F7\"}.fa-trash:before{content:\"\\F1F8\"}.fa-copyright:before{content:\"\\F1F9\"}.fa-at:before{content:\"\\F1FA\"}.fa-eyedropper:before{content:\"\\F1FB\"}.fa-paint-brush:before{content:\"\\F1FC\"}.fa-birthday-cake:before{content:\"\\F1FD\"}.fa-area-chart:before{content:\"\\F1FE\"}.fa-pie-chart:before{content:\"\\F200\"}.fa-line-chart:before{content:\"\\F201\"}.fa-lastfm:before{content:\"\\F202\"}.fa-lastfm-square:before{content:\"\\F203\"}.fa-toggle-off:before{content:\"\\F204\"}.fa-toggle-on:before{content:\"\\F205\"}.fa-bicycle:before{content:\"\\F206\"}.fa-bus:before{content:\"\\F207\"}.fa-ioxhost:before{content:\"\\F208\"}.fa-angellist:before{content:\"\\F209\"}.fa-cc:before{content:\"\\F20A\"}.fa-shekel:before,.fa-sheqel:before,.fa-ils:before{content:\"\\F20B\"}.fa-meanpath:before{content:\"\\F20C\"}.fa-buysellads:before{content:\"\\F20D\"}.fa-connectdevelop:before{content:\"\\F20E\"}.fa-dashcube:before{content:\"\\F210\"}.fa-forumbee:before{content:\"\\F211\"}.fa-leanpub:before{content:\"\\F212\"}.fa-sellsy:before{content:\"\\F213\"}.fa-shirtsinbulk:before{content:\"\\F214\"}.fa-simplybuilt:before{content:\"\\F215\"}.fa-skyatlas:before{content:\"\\F216\"}.fa-cart-plus:before{content:\"\\F217\"}.fa-cart-arrow-down:before{content:\"\\F218\"}.fa-diamond:before{content:\"\\F219\"}.fa-ship:before{content:\"\\F21A\"}.fa-user-secret:before{content:\"\\F21B\"}.fa-motorcycle:before{content:\"\\F21C\"}.fa-street-view:before{content:\"\\F21D\"}.fa-heartbeat:before{content:\"\\F21E\"}.fa-venus:before{content:\"\\F221\"}.fa-mars:before{content:\"\\F222\"}.fa-mercury:before{content:\"\\F223\"}.fa-intersex:before,.fa-transgender:before{content:\"\\F224\"}.fa-transgender-alt:before{content:\"\\F225\"}.fa-venus-double:before{content:\"\\F226\"}.fa-mars-double:before{content:\"\\F227\"}.fa-venus-mars:before{content:\"\\F228\"}.fa-mars-stroke:before{content:\"\\F229\"}.fa-mars-stroke-v:before{content:\"\\F22A\"}.fa-mars-stroke-h:before{content:\"\\F22B\"}.fa-neuter:before{content:\"\\F22C\"}.fa-genderless:before{content:\"\\F22D\"}.fa-facebook-official:before{content:\"\\F230\"}.fa-pinterest-p:before{content:\"\\F231\"}.fa-whatsapp:before{content:\"\\F232\"}.fa-server:before{content:\"\\F233\"}.fa-user-plus:before{content:\"\\F234\"}.fa-user-times:before{content:\"\\F235\"}.fa-hotel:before,.fa-bed:before{content:\"\\F236\"}.fa-viacoin:before{content:\"\\F237\"}.fa-train:before{content:\"\\F238\"}.fa-subway:before{content:\"\\F239\"}.fa-medium:before{content:\"\\F23A\"}.fa-yc:before,.fa-y-combinator:before{content:\"\\F23B\"}.fa-optin-monster:before{content:\"\\F23C\"}.fa-opencart:before{content:\"\\F23D\"}.fa-expeditedssl:before{content:\"\\F23E\"}.fa-battery-4:before,.fa-battery:before,.fa-battery-full:before{content:\"\\F240\"}.fa-battery-3:before,.fa-battery-three-quarters:before{content:\"\\F241\"}.fa-battery-2:before,.fa-battery-half:before{content:\"\\F242\"}.fa-battery-1:before,.fa-battery-quarter:before{content:\"\\F243\"}.fa-battery-0:before,.fa-battery-empty:before{content:\"\\F244\"}.fa-mouse-pointer:before{content:\"\\F245\"}.fa-i-cursor:before{content:\"\\F246\"}.fa-object-group:before{content:\"\\F247\"}.fa-object-ungroup:before{content:\"\\F248\"}.fa-sticky-note:before{content:\"\\F249\"}.fa-sticky-note-o:before{content:\"\\F24A\"}.fa-cc-jcb:before{content:\"\\F24B\"}.fa-cc-diners-club:before{content:\"\\F24C\"}.fa-clone:before{content:\"\\F24D\"}.fa-balance-scale:before{content:\"\\F24E\"}.fa-hourglass-o:before{content:\"\\F250\"}.fa-hourglass-1:before,.fa-hourglass-start:before{content:\"\\F251\"}.fa-hourglass-2:before,.fa-hourglass-half:before{content:\"\\F252\"}.fa-hourglass-3:before,.fa-hourglass-end:before{content:\"\\F253\"}.fa-hourglass:before{content:\"\\F254\"}.fa-hand-grab-o:before,.fa-hand-rock-o:before{content:\"\\F255\"}.fa-hand-stop-o:before,.fa-hand-paper-o:before{content:\"\\F256\"}.fa-hand-scissors-o:before{content:\"\\F257\"}.fa-hand-lizard-o:before{content:\"\\F258\"}.fa-hand-spock-o:before{content:\"\\F259\"}.fa-hand-pointer-o:before{content:\"\\F25A\"}.fa-hand-peace-o:before{content:\"\\F25B\"}.fa-trademark:before{content:\"\\F25C\"}.fa-registered:before{content:\"\\F25D\"}.fa-creative-commons:before{content:\"\\F25E\"}.fa-gg:before{content:\"\\F260\"}.fa-gg-circle:before{content:\"\\F261\"}.fa-tripadvisor:before{content:\"\\F262\"}.fa-odnoklassniki:before{content:\"\\F263\"}.fa-odnoklassniki-square:before{content:\"\\F264\"}.fa-get-pocket:before{content:\"\\F265\"}.fa-wikipedia-w:before{content:\"\\F266\"}.fa-safari:before{content:\"\\F267\"}.fa-chrome:before{content:\"\\F268\"}.fa-firefox:before{content:\"\\F269\"}.fa-opera:before{content:\"\\F26A\"}.fa-internet-explorer:before{content:\"\\F26B\"}.fa-tv:before,.fa-television:before{content:\"\\F26C\"}.fa-contao:before{content:\"\\F26D\"}.fa-500px:before{content:\"\\F26E\"}.fa-amazon:before{content:\"\\F270\"}.fa-calendar-plus-o:before{content:\"\\F271\"}.fa-calendar-minus-o:before{content:\"\\F272\"}.fa-calendar-times-o:before{content:\"\\F273\"}.fa-calendar-check-o:before{content:\"\\F274\"}.fa-industry:before{content:\"\\F275\"}.fa-map-pin:before{content:\"\\F276\"}.fa-map-signs:before{content:\"\\F277\"}.fa-map-o:before{content:\"\\F278\"}.fa-map:before{content:\"\\F279\"}.fa-commenting:before{content:\"\\F27A\"}.fa-commenting-o:before{content:\"\\F27B\"}.fa-houzz:before{content:\"\\F27C\"}.fa-vimeo:before{content:\"\\F27D\"}.fa-black-tie:before{content:\"\\F27E\"}.fa-fonticons:before{content:\"\\F280\"}.fa-reddit-alien:before{content:\"\\F281\"}.fa-edge:before{content:\"\\F282\"}.fa-credit-card-alt:before{content:\"\\F283\"}.fa-codiepie:before{content:\"\\F284\"}.fa-modx:before{content:\"\\F285\"}.fa-fort-awesome:before{content:\"\\F286\"}.fa-usb:before{content:\"\\F287\"}.fa-product-hunt:before{content:\"\\F288\"}.fa-mixcloud:before{content:\"\\F289\"}.fa-scribd:before{content:\"\\F28A\"}.fa-pause-circle:before{content:\"\\F28B\"}.fa-pause-circle-o:before{content:\"\\F28C\"}.fa-stop-circle:before{content:\"\\F28D\"}.fa-stop-circle-o:before{content:\"\\F28E\"}.fa-shopping-bag:before{content:\"\\F290\"}.fa-shopping-basket:before{content:\"\\F291\"}.fa-hashtag:before{content:\"\\F292\"}.fa-bluetooth:before{content:\"\\F293\"}.fa-bluetooth-b:before{content:\"\\F294\"}.fa-percent:before{content:\"\\F295\"}.fa-gitlab:before{content:\"\\F296\"}.fa-wpbeginner:before{content:\"\\F297\"}.fa-wpforms:before{content:\"\\F298\"}.fa-envira:before{content:\"\\F299\"}.fa-universal-access:before{content:\"\\F29A\"}.fa-wheelchair-alt:before{content:\"\\F29B\"}.fa-question-circle-o:before{content:\"\\F29C\"}.fa-blind:before{content:\"\\F29D\"}.fa-audio-description:before{content:\"\\F29E\"}.fa-volume-control-phone:before{content:\"\\F2A0\"}.fa-braille:before{content:\"\\F2A1\"}.fa-assistive-listening-systems:before{content:\"\\F2A2\"}.fa-asl-interpreting:before,.fa-american-sign-language-interpreting:before{content:\"\\F2A3\"}.fa-deafness:before,.fa-hard-of-hearing:before,.fa-deaf:before{content:\"\\F2A4\"}.fa-glide:before{content:\"\\F2A5\"}.fa-glide-g:before{content:\"\\F2A6\"}.fa-signing:before,.fa-sign-language:before{content:\"\\F2A7\"}.fa-low-vision:before{content:\"\\F2A8\"}.fa-viadeo:before{content:\"\\F2A9\"}.fa-viadeo-square:before{content:\"\\F2AA\"}.fa-snapchat:before{content:\"\\F2AB\"}.fa-snapchat-ghost:before{content:\"\\F2AC\"}.fa-snapchat-square:before{content:\"\\F2AD\"}.fa-pied-piper:before{content:\"\\F2AE\"}.fa-first-order:before{content:\"\\F2B0\"}.fa-yoast:before{content:\"\\F2B1\"}.fa-themeisle:before{content:\"\\F2B2\"}.fa-google-plus-circle:before,.fa-google-plus-official:before{content:\"\\F2B3\"}.fa-fa:before,.fa-font-awesome:before{content:\"\\F2B4\"}.fa-handshake-o:before{content:\"\\F2B5\"}.fa-envelope-open:before{content:\"\\F2B6\"}.fa-envelope-open-o:before{content:\"\\F2B7\"}.fa-linode:before{content:\"\\F2B8\"}.fa-address-book:before{content:\"\\F2B9\"}.fa-address-book-o:before{content:\"\\F2BA\"}.fa-vcard:before,.fa-address-card:before{content:\"\\F2BB\"}.fa-vcard-o:before,.fa-address-card-o:before{content:\"\\F2BC\"}.fa-user-circle:before{content:\"\\F2BD\"}.fa-user-circle-o:before{content:\"\\F2BE\"}.fa-user-o:before{content:\"\\F2C0\"}.fa-id-badge:before{content:\"\\F2C1\"}.fa-drivers-license:before,.fa-id-card:before{content:\"\\F2C2\"}.fa-drivers-license-o:before,.fa-id-card-o:before{content:\"\\F2C3\"}.fa-quora:before{content:\"\\F2C4\"}.fa-free-code-camp:before{content:\"\\F2C5\"}.fa-telegram:before{content:\"\\F2C6\"}.fa-thermometer-4:before,.fa-thermometer:before,.fa-thermometer-full:before{content:\"\\F2C7\"}.fa-thermometer-3:before,.fa-thermometer-three-quarters:before{content:\"\\F2C8\"}.fa-thermometer-2:before,.fa-thermometer-half:before{content:\"\\F2C9\"}.fa-thermometer-1:before,.fa-thermometer-quarter:before{content:\"\\F2CA\"}.fa-thermometer-0:before,.fa-thermometer-empty:before{content:\"\\F2CB\"}.fa-shower:before{content:\"\\F2CC\"}.fa-bathtub:before,.fa-s15:before,.fa-bath:before{content:\"\\F2CD\"}.fa-podcast:before{content:\"\\F2CE\"}.fa-window-maximize:before{content:\"\\F2D0\"}.fa-window-minimize:before{content:\"\\F2D1\"}.fa-window-restore:before{content:\"\\F2D2\"}.fa-times-rectangle:before,.fa-window-close:before{content:\"\\F2D3\"}.fa-times-rectangle-o:before,.fa-window-close-o:before{content:\"\\F2D4\"}.fa-bandcamp:before{content:\"\\F2D5\"}.fa-grav:before{content:\"\\F2D6\"}.fa-etsy:before{content:\"\\F2D7\"}.fa-imdb:before{content:\"\\F2D8\"}.fa-ravelry:before{content:\"\\F2D9\"}.fa-eercast:before{content:\"\\F2DA\"}.fa-microchip:before{content:\"\\F2DB\"}.fa-snowflake-o:before{content:\"\\F2DC\"}.fa-superpowers:before{content:\"\\F2DD\"}.fa-wpexplorer:before{content:\"\\F2DE\"}.fa-meetup:before{content:\"\\F2E0\"}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);border:0}.sr-only-focusable:active,.sr-only-focusable:focus{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto}\n", ""]);
+exports.push([module.i, "/*!\n *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome\n *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)\n */@font-face{font-family:'FontAwesome';src:url(" + escape(__webpack_require__(188)) + ");src:url(" + escape(__webpack_require__(189)) + "?#iefix&v=4.7.0) format('embedded-opentype'),url(" + escape(__webpack_require__(190)) + ") format('woff2'),url(" + escape(__webpack_require__(191)) + ") format('woff'),url(" + escape(__webpack_require__(192)) + ") format('truetype'),url(" + escape(__webpack_require__(193)) + "#fontawesomeregular) format('svg');font-weight:normal;font-style:normal}.fa{display:inline-block;font:normal normal normal 14px/1 FontAwesome;font-size:inherit;text-rendering:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.fa-lg{font-size:1.33333333em;line-height:.75em;vertical-align:-15%}.fa-2x{font-size:2em}.fa-3x{font-size:3em}.fa-4x{font-size:4em}.fa-5x{font-size:5em}.fa-fw{width:1.28571429em;text-align:center}.fa-ul{padding-left:0;margin-left:2.14285714em;list-style-type:none}.fa-ul>li{position:relative}.fa-li{position:absolute;left:-2.14285714em;width:2.14285714em;top:.14285714em;text-align:center}.fa-li.fa-lg{left:-1.85714286em}.fa-border{padding:.2em .25em .15em;border:solid .08em #eee;border-radius:.1em}.fa-pull-left{float:left}.fa-pull-right{float:right}.fa.fa-pull-left{margin-right:.3em}.fa.fa-pull-right{margin-left:.3em}.pull-right{float:right}.pull-left{float:left}.fa.pull-left{margin-right:.3em}.fa.pull-right{margin-left:.3em}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}.fa-pulse{-webkit-animation:fa-spin 1s infinite steps(8);animation:fa-spin 1s infinite steps(8)}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(359deg);transform:rotate(359deg)}}.fa-rotate-90{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.fa-rotate-180{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}.fa-rotate-270{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";-webkit-transform:rotate(270deg);-ms-transform:rotate(270deg);transform:rotate(270deg)}.fa-flip-horizontal{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1)}.fa-flip-vertical{-ms-filter:\"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";-webkit-transform:scale(1, -1);-ms-transform:scale(1, -1);transform:scale(1, -1)}:root .fa-rotate-90,:root .fa-rotate-180,:root .fa-rotate-270,:root .fa-flip-horizontal,:root .fa-flip-vertical{filter:none}.fa-stack{position:relative;display:inline-block;width:2em;height:2em;line-height:2em;vertical-align:middle}.fa-stack-1x,.fa-stack-2x{position:absolute;left:0;width:100%;text-align:center}.fa-stack-1x{line-height:inherit}.fa-stack-2x{font-size:2em}.fa-inverse{color:#fff}.fa-glass:before{content:\"\\F000\"}.fa-music:before{content:\"\\F001\"}.fa-search:before{content:\"\\F002\"}.fa-envelope-o:before{content:\"\\F003\"}.fa-heart:before{content:\"\\F004\"}.fa-star:before{content:\"\\F005\"}.fa-star-o:before{content:\"\\F006\"}.fa-user:before{content:\"\\F007\"}.fa-film:before{content:\"\\F008\"}.fa-th-large:before{content:\"\\F009\"}.fa-th:before{content:\"\\F00A\"}.fa-th-list:before{content:\"\\F00B\"}.fa-check:before{content:\"\\F00C\"}.fa-remove:before,.fa-close:before,.fa-times:before{content:\"\\F00D\"}.fa-search-plus:before{content:\"\\F00E\"}.fa-search-minus:before{content:\"\\F010\"}.fa-power-off:before{content:\"\\F011\"}.fa-signal:before{content:\"\\F012\"}.fa-gear:before,.fa-cog:before{content:\"\\F013\"}.fa-trash-o:before{content:\"\\F014\"}.fa-home:before{content:\"\\F015\"}.fa-file-o:before{content:\"\\F016\"}.fa-clock-o:before{content:\"\\F017\"}.fa-road:before{content:\"\\F018\"}.fa-download:before{content:\"\\F019\"}.fa-arrow-circle-o-down:before{content:\"\\F01A\"}.fa-arrow-circle-o-up:before{content:\"\\F01B\"}.fa-inbox:before{content:\"\\F01C\"}.fa-play-circle-o:before{content:\"\\F01D\"}.fa-rotate-right:before,.fa-repeat:before{content:\"\\F01E\"}.fa-refresh:before{content:\"\\F021\"}.fa-list-alt:before{content:\"\\F022\"}.fa-lock:before{content:\"\\F023\"}.fa-flag:before{content:\"\\F024\"}.fa-headphones:before{content:\"\\F025\"}.fa-volume-off:before{content:\"\\F026\"}.fa-volume-down:before{content:\"\\F027\"}.fa-volume-up:before{content:\"\\F028\"}.fa-qrcode:before{content:\"\\F029\"}.fa-barcode:before{content:\"\\F02A\"}.fa-tag:before{content:\"\\F02B\"}.fa-tags:before{content:\"\\F02C\"}.fa-book:before{content:\"\\F02D\"}.fa-bookmark:before{content:\"\\F02E\"}.fa-print:before{content:\"\\F02F\"}.fa-camera:before{content:\"\\F030\"}.fa-font:before{content:\"\\F031\"}.fa-bold:before{content:\"\\F032\"}.fa-italic:before{content:\"\\F033\"}.fa-text-height:before{content:\"\\F034\"}.fa-text-width:before{content:\"\\F035\"}.fa-align-left:before{content:\"\\F036\"}.fa-align-center:before{content:\"\\F037\"}.fa-align-right:before{content:\"\\F038\"}.fa-align-justify:before{content:\"\\F039\"}.fa-list:before{content:\"\\F03A\"}.fa-dedent:before,.fa-outdent:before{content:\"\\F03B\"}.fa-indent:before{content:\"\\F03C\"}.fa-video-camera:before{content:\"\\F03D\"}.fa-photo:before,.fa-image:before,.fa-picture-o:before{content:\"\\F03E\"}.fa-pencil:before{content:\"\\F040\"}.fa-map-marker:before{content:\"\\F041\"}.fa-adjust:before{content:\"\\F042\"}.fa-tint:before{content:\"\\F043\"}.fa-edit:before,.fa-pencil-square-o:before{content:\"\\F044\"}.fa-share-square-o:before{content:\"\\F045\"}.fa-check-square-o:before{content:\"\\F046\"}.fa-arrows:before{content:\"\\F047\"}.fa-step-backward:before{content:\"\\F048\"}.fa-fast-backward:before{content:\"\\F049\"}.fa-backward:before{content:\"\\F04A\"}.fa-play:before{content:\"\\F04B\"}.fa-pause:before{content:\"\\F04C\"}.fa-stop:before{content:\"\\F04D\"}.fa-forward:before{content:\"\\F04E\"}.fa-fast-forward:before{content:\"\\F050\"}.fa-step-forward:before{content:\"\\F051\"}.fa-eject:before{content:\"\\F052\"}.fa-chevron-left:before{content:\"\\F053\"}.fa-chevron-right:before{content:\"\\F054\"}.fa-plus-circle:before{content:\"\\F055\"}.fa-minus-circle:before{content:\"\\F056\"}.fa-times-circle:before{content:\"\\F057\"}.fa-check-circle:before{content:\"\\F058\"}.fa-question-circle:before{content:\"\\F059\"}.fa-info-circle:before{content:\"\\F05A\"}.fa-crosshairs:before{content:\"\\F05B\"}.fa-times-circle-o:before{content:\"\\F05C\"}.fa-check-circle-o:before{content:\"\\F05D\"}.fa-ban:before{content:\"\\F05E\"}.fa-arrow-left:before{content:\"\\F060\"}.fa-arrow-right:before{content:\"\\F061\"}.fa-arrow-up:before{content:\"\\F062\"}.fa-arrow-down:before{content:\"\\F063\"}.fa-mail-forward:before,.fa-share:before{content:\"\\F064\"}.fa-expand:before{content:\"\\F065\"}.fa-compress:before{content:\"\\F066\"}.fa-plus:before{content:\"\\F067\"}.fa-minus:before{content:\"\\F068\"}.fa-asterisk:before{content:\"\\F069\"}.fa-exclamation-circle:before{content:\"\\F06A\"}.fa-gift:before{content:\"\\F06B\"}.fa-leaf:before{content:\"\\F06C\"}.fa-fire:before{content:\"\\F06D\"}.fa-eye:before{content:\"\\F06E\"}.fa-eye-slash:before{content:\"\\F070\"}.fa-warning:before,.fa-exclamation-triangle:before{content:\"\\F071\"}.fa-plane:before{content:\"\\F072\"}.fa-calendar:before{content:\"\\F073\"}.fa-random:before{content:\"\\F074\"}.fa-comment:before{content:\"\\F075\"}.fa-magnet:before{content:\"\\F076\"}.fa-chevron-up:before{content:\"\\F077\"}.fa-chevron-down:before{content:\"\\F078\"}.fa-retweet:before{content:\"\\F079\"}.fa-shopping-cart:before{content:\"\\F07A\"}.fa-folder:before{content:\"\\F07B\"}.fa-folder-open:before{content:\"\\F07C\"}.fa-arrows-v:before{content:\"\\F07D\"}.fa-arrows-h:before{content:\"\\F07E\"}.fa-bar-chart-o:before,.fa-bar-chart:before{content:\"\\F080\"}.fa-twitter-square:before{content:\"\\F081\"}.fa-facebook-square:before{content:\"\\F082\"}.fa-camera-retro:before{content:\"\\F083\"}.fa-key:before{content:\"\\F084\"}.fa-gears:before,.fa-cogs:before{content:\"\\F085\"}.fa-comments:before{content:\"\\F086\"}.fa-thumbs-o-up:before{content:\"\\F087\"}.fa-thumbs-o-down:before{content:\"\\F088\"}.fa-star-half:before{content:\"\\F089\"}.fa-heart-o:before{content:\"\\F08A\"}.fa-sign-out:before{content:\"\\F08B\"}.fa-linkedin-square:before{content:\"\\F08C\"}.fa-thumb-tack:before{content:\"\\F08D\"}.fa-external-link:before{content:\"\\F08E\"}.fa-sign-in:before{content:\"\\F090\"}.fa-trophy:before{content:\"\\F091\"}.fa-github-square:before{content:\"\\F092\"}.fa-upload:before{content:\"\\F093\"}.fa-lemon-o:before{content:\"\\F094\"}.fa-phone:before{content:\"\\F095\"}.fa-square-o:before{content:\"\\F096\"}.fa-bookmark-o:before{content:\"\\F097\"}.fa-phone-square:before{content:\"\\F098\"}.fa-twitter:before{content:\"\\F099\"}.fa-facebook-f:before,.fa-facebook:before{content:\"\\F09A\"}.fa-github:before{content:\"\\F09B\"}.fa-unlock:before{content:\"\\F09C\"}.fa-credit-card:before{content:\"\\F09D\"}.fa-feed:before,.fa-rss:before{content:\"\\F09E\"}.fa-hdd-o:before{content:\"\\F0A0\"}.fa-bullhorn:before{content:\"\\F0A1\"}.fa-bell:before{content:\"\\F0F3\"}.fa-certificate:before{content:\"\\F0A3\"}.fa-hand-o-right:before{content:\"\\F0A4\"}.fa-hand-o-left:before{content:\"\\F0A5\"}.fa-hand-o-up:before{content:\"\\F0A6\"}.fa-hand-o-down:before{content:\"\\F0A7\"}.fa-arrow-circle-left:before{content:\"\\F0A8\"}.fa-arrow-circle-right:before{content:\"\\F0A9\"}.fa-arrow-circle-up:before{content:\"\\F0AA\"}.fa-arrow-circle-down:before{content:\"\\F0AB\"}.fa-globe:before{content:\"\\F0AC\"}.fa-wrench:before{content:\"\\F0AD\"}.fa-tasks:before{content:\"\\F0AE\"}.fa-filter:before{content:\"\\F0B0\"}.fa-briefcase:before{content:\"\\F0B1\"}.fa-arrows-alt:before{content:\"\\F0B2\"}.fa-group:before,.fa-users:before{content:\"\\F0C0\"}.fa-chain:before,.fa-link:before{content:\"\\F0C1\"}.fa-cloud:before{content:\"\\F0C2\"}.fa-flask:before{content:\"\\F0C3\"}.fa-cut:before,.fa-scissors:before{content:\"\\F0C4\"}.fa-copy:before,.fa-files-o:before{content:\"\\F0C5\"}.fa-paperclip:before{content:\"\\F0C6\"}.fa-save:before,.fa-floppy-o:before{content:\"\\F0C7\"}.fa-square:before{content:\"\\F0C8\"}.fa-navicon:before,.fa-reorder:before,.fa-bars:before{content:\"\\F0C9\"}.fa-list-ul:before{content:\"\\F0CA\"}.fa-list-ol:before{content:\"\\F0CB\"}.fa-strikethrough:before{content:\"\\F0CC\"}.fa-underline:before{content:\"\\F0CD\"}.fa-table:before{content:\"\\F0CE\"}.fa-magic:before{content:\"\\F0D0\"}.fa-truck:before{content:\"\\F0D1\"}.fa-pinterest:before{content:\"\\F0D2\"}.fa-pinterest-square:before{content:\"\\F0D3\"}.fa-google-plus-square:before{content:\"\\F0D4\"}.fa-google-plus:before{content:\"\\F0D5\"}.fa-money:before{content:\"\\F0D6\"}.fa-caret-down:before{content:\"\\F0D7\"}.fa-caret-up:before{content:\"\\F0D8\"}.fa-caret-left:before{content:\"\\F0D9\"}.fa-caret-right:before{content:\"\\F0DA\"}.fa-columns:before{content:\"\\F0DB\"}.fa-unsorted:before,.fa-sort:before{content:\"\\F0DC\"}.fa-sort-down:before,.fa-sort-desc:before{content:\"\\F0DD\"}.fa-sort-up:before,.fa-sort-asc:before{content:\"\\F0DE\"}.fa-envelope:before{content:\"\\F0E0\"}.fa-linkedin:before{content:\"\\F0E1\"}.fa-rotate-left:before,.fa-undo:before{content:\"\\F0E2\"}.fa-legal:before,.fa-gavel:before{content:\"\\F0E3\"}.fa-dashboard:before,.fa-tachometer:before{content:\"\\F0E4\"}.fa-comment-o:before{content:\"\\F0E5\"}.fa-comments-o:before{content:\"\\F0E6\"}.fa-flash:before,.fa-bolt:before{content:\"\\F0E7\"}.fa-sitemap:before{content:\"\\F0E8\"}.fa-umbrella:before{content:\"\\F0E9\"}.fa-paste:before,.fa-clipboard:before{content:\"\\F0EA\"}.fa-lightbulb-o:before{content:\"\\F0EB\"}.fa-exchange:before{content:\"\\F0EC\"}.fa-cloud-download:before{content:\"\\F0ED\"}.fa-cloud-upload:before{content:\"\\F0EE\"}.fa-user-md:before{content:\"\\F0F0\"}.fa-stethoscope:before{content:\"\\F0F1\"}.fa-suitcase:before{content:\"\\F0F2\"}.fa-bell-o:before{content:\"\\F0A2\"}.fa-coffee:before{content:\"\\F0F4\"}.fa-cutlery:before{content:\"\\F0F5\"}.fa-file-text-o:before{content:\"\\F0F6\"}.fa-building-o:before{content:\"\\F0F7\"}.fa-hospital-o:before{content:\"\\F0F8\"}.fa-ambulance:before{content:\"\\F0F9\"}.fa-medkit:before{content:\"\\F0FA\"}.fa-fighter-jet:before{content:\"\\F0FB\"}.fa-beer:before{content:\"\\F0FC\"}.fa-h-square:before{content:\"\\F0FD\"}.fa-plus-square:before{content:\"\\F0FE\"}.fa-angle-double-left:before{content:\"\\F100\"}.fa-angle-double-right:before{content:\"\\F101\"}.fa-angle-double-up:before{content:\"\\F102\"}.fa-angle-double-down:before{content:\"\\F103\"}.fa-angle-left:before{content:\"\\F104\"}.fa-angle-right:before{content:\"\\F105\"}.fa-angle-up:before{content:\"\\F106\"}.fa-angle-down:before{content:\"\\F107\"}.fa-desktop:before{content:\"\\F108\"}.fa-laptop:before{content:\"\\F109\"}.fa-tablet:before{content:\"\\F10A\"}.fa-mobile-phone:before,.fa-mobile:before{content:\"\\F10B\"}.fa-circle-o:before{content:\"\\F10C\"}.fa-quote-left:before{content:\"\\F10D\"}.fa-quote-right:before{content:\"\\F10E\"}.fa-spinner:before{content:\"\\F110\"}.fa-circle:before{content:\"\\F111\"}.fa-mail-reply:before,.fa-reply:before{content:\"\\F112\"}.fa-github-alt:before{content:\"\\F113\"}.fa-folder-o:before{content:\"\\F114\"}.fa-folder-open-o:before{content:\"\\F115\"}.fa-smile-o:before{content:\"\\F118\"}.fa-frown-o:before{content:\"\\F119\"}.fa-meh-o:before{content:\"\\F11A\"}.fa-gamepad:before{content:\"\\F11B\"}.fa-keyboard-o:before{content:\"\\F11C\"}.fa-flag-o:before{content:\"\\F11D\"}.fa-flag-checkered:before{content:\"\\F11E\"}.fa-terminal:before{content:\"\\F120\"}.fa-code:before{content:\"\\F121\"}.fa-mail-reply-all:before,.fa-reply-all:before{content:\"\\F122\"}.fa-star-half-empty:before,.fa-star-half-full:before,.fa-star-half-o:before{content:\"\\F123\"}.fa-location-arrow:before{content:\"\\F124\"}.fa-crop:before{content:\"\\F125\"}.fa-code-fork:before{content:\"\\F126\"}.fa-unlink:before,.fa-chain-broken:before{content:\"\\F127\"}.fa-question:before{content:\"\\F128\"}.fa-info:before{content:\"\\F129\"}.fa-exclamation:before{content:\"\\F12A\"}.fa-superscript:before{content:\"\\F12B\"}.fa-subscript:before{content:\"\\F12C\"}.fa-eraser:before{content:\"\\F12D\"}.fa-puzzle-piece:before{content:\"\\F12E\"}.fa-microphone:before{content:\"\\F130\"}.fa-microphone-slash:before{content:\"\\F131\"}.fa-shield:before{content:\"\\F132\"}.fa-calendar-o:before{content:\"\\F133\"}.fa-fire-extinguisher:before{content:\"\\F134\"}.fa-rocket:before{content:\"\\F135\"}.fa-maxcdn:before{content:\"\\F136\"}.fa-chevron-circle-left:before{content:\"\\F137\"}.fa-chevron-circle-right:before{content:\"\\F138\"}.fa-chevron-circle-up:before{content:\"\\F139\"}.fa-chevron-circle-down:before{content:\"\\F13A\"}.fa-html5:before{content:\"\\F13B\"}.fa-css3:before{content:\"\\F13C\"}.fa-anchor:before{content:\"\\F13D\"}.fa-unlock-alt:before{content:\"\\F13E\"}.fa-bullseye:before{content:\"\\F140\"}.fa-ellipsis-h:before{content:\"\\F141\"}.fa-ellipsis-v:before{content:\"\\F142\"}.fa-rss-square:before{content:\"\\F143\"}.fa-play-circle:before{content:\"\\F144\"}.fa-ticket:before{content:\"\\F145\"}.fa-minus-square:before{content:\"\\F146\"}.fa-minus-square-o:before{content:\"\\F147\"}.fa-level-up:before{content:\"\\F148\"}.fa-level-down:before{content:\"\\F149\"}.fa-check-square:before{content:\"\\F14A\"}.fa-pencil-square:before{content:\"\\F14B\"}.fa-external-link-square:before{content:\"\\F14C\"}.fa-share-square:before{content:\"\\F14D\"}.fa-compass:before{content:\"\\F14E\"}.fa-toggle-down:before,.fa-caret-square-o-down:before{content:\"\\F150\"}.fa-toggle-up:before,.fa-caret-square-o-up:before{content:\"\\F151\"}.fa-toggle-right:before,.fa-caret-square-o-right:before{content:\"\\F152\"}.fa-euro:before,.fa-eur:before{content:\"\\F153\"}.fa-gbp:before{content:\"\\F154\"}.fa-dollar:before,.fa-usd:before{content:\"\\F155\"}.fa-rupee:before,.fa-inr:before{content:\"\\F156\"}.fa-cny:before,.fa-rmb:before,.fa-yen:before,.fa-jpy:before{content:\"\\F157\"}.fa-ruble:before,.fa-rouble:before,.fa-rub:before{content:\"\\F158\"}.fa-won:before,.fa-krw:before{content:\"\\F159\"}.fa-bitcoin:before,.fa-btc:before{content:\"\\F15A\"}.fa-file:before{content:\"\\F15B\"}.fa-file-text:before{content:\"\\F15C\"}.fa-sort-alpha-asc:before{content:\"\\F15D\"}.fa-sort-alpha-desc:before{content:\"\\F15E\"}.fa-sort-amount-asc:before{content:\"\\F160\"}.fa-sort-amount-desc:before{content:\"\\F161\"}.fa-sort-numeric-asc:before{content:\"\\F162\"}.fa-sort-numeric-desc:before{content:\"\\F163\"}.fa-thumbs-up:before{content:\"\\F164\"}.fa-thumbs-down:before{content:\"\\F165\"}.fa-youtube-square:before{content:\"\\F166\"}.fa-youtube:before{content:\"\\F167\"}.fa-xing:before{content:\"\\F168\"}.fa-xing-square:before{content:\"\\F169\"}.fa-youtube-play:before{content:\"\\F16A\"}.fa-dropbox:before{content:\"\\F16B\"}.fa-stack-overflow:before{content:\"\\F16C\"}.fa-instagram:before{content:\"\\F16D\"}.fa-flickr:before{content:\"\\F16E\"}.fa-adn:before{content:\"\\F170\"}.fa-bitbucket:before{content:\"\\F171\"}.fa-bitbucket-square:before{content:\"\\F172\"}.fa-tumblr:before{content:\"\\F173\"}.fa-tumblr-square:before{content:\"\\F174\"}.fa-long-arrow-down:before{content:\"\\F175\"}.fa-long-arrow-up:before{content:\"\\F176\"}.fa-long-arrow-left:before{content:\"\\F177\"}.fa-long-arrow-right:before{content:\"\\F178\"}.fa-apple:before{content:\"\\F179\"}.fa-windows:before{content:\"\\F17A\"}.fa-android:before{content:\"\\F17B\"}.fa-linux:before{content:\"\\F17C\"}.fa-dribbble:before{content:\"\\F17D\"}.fa-skype:before{content:\"\\F17E\"}.fa-foursquare:before{content:\"\\F180\"}.fa-trello:before{content:\"\\F181\"}.fa-female:before{content:\"\\F182\"}.fa-male:before{content:\"\\F183\"}.fa-gittip:before,.fa-gratipay:before{content:\"\\F184\"}.fa-sun-o:before{content:\"\\F185\"}.fa-moon-o:before{content:\"\\F186\"}.fa-archive:before{content:\"\\F187\"}.fa-bug:before{content:\"\\F188\"}.fa-vk:before{content:\"\\F189\"}.fa-weibo:before{content:\"\\F18A\"}.fa-renren:before{content:\"\\F18B\"}.fa-pagelines:before{content:\"\\F18C\"}.fa-stack-exchange:before{content:\"\\F18D\"}.fa-arrow-circle-o-right:before{content:\"\\F18E\"}.fa-arrow-circle-o-left:before{content:\"\\F190\"}.fa-toggle-left:before,.fa-caret-square-o-left:before{content:\"\\F191\"}.fa-dot-circle-o:before{content:\"\\F192\"}.fa-wheelchair:before{content:\"\\F193\"}.fa-vimeo-square:before{content:\"\\F194\"}.fa-turkish-lira:before,.fa-try:before{content:\"\\F195\"}.fa-plus-square-o:before{content:\"\\F196\"}.fa-space-shuttle:before{content:\"\\F197\"}.fa-slack:before{content:\"\\F198\"}.fa-envelope-square:before{content:\"\\F199\"}.fa-wordpress:before{content:\"\\F19A\"}.fa-openid:before{content:\"\\F19B\"}.fa-institution:before,.fa-bank:before,.fa-university:before{content:\"\\F19C\"}.fa-mortar-board:before,.fa-graduation-cap:before{content:\"\\F19D\"}.fa-yahoo:before{content:\"\\F19E\"}.fa-google:before{content:\"\\F1A0\"}.fa-reddit:before{content:\"\\F1A1\"}.fa-reddit-square:before{content:\"\\F1A2\"}.fa-stumbleupon-circle:before{content:\"\\F1A3\"}.fa-stumbleupon:before{content:\"\\F1A4\"}.fa-delicious:before{content:\"\\F1A5\"}.fa-digg:before{content:\"\\F1A6\"}.fa-pied-piper-pp:before{content:\"\\F1A7\"}.fa-pied-piper-alt:before{content:\"\\F1A8\"}.fa-drupal:before{content:\"\\F1A9\"}.fa-joomla:before{content:\"\\F1AA\"}.fa-language:before{content:\"\\F1AB\"}.fa-fax:before{content:\"\\F1AC\"}.fa-building:before{content:\"\\F1AD\"}.fa-child:before{content:\"\\F1AE\"}.fa-paw:before{content:\"\\F1B0\"}.fa-spoon:before{content:\"\\F1B1\"}.fa-cube:before{content:\"\\F1B2\"}.fa-cubes:before{content:\"\\F1B3\"}.fa-behance:before{content:\"\\F1B4\"}.fa-behance-square:before{content:\"\\F1B5\"}.fa-steam:before{content:\"\\F1B6\"}.fa-steam-square:before{content:\"\\F1B7\"}.fa-recycle:before{content:\"\\F1B8\"}.fa-automobile:before,.fa-car:before{content:\"\\F1B9\"}.fa-cab:before,.fa-taxi:before{content:\"\\F1BA\"}.fa-tree:before{content:\"\\F1BB\"}.fa-spotify:before{content:\"\\F1BC\"}.fa-deviantart:before{content:\"\\F1BD\"}.fa-soundcloud:before{content:\"\\F1BE\"}.fa-database:before{content:\"\\F1C0\"}.fa-file-pdf-o:before{content:\"\\F1C1\"}.fa-file-word-o:before{content:\"\\F1C2\"}.fa-file-excel-o:before{content:\"\\F1C3\"}.fa-file-powerpoint-o:before{content:\"\\F1C4\"}.fa-file-photo-o:before,.fa-file-picture-o:before,.fa-file-image-o:before{content:\"\\F1C5\"}.fa-file-zip-o:before,.fa-file-archive-o:before{content:\"\\F1C6\"}.fa-file-sound-o:before,.fa-file-audio-o:before{content:\"\\F1C7\"}.fa-file-movie-o:before,.fa-file-video-o:before{content:\"\\F1C8\"}.fa-file-code-o:before{content:\"\\F1C9\"}.fa-vine:before{content:\"\\F1CA\"}.fa-codepen:before{content:\"\\F1CB\"}.fa-jsfiddle:before{content:\"\\F1CC\"}.fa-life-bouy:before,.fa-life-buoy:before,.fa-life-saver:before,.fa-support:before,.fa-life-ring:before{content:\"\\F1CD\"}.fa-circle-o-notch:before{content:\"\\F1CE\"}.fa-ra:before,.fa-resistance:before,.fa-rebel:before{content:\"\\F1D0\"}.fa-ge:before,.fa-empire:before{content:\"\\F1D1\"}.fa-git-square:before{content:\"\\F1D2\"}.fa-git:before{content:\"\\F1D3\"}.fa-y-combinator-square:before,.fa-yc-square:before,.fa-hacker-news:before{content:\"\\F1D4\"}.fa-tencent-weibo:before{content:\"\\F1D5\"}.fa-qq:before{content:\"\\F1D6\"}.fa-wechat:before,.fa-weixin:before{content:\"\\F1D7\"}.fa-send:before,.fa-paper-plane:before{content:\"\\F1D8\"}.fa-send-o:before,.fa-paper-plane-o:before{content:\"\\F1D9\"}.fa-history:before{content:\"\\F1DA\"}.fa-circle-thin:before{content:\"\\F1DB\"}.fa-header:before{content:\"\\F1DC\"}.fa-paragraph:before{content:\"\\F1DD\"}.fa-sliders:before{content:\"\\F1DE\"}.fa-share-alt:before{content:\"\\F1E0\"}.fa-share-alt-square:before{content:\"\\F1E1\"}.fa-bomb:before{content:\"\\F1E2\"}.fa-soccer-ball-o:before,.fa-futbol-o:before{content:\"\\F1E3\"}.fa-tty:before{content:\"\\F1E4\"}.fa-binoculars:before{content:\"\\F1E5\"}.fa-plug:before{content:\"\\F1E6\"}.fa-slideshare:before{content:\"\\F1E7\"}.fa-twitch:before{content:\"\\F1E8\"}.fa-yelp:before{content:\"\\F1E9\"}.fa-newspaper-o:before{content:\"\\F1EA\"}.fa-wifi:before{content:\"\\F1EB\"}.fa-calculator:before{content:\"\\F1EC\"}.fa-paypal:before{content:\"\\F1ED\"}.fa-google-wallet:before{content:\"\\F1EE\"}.fa-cc-visa:before{content:\"\\F1F0\"}.fa-cc-mastercard:before{content:\"\\F1F1\"}.fa-cc-discover:before{content:\"\\F1F2\"}.fa-cc-amex:before{content:\"\\F1F3\"}.fa-cc-paypal:before{content:\"\\F1F4\"}.fa-cc-stripe:before{content:\"\\F1F5\"}.fa-bell-slash:before{content:\"\\F1F6\"}.fa-bell-slash-o:before{content:\"\\F1F7\"}.fa-trash:before{content:\"\\F1F8\"}.fa-copyright:before{content:\"\\F1F9\"}.fa-at:before{content:\"\\F1FA\"}.fa-eyedropper:before{content:\"\\F1FB\"}.fa-paint-brush:before{content:\"\\F1FC\"}.fa-birthday-cake:before{content:\"\\F1FD\"}.fa-area-chart:before{content:\"\\F1FE\"}.fa-pie-chart:before{content:\"\\F200\"}.fa-line-chart:before{content:\"\\F201\"}.fa-lastfm:before{content:\"\\F202\"}.fa-lastfm-square:before{content:\"\\F203\"}.fa-toggle-off:before{content:\"\\F204\"}.fa-toggle-on:before{content:\"\\F205\"}.fa-bicycle:before{content:\"\\F206\"}.fa-bus:before{content:\"\\F207\"}.fa-ioxhost:before{content:\"\\F208\"}.fa-angellist:before{content:\"\\F209\"}.fa-cc:before{content:\"\\F20A\"}.fa-shekel:before,.fa-sheqel:before,.fa-ils:before{content:\"\\F20B\"}.fa-meanpath:before{content:\"\\F20C\"}.fa-buysellads:before{content:\"\\F20D\"}.fa-connectdevelop:before{content:\"\\F20E\"}.fa-dashcube:before{content:\"\\F210\"}.fa-forumbee:before{content:\"\\F211\"}.fa-leanpub:before{content:\"\\F212\"}.fa-sellsy:before{content:\"\\F213\"}.fa-shirtsinbulk:before{content:\"\\F214\"}.fa-simplybuilt:before{content:\"\\F215\"}.fa-skyatlas:before{content:\"\\F216\"}.fa-cart-plus:before{content:\"\\F217\"}.fa-cart-arrow-down:before{content:\"\\F218\"}.fa-diamond:before{content:\"\\F219\"}.fa-ship:before{content:\"\\F21A\"}.fa-user-secret:before{content:\"\\F21B\"}.fa-motorcycle:before{content:\"\\F21C\"}.fa-street-view:before{content:\"\\F21D\"}.fa-heartbeat:before{content:\"\\F21E\"}.fa-venus:before{content:\"\\F221\"}.fa-mars:before{content:\"\\F222\"}.fa-mercury:before{content:\"\\F223\"}.fa-intersex:before,.fa-transgender:before{content:\"\\F224\"}.fa-transgender-alt:before{content:\"\\F225\"}.fa-venus-double:before{content:\"\\F226\"}.fa-mars-double:before{content:\"\\F227\"}.fa-venus-mars:before{content:\"\\F228\"}.fa-mars-stroke:before{content:\"\\F229\"}.fa-mars-stroke-v:before{content:\"\\F22A\"}.fa-mars-stroke-h:before{content:\"\\F22B\"}.fa-neuter:before{content:\"\\F22C\"}.fa-genderless:before{content:\"\\F22D\"}.fa-facebook-official:before{content:\"\\F230\"}.fa-pinterest-p:before{content:\"\\F231\"}.fa-whatsapp:before{content:\"\\F232\"}.fa-server:before{content:\"\\F233\"}.fa-user-plus:before{content:\"\\F234\"}.fa-user-times:before{content:\"\\F235\"}.fa-hotel:before,.fa-bed:before{content:\"\\F236\"}.fa-viacoin:before{content:\"\\F237\"}.fa-train:before{content:\"\\F238\"}.fa-subway:before{content:\"\\F239\"}.fa-medium:before{content:\"\\F23A\"}.fa-yc:before,.fa-y-combinator:before{content:\"\\F23B\"}.fa-optin-monster:before{content:\"\\F23C\"}.fa-opencart:before{content:\"\\F23D\"}.fa-expeditedssl:before{content:\"\\F23E\"}.fa-battery-4:before,.fa-battery:before,.fa-battery-full:before{content:\"\\F240\"}.fa-battery-3:before,.fa-battery-three-quarters:before{content:\"\\F241\"}.fa-battery-2:before,.fa-battery-half:before{content:\"\\F242\"}.fa-battery-1:before,.fa-battery-quarter:before{content:\"\\F243\"}.fa-battery-0:before,.fa-battery-empty:before{content:\"\\F244\"}.fa-mouse-pointer:before{content:\"\\F245\"}.fa-i-cursor:before{content:\"\\F246\"}.fa-object-group:before{content:\"\\F247\"}.fa-object-ungroup:before{content:\"\\F248\"}.fa-sticky-note:before{content:\"\\F249\"}.fa-sticky-note-o:before{content:\"\\F24A\"}.fa-cc-jcb:before{content:\"\\F24B\"}.fa-cc-diners-club:before{content:\"\\F24C\"}.fa-clone:before{content:\"\\F24D\"}.fa-balance-scale:before{content:\"\\F24E\"}.fa-hourglass-o:before{content:\"\\F250\"}.fa-hourglass-1:before,.fa-hourglass-start:before{content:\"\\F251\"}.fa-hourglass-2:before,.fa-hourglass-half:before{content:\"\\F252\"}.fa-hourglass-3:before,.fa-hourglass-end:before{content:\"\\F253\"}.fa-hourglass:before{content:\"\\F254\"}.fa-hand-grab-o:before,.fa-hand-rock-o:before{content:\"\\F255\"}.fa-hand-stop-o:before,.fa-hand-paper-o:before{content:\"\\F256\"}.fa-hand-scissors-o:before{content:\"\\F257\"}.fa-hand-lizard-o:before{content:\"\\F258\"}.fa-hand-spock-o:before{content:\"\\F259\"}.fa-hand-pointer-o:before{content:\"\\F25A\"}.fa-hand-peace-o:before{content:\"\\F25B\"}.fa-trademark:before{content:\"\\F25C\"}.fa-registered:before{content:\"\\F25D\"}.fa-creative-commons:before{content:\"\\F25E\"}.fa-gg:before{content:\"\\F260\"}.fa-gg-circle:before{content:\"\\F261\"}.fa-tripadvisor:before{content:\"\\F262\"}.fa-odnoklassniki:before{content:\"\\F263\"}.fa-odnoklassniki-square:before{content:\"\\F264\"}.fa-get-pocket:before{content:\"\\F265\"}.fa-wikipedia-w:before{content:\"\\F266\"}.fa-safari:before{content:\"\\F267\"}.fa-chrome:before{content:\"\\F268\"}.fa-firefox:before{content:\"\\F269\"}.fa-opera:before{content:\"\\F26A\"}.fa-internet-explorer:before{content:\"\\F26B\"}.fa-tv:before,.fa-television:before{content:\"\\F26C\"}.fa-contao:before{content:\"\\F26D\"}.fa-500px:before{content:\"\\F26E\"}.fa-amazon:before{content:\"\\F270\"}.fa-calendar-plus-o:before{content:\"\\F271\"}.fa-calendar-minus-o:before{content:\"\\F272\"}.fa-calendar-times-o:before{content:\"\\F273\"}.fa-calendar-check-o:before{content:\"\\F274\"}.fa-industry:before{content:\"\\F275\"}.fa-map-pin:before{content:\"\\F276\"}.fa-map-signs:before{content:\"\\F277\"}.fa-map-o:before{content:\"\\F278\"}.fa-map:before{content:\"\\F279\"}.fa-commenting:before{content:\"\\F27A\"}.fa-commenting-o:before{content:\"\\F27B\"}.fa-houzz:before{content:\"\\F27C\"}.fa-vimeo:before{content:\"\\F27D\"}.fa-black-tie:before{content:\"\\F27E\"}.fa-fonticons:before{content:\"\\F280\"}.fa-reddit-alien:before{content:\"\\F281\"}.fa-edge:before{content:\"\\F282\"}.fa-credit-card-alt:before{content:\"\\F283\"}.fa-codiepie:before{content:\"\\F284\"}.fa-modx:before{content:\"\\F285\"}.fa-fort-awesome:before{content:\"\\F286\"}.fa-usb:before{content:\"\\F287\"}.fa-product-hunt:before{content:\"\\F288\"}.fa-mixcloud:before{content:\"\\F289\"}.fa-scribd:before{content:\"\\F28A\"}.fa-pause-circle:before{content:\"\\F28B\"}.fa-pause-circle-o:before{content:\"\\F28C\"}.fa-stop-circle:before{content:\"\\F28D\"}.fa-stop-circle-o:before{content:\"\\F28E\"}.fa-shopping-bag:before{content:\"\\F290\"}.fa-shopping-basket:before{content:\"\\F291\"}.fa-hashtag:before{content:\"\\F292\"}.fa-bluetooth:before{content:\"\\F293\"}.fa-bluetooth-b:before{content:\"\\F294\"}.fa-percent:before{content:\"\\F295\"}.fa-gitlab:before{content:\"\\F296\"}.fa-wpbeginner:before{content:\"\\F297\"}.fa-wpforms:before{content:\"\\F298\"}.fa-envira:before{content:\"\\F299\"}.fa-universal-access:before{content:\"\\F29A\"}.fa-wheelchair-alt:before{content:\"\\F29B\"}.fa-question-circle-o:before{content:\"\\F29C\"}.fa-blind:before{content:\"\\F29D\"}.fa-audio-description:before{content:\"\\F29E\"}.fa-volume-control-phone:before{content:\"\\F2A0\"}.fa-braille:before{content:\"\\F2A1\"}.fa-assistive-listening-systems:before{content:\"\\F2A2\"}.fa-asl-interpreting:before,.fa-american-sign-language-interpreting:before{content:\"\\F2A3\"}.fa-deafness:before,.fa-hard-of-hearing:before,.fa-deaf:before{content:\"\\F2A4\"}.fa-glide:before{content:\"\\F2A5\"}.fa-glide-g:before{content:\"\\F2A6\"}.fa-signing:before,.fa-sign-language:before{content:\"\\F2A7\"}.fa-low-vision:before{content:\"\\F2A8\"}.fa-viadeo:before{content:\"\\F2A9\"}.fa-viadeo-square:before{content:\"\\F2AA\"}.fa-snapchat:before{content:\"\\F2AB\"}.fa-snapchat-ghost:before{content:\"\\F2AC\"}.fa-snapchat-square:before{content:\"\\F2AD\"}.fa-pied-piper:before{content:\"\\F2AE\"}.fa-first-order:before{content:\"\\F2B0\"}.fa-yoast:before{content:\"\\F2B1\"}.fa-themeisle:before{content:\"\\F2B2\"}.fa-google-plus-circle:before,.fa-google-plus-official:before{content:\"\\F2B3\"}.fa-fa:before,.fa-font-awesome:before{content:\"\\F2B4\"}.fa-handshake-o:before{content:\"\\F2B5\"}.fa-envelope-open:before{content:\"\\F2B6\"}.fa-envelope-open-o:before{content:\"\\F2B7\"}.fa-linode:before{content:\"\\F2B8\"}.fa-address-book:before{content:\"\\F2B9\"}.fa-address-book-o:before{content:\"\\F2BA\"}.fa-vcard:before,.fa-address-card:before{content:\"\\F2BB\"}.fa-vcard-o:before,.fa-address-card-o:before{content:\"\\F2BC\"}.fa-user-circle:before{content:\"\\F2BD\"}.fa-user-circle-o:before{content:\"\\F2BE\"}.fa-user-o:before{content:\"\\F2C0\"}.fa-id-badge:before{content:\"\\F2C1\"}.fa-drivers-license:before,.fa-id-card:before{content:\"\\F2C2\"}.fa-drivers-license-o:before,.fa-id-card-o:before{content:\"\\F2C3\"}.fa-quora:before{content:\"\\F2C4\"}.fa-free-code-camp:before{content:\"\\F2C5\"}.fa-telegram:before{content:\"\\F2C6\"}.fa-thermometer-4:before,.fa-thermometer:before,.fa-thermometer-full:before{content:\"\\F2C7\"}.fa-thermometer-3:before,.fa-thermometer-three-quarters:before{content:\"\\F2C8\"}.fa-thermometer-2:before,.fa-thermometer-half:before{content:\"\\F2C9\"}.fa-thermometer-1:before,.fa-thermometer-quarter:before{content:\"\\F2CA\"}.fa-thermometer-0:before,.fa-thermometer-empty:before{content:\"\\F2CB\"}.fa-shower:before{content:\"\\F2CC\"}.fa-bathtub:before,.fa-s15:before,.fa-bath:before{content:\"\\F2CD\"}.fa-podcast:before{content:\"\\F2CE\"}.fa-window-maximize:before{content:\"\\F2D0\"}.fa-window-minimize:before{content:\"\\F2D1\"}.fa-window-restore:before{content:\"\\F2D2\"}.fa-times-rectangle:before,.fa-window-close:before{content:\"\\F2D3\"}.fa-times-rectangle-o:before,.fa-window-close-o:before{content:\"\\F2D4\"}.fa-bandcamp:before{content:\"\\F2D5\"}.fa-grav:before{content:\"\\F2D6\"}.fa-etsy:before{content:\"\\F2D7\"}.fa-imdb:before{content:\"\\F2D8\"}.fa-ravelry:before{content:\"\\F2D9\"}.fa-eercast:before{content:\"\\F2DA\"}.fa-microchip:before{content:\"\\F2DB\"}.fa-snowflake-o:before{content:\"\\F2DC\"}.fa-superpowers:before{content:\"\\F2DD\"}.fa-wpexplorer:before{content:\"\\F2DE\"}.fa-meetup:before{content:\"\\F2E0\"}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);border:0}.sr-only-focusable:active,.sr-only-focusable:focus{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto}\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 185 */
+/* 187 */
 /***/ (function(module, exports) {
 
 module.exports = function escape(url) {
@@ -87013,43 +87782,43 @@ module.exports = function escape(url) {
 
 
 /***/ }),
-/* 186 */
-/***/ (function(module, exports) {
-
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
-
-/***/ }),
-/* 187 */
-/***/ (function(module, exports) {
-
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
-
-/***/ }),
 /* 188 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff2?af7ae505a9eed503f8b8e6982036873e";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
 
 /***/ }),
 /* 189 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff?fee66e712a8a08eef5805a46892932ad";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.eot?674f50d287a8c48dc19ba404d20fe713";
 
 /***/ }),
 /* 190 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.ttf?b06871f281fee6b241d60582ae9369b9";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff2?af7ae505a9eed503f8b8e6982036873e";
 
 /***/ }),
 /* 191 */
 /***/ (function(module, exports) {
 
-module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.svg?912ec66d7572ff821749319396470bde";
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.woff?fee66e712a8a08eef5805a46892932ad";
 
 /***/ }),
 /* 192 */
+/***/ (function(module, exports) {
+
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.ttf?b06871f281fee6b241d60582ae9369b9";
+
+/***/ }),
+/* 193 */
+/***/ (function(module, exports) {
+
+module.exports = "/fonts/vendor/font-awesome/fontawesome-webfont.svg?912ec66d7572ff821749319396470bde";
+
+/***/ }),
+/* 194 */
 /***/ (function(module, exports) {
 
 
@@ -87144,13 +87913,13 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 193 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(194);
+var content = __webpack_require__(196);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -87158,7 +87927,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(11)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -87175,7 +87944,7 @@ if(false) {
 }
 
 /***/ }),
-/* 194 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -87189,15 +87958,60 @@ exports.push([module.i, "table.dataTable {\n  clear: both;\n  margin-top: 6px !i
 
 
 /***/ }),
-/* 195 */
+/* 197 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(198);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(9)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../css-loader/index.js!./fixedHeader.bootstrap4.css", function() {
+			var newContent = require("!!../../css-loader/index.js!./fixedHeader.bootstrap4.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 198 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(5)(false);
+// imports
+
+
+// module
+exports.push([module.i, "table.dataTable.fixedHeader-floating,\ntable.dataTable.fixedHeader-locked {\n  background-color: white;\n  margin-top: 0 !important;\n  margin-bottom: 0 !important;\n}\n\ntable.dataTable.fixedHeader-floating {\n  position: fixed !important;\n}\n\ntable.dataTable.fixedHeader-locked {\n  position: absolute !important;\n}\n\n@media print {\n  table.fixedHeader-floating {\n    display: none;\n  }\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(196)
+var __vue_script__ = __webpack_require__(200)
 /* template */
-var __vue_template__ = __webpack_require__(217)
+var __vue_template__ = __webpack_require__(221)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -87236,16 +88050,16 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 196 */
+/* 200 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__DepartmentTree_vue__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__DepartmentTree_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__DepartmentTree_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect__ = __webpack_require__(204);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect__ = __webpack_require__(208);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__riophae_vue_treeselect__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css__ = __webpack_require__(215);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css__ = __webpack_require__(219);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect_dist_vue_treeselect_css__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nestable__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nestable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__nestable__);
@@ -87390,7 +88204,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 197 */
+/* 201 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -87509,17 +88323,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 198 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(199);
+var content = __webpack_require__(203);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(8)("592a149f", content, false, {});
+var update = __webpack_require__(10)("592a149f", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -87535,7 +88349,7 @@ if(false) {
 }
 
 /***/ }),
-/* 199 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -87549,7 +88363,7 @@ exports.push([module.i, "\n.modal-mask {\n    position: fixed;\n    z-index: 999
 
 
 /***/ }),
-/* 200 */
+/* 204 */
 /***/ (function(module, exports) {
 
 /**
@@ -87582,7 +88396,7 @@ module.exports = function listToStyles (parentId, list) {
 
 
 /***/ }),
-/* 201 */
+/* 205 */
 /***/ (function(module, exports) {
 
 //
@@ -87685,7 +88499,7 @@ module.exports = function listToStyles (parentId, list) {
 //
 
 /***/ }),
-/* 202 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -87766,7 +88580,7 @@ if (false) {
 }
 
 /***/ }),
-/* 203 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -87894,7 +88708,7 @@ if (false) {
 }
 
 /***/ }),
-/* 204 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -87993,13 +88807,13 @@ module.exports =
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = __webpack_require__(205);
+module.exports = __webpack_require__(209);
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = __webpack_require__(206);
+module.exports = __webpack_require__(210);
 
 /***/ }),
 /* 2 */
@@ -90442,7 +91256,7 @@ var VERSION = "0.0.30";
 //# sourceMappingURL=vue-treeselect.js.map
 
 /***/ }),
-/* 205 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -90473,12 +91287,12 @@ module.exports = fuzzysearch;
 
 
 /***/ }),
-/* 206 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(23),
-    now = __webpack_require__(207),
-    toNumber = __webpack_require__(209);
+    now = __webpack_require__(211),
+    toNumber = __webpack_require__(213);
 
 /** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -90669,7 +91483,7 @@ module.exports = debounce;
 
 
 /***/ }),
-/* 207 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var root = __webpack_require__(24);
@@ -90698,7 +91512,7 @@ module.exports = now;
 
 
 /***/ }),
-/* 208 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/** Detect free variable `global` from Node.js. */
@@ -90709,11 +91523,11 @@ module.exports = freeGlobal;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
-/* 209 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(23),
-    isSymbol = __webpack_require__(210);
+    isSymbol = __webpack_require__(214);
 
 /** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
@@ -90781,11 +91595,11 @@ module.exports = toNumber;
 
 
 /***/ }),
-/* 210 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var baseGetTag = __webpack_require__(211),
-    isObjectLike = __webpack_require__(214);
+var baseGetTag = __webpack_require__(215),
+    isObjectLike = __webpack_require__(218);
 
 /** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
@@ -90816,12 +91630,12 @@ module.exports = isSymbol;
 
 
 /***/ }),
-/* 211 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Symbol = __webpack_require__(25),
-    getRawTag = __webpack_require__(212),
-    objectToString = __webpack_require__(213);
+    getRawTag = __webpack_require__(216),
+    objectToString = __webpack_require__(217);
 
 /** `Object#toString` result references. */
 var nullTag = '[object Null]',
@@ -90850,7 +91664,7 @@ module.exports = baseGetTag;
 
 
 /***/ }),
-/* 212 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Symbol = __webpack_require__(25);
@@ -90902,7 +91716,7 @@ module.exports = getRawTag;
 
 
 /***/ }),
-/* 213 */
+/* 217 */
 /***/ (function(module, exports) {
 
 /** Used for built-in method references. */
@@ -90930,7 +91744,7 @@ module.exports = objectToString;
 
 
 /***/ }),
-/* 214 */
+/* 218 */
 /***/ (function(module, exports) {
 
 /**
@@ -90965,13 +91779,13 @@ module.exports = isObjectLike;
 
 
 /***/ }),
-/* 215 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(216);
+var content = __webpack_require__(220);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -90979,7 +91793,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(11)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -90996,7 +91810,7 @@ if(false) {
 }
 
 /***/ }),
-/* 216 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -91010,7 +91824,7 @@ exports.push([module.i, "/*!\n * vue-treeselect v0.0.30 | (c) 2017-2018 Riophae 
 
 
 /***/ }),
-/* 217 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -91177,19 +91991,19 @@ if (false) {
 }
 
 /***/ }),
-/* 218 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(219)
+  __webpack_require__(223)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(221)
+var __vue_script__ = __webpack_require__(225)
 /* template */
-var __vue_template__ = __webpack_require__(234)
+var __vue_template__ = __webpack_require__(238)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -91228,17 +92042,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 219 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(220);
+var content = __webpack_require__(224);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(8)("47cb5a28", content, false, {});
+var update = __webpack_require__(10)("47cb5a28", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -91254,7 +92068,7 @@ if(false) {
 }
 
 /***/ }),
-/* 220 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -91268,12 +92082,12 @@ exports.push([module.i, "\n.card-body{padding: 5px;\n}\n.card-header{padding: 6p
 
 
 /***/ }),
-/* 221 */
+/* 225 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__ = __webpack_require__(222);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__ = __webpack_require__(226);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_moment__);
 //
@@ -91414,8 +92228,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     }
                 },
                 fixedHeader: true,
-                stateSave: true
+                //                    stateSave:true,
+                rowReorder: true,
+                columnDefs: [{ targets: [1], visible: false }, { targets: '_all', visible: true }, { targets: [0], className: 'reorder' }]
             });
+            //隐藏第二列
+            //                table.columns( [1] ).visible( false );
             this.initDataTableButtons(table);
             this.initDataTableSelect(table);
         },
@@ -91424,7 +92242,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 buttons: ['copy', {
                     extend: 'collection',
                     text: '导出',
-                    postfixButtons: ['colvisRestore'],
                     buttons: [{
                         text: 'cs',
                         action: function action(e, dt, node, config) {
@@ -91439,17 +92256,43 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                             }).join('<br>'));
                         }
                     }]
-                }, 'pdf', 'excel', 'selectAll', 'selectNone', {
-                    extend: 'colvis',
-                    columns: ':gt(0)'
-                }, { extend: 'print', text: '<i class="fa fa-print"></i>', attr: { title: '打印全部或选中数据', id: 'copyButton' }, modifier: {
-                        selected: true
-                    }, key: { key: 'p', ctrlKey: true } }]
+                }, {
+                    extend: 'pdf',
+                    download: 'open',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                }, {
+                    extend: 'excel',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                }, 'selectAll', 'selectNone', {
+                    text: '选择当前页',
+                    action: function action(e, dt, node, config) {
+                        dt.rows({ page: 'current' }).select();
+                    }
+
+                }, 'colvis', {
+                    extend: 'print',
+                    text: '<i class="fa fa-print"></i>',
+                    attr: {
+                        title: '打印全部或选中数据',
+                        id: 'copyButton'
+                    },
+                    key: {
+                        key: 'p',
+                        ctrlKey: true
+                    },
+                    //控制不打印隐藏列，即只打印显示列
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                }]
             });
             //将自动生成的按钮放到指定的位置
             //                table.buttons().container().appendTo($('.dataTableButtons'));
             table.buttons().container().appendTo($('.dataTables_length>label'));
-            table.columns([1]).visible(false);
         },
         initDataTableSelect: function initDataTableSelect(table) {
             table.select.style('os');
@@ -91533,17 +92376,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 this.searchedData.push(single);
             }
             //                console.log(filteredData);
-            console.log(this.searchData);
+            console.log(this.searchedData);
         }
     }
 });
 
 /***/ }),
-/* 222 */
+/* 226 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue__ = __webpack_require__(223);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue__ = __webpack_require__(227);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocal_vue__);
 
 function install (Vue) {
@@ -91557,19 +92400,19 @@ if (typeof window !== 'undefined' && window.Vue) {
 
 
 /***/ }),
-/* 223 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(224)
+  __webpack_require__(228)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(226)
+var __vue_script__ = __webpack_require__(230)
 /* template */
-var __vue_template__ = __webpack_require__(232)
+var __vue_template__ = __webpack_require__(236)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -91608,17 +92451,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 224 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(225);
+var content = __webpack_require__(229);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(8)("76d13e6e", content, false, {});
+var update = __webpack_require__(10)("76d13e6e", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -91634,7 +92477,7 @@ if(false) {
 }
 
 /***/ }),
-/* 225 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -91648,12 +92491,12 @@ exports.push([module.i, "\n.datepicker {\n  display: inline-block;\n  position: 
 
 
 /***/ }),
-/* 226 */
+/* 230 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue__ = __webpack_require__(227);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue__ = __webpack_require__(231);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__VueDatepickerLocalCalendar_vue__);
 //
 //
@@ -91841,19 +92684,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 227 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(228)
+  __webpack_require__(232)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(230)
+var __vue_script__ = __webpack_require__(234)
 /* template */
-var __vue_template__ = __webpack_require__(231)
+var __vue_template__ = __webpack_require__(235)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -91892,17 +92735,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 228 */
+/* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(229);
+var content = __webpack_require__(233);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(8)("3c4081ab", content, false, {});
+var update = __webpack_require__(10)("3c4081ab", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -91918,7 +92761,7 @@ if(false) {
 }
 
 /***/ }),
-/* 229 */
+/* 233 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -91932,7 +92775,7 @@ exports.push([module.i, "\n.calendar {\n  float: left;\n  display: inline-block;
 
 
 /***/ }),
-/* 230 */
+/* 234 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -92193,7 +93036,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 231 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -92770,7 +93613,7 @@ if (false) {
 }
 
 /***/ }),
-/* 232 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -92912,7 +93755,7 @@ if (false) {
 }
 
 /***/ }),
-/* 233 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -93177,10 +94020,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 233;
+webpackContext.id = 237;
 
 /***/ }),
-/* 234 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -93492,15 +94335,15 @@ if (false) {
 }
 
 /***/ }),
-/* 235 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(236)
+var __vue_script__ = __webpack_require__(240)
 /* template */
-var __vue_template__ = __webpack_require__(237)
+var __vue_template__ = __webpack_require__(241)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -93539,7 +94382,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 236 */
+/* 240 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -93554,7 +94397,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony default export */ __webpack_exports__["default"] = ({});
 
 /***/ }),
-/* 237 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -93574,15 +94417,15 @@ if (false) {
 }
 
 /***/ }),
-/* 238 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(239)
+var __vue_script__ = __webpack_require__(243)
 /* template */
-var __vue_template__ = __webpack_require__(240)
+var __vue_template__ = __webpack_require__(244)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -93621,7 +94464,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 239 */
+/* 243 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -93670,7 +94513,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 240 */
+/* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -93720,15 +94563,15 @@ if (false) {
 }
 
 /***/ }),
-/* 241 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(242)
+var __vue_script__ = __webpack_require__(246)
 /* template */
-var __vue_template__ = __webpack_require__(243)
+var __vue_template__ = __webpack_require__(247)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -93767,7 +94610,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 242 */
+/* 246 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -93807,7 +94650,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 243 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -93876,24 +94719,24 @@ if (false) {
 }
 
 /***/ }),
-/* 244 */
+/* 248 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 245 */,
-/* 246 */
+/* 249 */,
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 styling wrapper for FixedHeader
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 styling wrapper for RowReorder
  * ©2018 SpryMedia Ltd - datatables.net/license
  */
 
 (function( factory ){
 	if ( true ) {
 		// AMD
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(9), __webpack_require__(247)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(8), __webpack_require__(251)], __WEBPACK_AMD_DEFINE_RESULT__ = (function ( $ ) {
 			return factory( $, window, document );
 		}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -93909,8 +94752,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! Bootstrap 4 
 				$ = require('datatables.net-bs4')(root, $).$;
 			}
 
-			if ( ! $.fn.dataTable.FixedHeader ) {
-				require('datatables.net-fixedheader')(root, $);
+			if ( ! $.fn.dataTable.RowReorder ) {
+				require('datatables.net-rowreorder')(root, $);
 			}
 
 			return factory( $, root, root.document );
@@ -93927,22 +94770,21 @@ return $.fn.dataTable;
 }));
 
 /***/ }),
-/* 247 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! FixedHeader 3.1.5
- * ©2009-2018 SpryMedia Ltd - datatables.net/license
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! RowReorder 1.2.5
+ * 2015-2018 SpryMedia Ltd - datatables.net/license
  */
 
 /**
- * @summary     FixedHeader
- * @description Fix a table's header or footer, so it is always visible while
- *              scrolling
- * @version     3.1.5
- * @file        dataTables.fixedHeader.js
+ * @summary     RowReorder
+ * @description Row reordering extension for DataTables
+ * @version     1.2.5
+ * @file        dataTables.rowReorder.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     www.sprymedia.co.uk/contact
- * @copyright   Copyright 2009-2018 SpryMedia Ltd.
+ * @copyright   Copyright 2015-2018 SpryMedia Ltd.
  *
  * This source file is free software, available under the following license:
  *   MIT license - http://datatables.net/license/mit
@@ -93985,157 +94827,110 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! FixedHeader 
 var DataTable = $.fn.dataTable;
 
 
-var _instCounter = 0;
-
-var FixedHeader = function ( dt, config ) {
-	// Sanity check - you just know it will happen
-	if ( ! (this instanceof FixedHeader) ) {
-		throw "FixedHeader must be initialised with the 'new' keyword.";
+/**
+ * RowReorder provides the ability in DataTables to click and drag rows to
+ * reorder them. When a row is dropped the data for the rows effected will be
+ * updated to reflect the change. Normally this data point should also be the
+ * column being sorted upon in the DataTable but this does not need to be the
+ * case. RowReorder implements a "data swap" method - so the rows being
+ * reordered take the value of the data point from the row that used to occupy
+ * the row's new position.
+ *
+ * Initialisation is done by either:
+ *
+ * * `rowReorder` parameter in the DataTable initialisation object
+ * * `new $.fn.dataTable.RowReorder( table, opts )` after DataTables
+ *   initialisation.
+ * 
+ *  @class
+ *  @param {object} settings DataTables settings object for the host table
+ *  @param {object} [opts] Configuration options
+ *  @requires jQuery 1.7+
+ *  @requires DataTables 1.10.7+
+ */
+var RowReorder = function ( dt, opts ) {
+	// Sanity check that we are using DataTables 1.10 or newer
+	if ( ! DataTable.versionCheck || ! DataTable.versionCheck( '1.10.8' ) ) {
+		throw 'DataTables RowReorder requires DataTables 1.10.8 or newer';
 	}
 
-	// Allow a boolean true for defaults
-	if ( config === true ) {
-		config = {};
-	}
+	// User and defaults configuration object
+	this.c = $.extend( true, {},
+		DataTable.defaults.rowReorder,
+		RowReorder.defaults,
+		opts
+	);
 
-	dt = new DataTable.Api( dt );
-
-	this.c = $.extend( true, {}, FixedHeader.defaults, config );
-
+	// Internal settings
 	this.s = {
-		dt: dt,
-		position: {
-			theadTop: 0,
-			tbodyTop: 0,
-			tfootTop: 0,
-			tfootBottom: 0,
-			width: 0,
+		/** @type {integer} Scroll body top cache */
+		bodyTop: null,
+
+		/** @type {DataTable.Api} DataTables' API instance */
+		dt: new DataTable.Api( dt ),
+
+		/** @type {function} Data fetch function */
+		getDataFn: DataTable.ext.oApi._fnGetObjectDataFn( this.c.dataSrc ),
+
+		/** @type {array} Pixel positions for row insertion calculation */
+		middles: null,
+
+		/** @type {Object} Cached dimension information for use in the mouse move event handler */
+		scroll: {},
+
+		/** @type {integer} Interval object used for smooth scrolling */
+		scrollInterval: null,
+
+		/** @type {function} Data set function */
+		setDataFn: DataTable.ext.oApi._fnSetObjectDataFn( this.c.dataSrc ),
+
+		/** @type {Object} Mouse down information */
+		start: {
+			top: 0,
 			left: 0,
-			tfootHeight: 0,
-			theadHeight: 0,
-			windowHeight: $(window).height(),
-			visible: true
+			offsetTop: 0,
+			offsetLeft: 0,
+			nodes: []
 		},
-		headerMode: null,
-		footerMode: null,
-		autoWidth: dt.settings()[0].oFeatures.bAutoWidth,
-		namespace: '.dtfc'+(_instCounter++),
-		scrollLeft: {
-			header: -1,
-			footer: -1
-		},
-		enable: true
+
+		/** @type {integer} Window height cached value */
+		windowHeight: 0,
+
+		/** @type {integer} Document outer height cached value */
+		documentOuterHeight: 0,
+
+		/** @type {integer} DOM clone outer height cached value */
+		domCloneOuterHeight: 0
 	};
 
+	// DOM items
 	this.dom = {
-		floatingHeader: null,
-		thead: $(dt.table().header()),
-		tbody: $(dt.table().body()),
-		tfoot: $(dt.table().footer()),
-		header: {
-			host: null,
-			floating: null,
-			placeholder: null
-		},
-		footer: {
-			host: null,
-			floating: null,
-			placeholder: null
-		}
+		/** @type {jQuery} Cloned row being moved around */
+		clone: null,
+
+		/** @type {jQuery} DataTables scrolling container */
+		dtScroll: $('div.dataTables_scrollBody', this.s.dt.table().container())
 	};
 
-	this.dom.header.host = this.dom.thead.parent();
-	this.dom.footer.host = this.dom.tfoot.parent();
-
-	var dtSettings = dt.settings()[0];
-	if ( dtSettings._fixedHeader ) {
-		throw "FixedHeader already initialised on table "+dtSettings.nTable.id;
+	// Check if row reorder has already been initialised on this table
+	var settings = this.s.dt.settings()[0];
+	var exisiting = settings.rowreorder;
+	if ( exisiting ) {
+		return exisiting;
 	}
 
-	dtSettings._fixedHeader = this;
-
+	settings.rowreorder = this;
 	this._constructor();
 };
 
 
-/*
- * Variable: FixedHeader
- * Purpose:  Prototype for FixedHeader
- * Scope:    global
- */
-$.extend( FixedHeader.prototype, {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	 * API methods
-	 */
-	
-	/**
-	 * Enable / disable the fixed elements
-	 *
-	 * @param  {boolean} enable `true` to enable, `false` to disable
-	 */
-	enable: function ( enable )
-	{
-		this.s.enable = enable;
-
-		if ( this.c.header ) {
-			this._modeChange( 'in-place', 'header', true );
-		}
-
-		if ( this.c.footer && this.dom.tfoot.length ) {
-			this._modeChange( 'in-place', 'footer', true );
-		}
-
-		this.update();
-	},
-	
-	/**
-	 * Set header offset 
-	 *
-	 * @param  {int} new value for headerOffset
-	 */
-	headerOffset: function ( offset )
-	{
-		if ( offset !== undefined ) {
-			this.c.headerOffset = offset;
-			this.update();
-		}
-
-		return this.c.headerOffset;
-	},
-	
-	/**
-	 * Set footer offset
-	 *
-	 * @param  {int} new value for footerOffset
-	 */
-	footerOffset: function ( offset )
-	{
-		if ( offset !== undefined ) {
-			this.c.footerOffset = offset;
-			this.update();
-		}
-
-		return this.c.footerOffset;
-	},
-
-	
-	/**
-	 * Recalculate the position of the fixed elements and force them into place
-	 */
-	update: function ()
-	{
-		this._positions();
-		this._scroll( true );
-	},
-
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+$.extend( RowReorder.prototype, {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Constructor
 	 */
-	
+
 	/**
-	 * FixedHeader constructor - adding the required event listeners and
-	 * simple initialisation
+	 * Initialise the RowReorder instance
 	 *
 	 * @private
 	 */
@@ -94143,496 +94938,670 @@ $.extend( FixedHeader.prototype, {
 	{
 		var that = this;
 		var dt = this.s.dt;
+		var table = $( dt.table().node() );
 
-		$(window)
-			.on( 'scroll'+this.s.namespace, function () {
-				that._scroll();
-			} )
-			.on( 'resize'+this.s.namespace, DataTable.util.throttle( function () {
-				that.s.position.windowHeight = $(window).height();
-				that.update();
-			}, 50 ) );
-
-		var autoHeader = $('.fh-fixedHeader');
-		if ( ! this.c.headerOffset && autoHeader.length ) {
-			this.c.headerOffset = autoHeader.outerHeight();
+		// Need to be able to calculate the row positions relative to the table
+		if ( table.css('position') === 'static' ) {
+			table.css( 'position', 'relative' );
 		}
 
-		var autoFooter = $('.fh-fixedFooter');
-		if ( ! this.c.footerOffset && autoFooter.length ) {
-			this.c.footerOffset = autoFooter.outerHeight();
-		}
-
-		dt.on( 'column-reorder.dt.dtfc column-visibility.dt.dtfc draw.dt.dtfc column-sizing.dt.dtfc responsive-display.dt.dtfc', function () {
-			that.update();
-		} );
-
-		dt.on( 'destroy.dtfc', function () {
-			if ( that.c.header ) {
-				that._modeChange( 'in-place', 'header', true );
+		// listen for mouse down on the target column - we have to implement
+		// this rather than using HTML5 drag and drop as drag and drop doesn't
+		// appear to work on table rows at this time. Also mobile browsers are
+		// not supported.
+		// Use `table().container()` rather than just the table node for IE8 -
+		// otherwise it only works once...
+		$(dt.table().container()).on( 'mousedown.rowReorder touchstart.rowReorder', this.c.selector, function (e) {
+			if ( ! that.c.enable ) {
+				return;
 			}
 
-			if ( that.c.footer && that.dom.tfoot.length ) {
-				that._modeChange( 'in-place', 'footer', true );
+			// Ignore excluded children of the selector
+			if ( $(e.target).is(that.c.excludedChildren) ) {
+				return true;
 			}
 
-			dt.off( '.dtfc' );
-			$(window).off( that.s.namespace );
+			var tr = $(this).closest('tr');
+			var row = dt.row( tr );
+
+			// Double check that it is a DataTable row
+			if ( row.any() ) {
+				that._emitEvent( 'pre-row-reorder', {
+					node: row.node(),
+					index: row.index()
+				} );
+
+				that._mouseDown( e, tr );
+				return false;
+			}
 		} );
 
-		this._positions();
-		this._scroll();
+		dt.on( 'destroy.rowReorder', function () {
+			$(dt.table().container()).off( '.rowReorder' );
+			dt.off( '.rowReorder' );
+		} );
 	},
 
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
-
+	
 	/**
-	 * Clone a fixed item to act as a place holder for the original element
-	 * which is moved into a clone of the table element, and moved around the
-	 * document to give the fixed effect.
+	 * Cache the measurements that RowReorder needs in the mouse move handler
+	 * to attempt to speed things up, rather than reading from the DOM.
 	 *
-	 * @param  {string}  item  'header' or 'footer'
-	 * @param  {boolean} force Force the clone to happen, or allow automatic
-	 *   decision (reuse existing if available)
 	 * @private
 	 */
-	_clone: function ( item, force )
+	_cachePositions: function ()
 	{
 		var dt = this.s.dt;
-		var itemDom = this.dom[ item ];
-		var itemElement = item === 'header' ?
-			this.dom.thead :
-			this.dom.tfoot;
 
-		if ( ! force && itemDom.floating ) {
-			// existing floating element - reuse it
-			itemDom.floating.removeClass( 'fixedHeader-floating fixedHeader-locked' );
-		}
-		else {
-			if ( itemDom.floating ) {
-				itemDom.placeholder.remove();
-				this._unsize( item );
-				itemDom.floating.children().detach();
-				itemDom.floating.remove();
-			}
+		// Frustratingly, if we add `position:relative` to the tbody, the
+		// position is still relatively to the parent. So we need to adjust
+		// for that
+		var headerHeight = $( dt.table().node() ).find('thead').outerHeight();
 
-			itemDom.floating = $( dt.table().node().cloneNode( false ) )
-				.css( 'table-layout', 'fixed' )
-				.attr( 'aria-hidden', 'true' )
-				.removeAttr( 'id' )
-				.append( itemElement )
-				.appendTo( 'body' );
+		// Need to pass the nodes through jQuery to get them in document order,
+		// not what DataTables thinks it is, since we have been altering the
+		// order
+		var nodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+		var tops = $.map( nodes, function ( node, i ) {
+			return $(node).position().top - headerHeight;
+		} );
 
-			// Insert a fake thead/tfoot into the DataTable to stop it jumping around
-			itemDom.placeholder = itemElement.clone( false )
-			itemDom.placeholder
-				.find( '*[id]' )
-				.removeAttr( 'id' );
+		var middles = $.map( tops, function ( top, i ) {
+			return tops.length < i-1 ?
+				(top + tops[i+1]) / 2 :
+				(top + top + $( dt.row( ':last-child' ).node() ).outerHeight() ) / 2;
+		} );
 
-			itemDom.host.prepend( itemDom.placeholder );
-
-			// Clone widths
-			this._matchWidths( itemDom.placeholder, itemDom.floating );
-		}
+		this.s.middles = middles;
+		this.s.bodyTop = $( dt.table().body() ).offset().top;
+		this.s.windowHeight = $(window).height();
+		this.s.documentOuterHeight = $(document).outerHeight();
 	},
 
+
 	/**
-	 * Copy widths from the cells in one element to another. This is required
-	 * for the footer as the footer in the main table takes its sizes from the
-	 * header columns. That isn't present in the footer so to have it still
-	 * align correctly, the sizes need to be copied over. It is also required
-	 * for the header when auto width is not enabled
+	 * Clone a row so it can be floated around the screen
 	 *
-	 * @param  {jQuery} from Copy widths from
-	 * @param  {jQuery} to   Copy widths to
+	 * @param  {jQuery} target Node to be cloned
 	 * @private
 	 */
-	_matchWidths: function ( from, to ) {
-		var get = function ( name ) {
-			return $(name, from)
-				.map( function () {
-					return $(this).width();
-				} ).toArray();
-		};
+	_clone: function ( target )
+	{
+		var dt = this.s.dt;
+		var clone = $( dt.table().node().cloneNode(false) )
+			.addClass( 'dt-rowReorder-float' )
+			.append('<tbody/>')
+			.append( target.clone( false ) );
 
-		var set = function ( name, toWidths ) {
-			$(name, to).each( function ( i ) {
-				$(this).css( {
-					width: toWidths[i],
-					minWidth: toWidths[i]
+		// Match the table and column widths - read all sizes before setting
+		// to reduce reflows
+		var tableWidth = target.outerWidth();
+		var tableHeight = target.outerHeight();
+		var sizes = target.children().map( function () {
+			return $(this).width();
+		} );
+
+		clone
+			.width( tableWidth )
+			.height( tableHeight )
+			.find('tr').children().each( function (i) {
+				this.style.width = sizes[i]+'px';
+			} );
+
+		// Insert into the document to have it floating around
+		clone.appendTo( 'body' );
+
+		this.dom.clone = clone;
+		this.s.domCloneOuterHeight = clone.outerHeight();
+	},
+
+
+	/**
+	 * Update the cloned item's position in the document
+	 *
+	 * @param  {object} e Event giving the mouse's position
+	 * @private
+	 */
+	_clonePosition: function ( e )
+	{
+		var start = this.s.start;
+		var topDiff = this._eventToPage( e, 'Y' ) - start.top;
+		var leftDiff = this._eventToPage( e, 'X' ) - start.left;
+		var snap = this.c.snapX;
+		var left;
+		var top = topDiff + start.offsetTop;
+
+		if ( snap === true ) {
+			left = start.offsetLeft;
+		}
+		else if ( typeof snap === 'number' ) {
+			left = start.offsetLeft + snap;
+		}
+		else {
+			left = leftDiff + start.offsetLeft;
+		}
+
+		if(top < 0) {
+			top = 0
+		}
+		else if(top + this.s.domCloneOuterHeight > this.s.documentOuterHeight) {
+			top = this.s.documentOuterHeight - this.s.domCloneOuterHeight;
+		}
+
+		this.dom.clone.css( {
+			top: top,
+			left: left
+		} );
+	},
+
+
+	/**
+	 * Emit an event on the DataTable for listeners
+	 *
+	 * @param  {string} name Event name
+	 * @param  {array} args Event arguments
+	 * @private
+	 */
+	_emitEvent: function ( name, args )
+	{
+		this.s.dt.iterator( 'table', function ( ctx, i ) {
+			$(ctx.nTable).triggerHandler( name+'.dt', args );
+		} );
+	},
+
+
+	/**
+	 * Get pageX/Y position from an event, regardless of if it is a mouse or
+	 * touch event.
+	 *
+	 * @param  {object} e Event
+	 * @param  {string} pos X or Y (must be a capital)
+	 * @private
+	 */
+	_eventToPage: function ( e, pos )
+	{
+		if ( e.type.indexOf( 'touch' ) !== -1 ) {
+			return e.originalEvent.touches[0][ 'page'+pos ];
+		}
+
+		return e[ 'page'+pos ];
+	},
+
+
+	/**
+	 * Mouse down event handler. Read initial positions and add event handlers
+	 * for the move.
+	 *
+	 * @param  {object} e      Mouse event
+	 * @param  {jQuery} target TR element that is to be moved
+	 * @private
+	 */
+	_mouseDown: function ( e, target )
+	{
+		var that = this;
+		var dt = this.s.dt;
+		var start = this.s.start;
+
+		var offset = target.offset();
+		start.top = this._eventToPage( e, 'Y' );
+		start.left = this._eventToPage( e, 'X' );
+		start.offsetTop = offset.top;
+		start.offsetLeft = offset.left;
+		start.nodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+
+		this._cachePositions();
+		this._clone( target );
+		this._clonePosition( e );
+
+		this.dom.target = target;
+		target.addClass( 'dt-rowReorder-moving' );
+
+		$( document )
+			.on( 'mouseup.rowReorder touchend.rowReorder', function (e) {
+				that._mouseUp(e);
+			} )
+			.on( 'mousemove.rowReorder touchmove.rowReorder', function (e) {
+				that._mouseMove(e);
+			} );
+
+		// Check if window is x-scrolling - if not, disable it for the duration
+		// of the drag
+		if ( $(window).width() === $(document).width() ) {
+			$(document.body).addClass( 'dt-rowReorder-noOverflow' );
+		}
+
+		// Cache scrolling information so mouse move doesn't need to read.
+		// This assumes that the window and DT scroller will not change size
+		// during an row drag, which I think is a fair assumption
+		var scrollWrapper = this.dom.dtScroll;
+		this.s.scroll = {
+			windowHeight: $(window).height(),
+			windowWidth:  $(window).width(),
+			dtTop:        scrollWrapper.length ? scrollWrapper.offset().top : null,
+			dtLeft:       scrollWrapper.length ? scrollWrapper.offset().left : null,
+			dtHeight:     scrollWrapper.length ? scrollWrapper.outerHeight() : null,
+			dtWidth:      scrollWrapper.length ? scrollWrapper.outerWidth() : null
+		};
+	},
+
+
+	/**
+	 * Mouse move event handler - move the cloned row and shuffle the table's
+	 * rows if required.
+	 *
+	 * @param  {object} e Mouse event
+	 * @private
+	 */
+	_mouseMove: function ( e )
+	{
+		this._clonePosition( e );
+
+		// Transform the mouse position into a position in the table's body
+		var bodyY = this._eventToPage( e, 'Y' ) - this.s.bodyTop;
+		var middles = this.s.middles;
+		var insertPoint = null;
+		var dt = this.s.dt;
+		var body = dt.table().body();
+
+		// Determine where the row should be inserted based on the mouse
+		// position
+		for ( var i=0, ien=middles.length ; i<ien ; i++ ) {
+			if ( bodyY < middles[i] ) {
+				insertPoint = i;
+				break;
+			}
+		}
+
+		if ( insertPoint === null ) {
+			insertPoint = middles.length;
+		}
+
+		// Perform the DOM shuffle if it has changed from last time
+		if ( this.s.lastInsert === null || this.s.lastInsert !== insertPoint ) {
+			if ( insertPoint === 0 ) {
+				this.dom.target.prependTo( body );
+			}
+			else {
+				var nodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+
+				if ( insertPoint > this.s.lastInsert ) {
+					this.dom.target.insertAfter( nodes[ insertPoint-1 ] );
+				}
+				else {
+					this.dom.target.insertBefore( nodes[ insertPoint ] );
+				}
+			}
+
+			this._cachePositions();
+
+			this.s.lastInsert = insertPoint;
+		}
+
+		this._shiftScroll( e );
+	},
+
+
+	/**
+	 * Mouse up event handler - release the event handlers and perform the
+	 * table updates
+	 *
+	 * @param  {object} e Mouse event
+	 * @private
+	 */
+	_mouseUp: function ( e )
+	{
+		var that = this;
+		var dt = this.s.dt;
+		var i, ien;
+		var dataSrc = this.c.dataSrc;
+
+		this.dom.clone.remove();
+		this.dom.clone = null;
+
+		this.dom.target.removeClass( 'dt-rowReorder-moving' );
+		//this.dom.target = null;
+
+		$(document).off( '.rowReorder' );
+		$(document.body).removeClass( 'dt-rowReorder-noOverflow' );
+
+		clearInterval( this.s.scrollInterval );
+		this.s.scrollInterval = null;
+
+		// Calculate the difference
+		var startNodes = this.s.start.nodes;
+		var endNodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+		var idDiff = {};
+		var fullDiff = [];
+		var diffNodes = [];
+		var getDataFn = this.s.getDataFn;
+		var setDataFn = this.s.setDataFn;
+
+		for ( i=0, ien=startNodes.length ; i<ien ; i++ ) {
+			if ( startNodes[i] !== endNodes[i] ) {
+				var id = dt.row( endNodes[i] ).id();
+				var endRowData = dt.row( endNodes[i] ).data();
+				var startRowData = dt.row( startNodes[i] ).data();
+
+				if ( id ) {
+					idDiff[ id ] = getDataFn( startRowData );
+				}
+
+				fullDiff.push( {
+					node: endNodes[i],
+					oldData: getDataFn( endRowData ),
+					newData: getDataFn( startRowData ),
+					newPosition: i,
+					oldPosition: $.inArray( endNodes[i], startNodes )
 				} );
-			} );
+
+				diffNodes.push( endNodes[i] );
+			}
+		}
+		
+		// Create event args
+		var eventArgs = [ fullDiff, {
+			dataSrc:    dataSrc,
+			nodes:      diffNodes,
+			values:     idDiff,
+			triggerRow: dt.row( this.dom.target )
+		} ];
+		
+		// Emit event
+		this._emitEvent( 'row-reorder', eventArgs );
+
+		var update = function () {
+			if ( that.c.update ) {
+				for ( i=0, ien=fullDiff.length ; i<ien ; i++ ) {
+					var row = dt.row( fullDiff[i].node );
+					var rowData = row.data();
+
+					setDataFn( rowData, fullDiff[i].newData );
+
+					// Invalidate the cell that has the same data source as the dataSrc
+					dt.columns().every( function () {
+						if ( this.dataSrc() === dataSrc ) {
+							dt.cell( fullDiff[i].node, this.index() ).invalidate( 'data' );
+						}
+					} );
+				}
+
+				// Trigger row reordered event
+				that._emitEvent( 'row-reordered', eventArgs );
+
+				dt.draw( false );
+			}
 		};
 
-		var thWidths = get( 'th' );
-		var tdWidths = get( 'td' );
+		// Editor interface
+		if ( this.c.editor ) {
+			// Disable user interaction while Editor is submitting
+			this.c.enable = false;
 
-		set( 'th', thWidths );
-		set( 'td', tdWidths );
-	},
-
-	/**
-	 * Remove assigned widths from the cells in an element. This is required
-	 * when inserting the footer back into the main table so the size is defined
-	 * by the header columns and also when auto width is disabled in the
-	 * DataTable.
-	 *
-	 * @param  {string} item The `header` or `footer`
-	 * @private
-	 */
-	_unsize: function ( item ) {
-		var el = this.dom[ item ].floating;
-
-		if ( el && (item === 'footer' || (item === 'header' && ! this.s.autoWidth)) ) {
-			$('th, td', el).css( {
-				width: '',
-				minWidth: ''
-			} );
-		}
-		else if ( el && item === 'header' ) {
-			$('th, td', el).css( 'min-width', '' );
-		}
-	},
-
-	/**
-	 * Reposition the floating elements to take account of horizontal page
-	 * scroll
-	 *
-	 * @param  {string} item       The `header` or `footer`
-	 * @param  {int}    scrollLeft Document scrollLeft
-	 * @private
-	 */
-	_horizontal: function ( item, scrollLeft )
-	{
-		var itemDom = this.dom[ item ];
-		var position = this.s.position;
-		var lastScrollLeft = this.s.scrollLeft;
-
-		if ( itemDom.floating && lastScrollLeft[ item ] !== scrollLeft ) {
-			itemDom.floating.css( 'left', position.left - scrollLeft );
-
-			lastScrollLeft[ item ] = scrollLeft;
-		}
-	},
-
-	/**
-	 * Change from one display mode to another. Each fixed item can be in one
-	 * of:
-	 *
-	 * * `in-place` - In the main DataTable
-	 * * `in` - Floating over the DataTable
-	 * * `below` - (Header only) Fixed to the bottom of the table body
-	 * * `above` - (Footer only) Fixed to the top of the table body
-	 * 
-	 * @param  {string}  mode        Mode that the item should be shown in
-	 * @param  {string}  item        'header' or 'footer'
-	 * @param  {boolean} forceChange Force a redraw of the mode, even if already
-	 *     in that mode.
-	 * @private
-	 */
-	_modeChange: function ( mode, item, forceChange )
-	{
-		var dt = this.s.dt;
-		var itemDom = this.dom[ item ];
-		var position = this.s.position;
-
-		// Record focus. Browser's will cause input elements to loose focus if
-		// they are inserted else where in the doc
-		var tablePart = this.dom[ item==='footer' ? 'tfoot' : 'thead' ];
-		var focus = $.contains( tablePart[0], document.activeElement ) ?
-			document.activeElement :
-			null;
-		
-		if ( focus ) {
-			focus.blur();
-		}
-
-		if ( mode === 'in-place' ) {
-			// Insert the header back into the table's real header
-			if ( itemDom.placeholder ) {
-				itemDom.placeholder.remove();
-				itemDom.placeholder = null;
-			}
-
-			this._unsize( item );
-
-			if ( item === 'header' ) {
-				itemDom.host.prepend( tablePart );
-			}
-			else {
-				itemDom.host.append( tablePart );
-			}
-
-			if ( itemDom.floating ) {
-				itemDom.floating.remove();
-				itemDom.floating = null;
-			}
-		}
-		else if ( mode === 'in' ) {
-			// Remove the header from the read header and insert into a fixed
-			// positioned floating table clone
-			this._clone( item, forceChange );
-
-			itemDom.floating
-				.addClass( 'fixedHeader-floating' )
-				.css( item === 'header' ? 'top' : 'bottom', this.c[item+'Offset'] )
-				.css( 'left', position.left+'px' )
-				.css( 'width', position.width+'px' );
-
-			if ( item === 'footer' ) {
-				itemDom.floating.css( 'top', '' );
-			}
-		}
-		else if ( mode === 'below' ) { // only used for the header
-			// Fix the position of the floating header at base of the table body
-			this._clone( item, forceChange );
-
-			itemDom.floating
-				.addClass( 'fixedHeader-locked' )
-				.css( 'top', position.tfootTop - position.theadHeight )
-				.css( 'left', position.left+'px' )
-				.css( 'width', position.width+'px' );
-		}
-		else if ( mode === 'above' ) { // only used for the footer
-			// Fix the position of the floating footer at top of the table body
-			this._clone( item, forceChange );
-
-			itemDom.floating
-				.addClass( 'fixedHeader-locked' )
-				.css( 'top', position.tbodyTop )
-				.css( 'left', position.left+'px' )
-				.css( 'width', position.width+'px' );
-		}
-
-		// Restore focus if it was lost
-		if ( focus && focus !== document.activeElement ) {
-			setTimeout( function () {
-				focus.focus();
-			}, 10 );
-		}
-
-		this.s.scrollLeft.header = -1;
-		this.s.scrollLeft.footer = -1;
-		this.s[item+'Mode'] = mode;
-	},
-
-	/**
-	 * Cache the positional information that is required for the mode
-	 * calculations that FixedHeader performs.
-	 *
-	 * @private
-	 */
-	_positions: function ()
-	{
-		var dt = this.s.dt;
-		var table = dt.table();
-		var position = this.s.position;
-		var dom = this.dom;
-		var tableNode = $(table.node());
-
-		// Need to use the header and footer that are in the main table,
-		// regardless of if they are clones, since they hold the positions we
-		// want to measure from
-		var thead = tableNode.children('thead');
-		var tfoot = tableNode.children('tfoot');
-		var tbody = dom.tbody;
-
-		position.visible = tableNode.is(':visible');
-		position.width = tableNode.outerWidth();
-		position.left = tableNode.offset().left;
-		position.theadTop = thead.offset().top;
-		position.tbodyTop = tbody.offset().top;
-		position.theadHeight = position.tbodyTop - position.theadTop;
-
-		if ( tfoot.length ) {
-			position.tfootTop = tfoot.offset().top;
-			position.tfootBottom = position.tfootTop + tfoot.outerHeight();
-			position.tfootHeight = position.tfootBottom - position.tfootTop;
+			this.c.editor
+				.edit(
+					diffNodes,
+					false,
+					$.extend( {submit: 'changed'}, this.c.formOptions )
+				)
+				.multiSet( dataSrc, idDiff )
+				.one( 'preSubmitCancelled.rowReorder', function () {
+					that.c.enable = true;
+					that.c.editor.off( '.rowReorder' );
+					dt.draw( false );
+				} )
+				.one( 'submitUnsuccessful.rowReorder', function () {
+					dt.draw( false );
+				} )
+				.one( 'submitSuccess.rowReorder', function () {
+					update();
+				} )
+				.one( 'submitComplete', function () {
+					that.c.enable = true;
+					that.c.editor.off( '.rowReorder' );
+				} )
+				.submit();
 		}
 		else {
-			position.tfootTop = position.tbodyTop + tbody.outerHeight();
-			position.tfootBottom = position.tfootTop;
-			position.tfootHeight = position.tfootTop;
+			update();
 		}
 	},
 
 
 	/**
-	 * Mode calculation - determine what mode the fixed items should be placed
-	 * into.
+	 * Move the window and DataTables scrolling during a drag to scroll new
+	 * content into view.
 	 *
-	 * @param  {boolean} forceChange Force a redraw of the mode, even if already
-	 *     in that mode.
+	 * This matches the `_shiftScroll` method used in AutoFill, but only
+	 * horizontal scrolling is considered here.
+	 *
+	 * @param  {object} e Mouse move event object
 	 * @private
 	 */
-	_scroll: function ( forceChange )
+	_shiftScroll: function ( e )
 	{
-		var windowTop = $(document).scrollTop();
-		var windowLeft = $(document).scrollLeft();
-		var position = this.s.position;
-		var headerMode, footerMode;
+		var that = this;
+		var dt = this.s.dt;
+		var scroll = this.s.scroll;
+		var runInterval = false;
+		var scrollSpeed = 5;
+		var buffer = 65;
+		var
+			windowY = e.pageY - document.body.scrollTop,
+			windowVert,
+			dtVert;
 
-		if ( ! this.s.enable ) {
-			return;
+		// Window calculations - based on the mouse position in the window,
+		// regardless of scrolling
+		if ( windowY < buffer ) {
+			windowVert = scrollSpeed * -1;
+		}
+		else if ( windowY > scroll.windowHeight - buffer ) {
+			windowVert = scrollSpeed;
 		}
 
-		if ( this.c.header ) {
-			if ( ! position.visible || windowTop <= position.theadTop - this.c.headerOffset ) {
-				headerMode = 'in-place';
-			}
-			else if ( windowTop <= position.tfootTop - position.theadHeight - this.c.headerOffset ) {
-				headerMode = 'in';
-			}
-			else {
-				headerMode = 'below';
-			}
-
-			if ( forceChange || headerMode !== this.s.headerMode ) {
-				this._modeChange( headerMode, 'header', forceChange );
-			}
-
-			this._horizontal( 'header', windowLeft );
+		// DataTables scrolling calculations - based on the table's position in
+		// the document and the mouse position on the page
+		if ( scroll.dtTop !== null && e.pageY < scroll.dtTop + buffer ) {
+			dtVert = scrollSpeed * -1;
+		}
+		else if ( scroll.dtTop !== null && e.pageY > scroll.dtTop + scroll.dtHeight - buffer ) {
+			dtVert = scrollSpeed;
 		}
 
-		if ( this.c.footer && this.dom.tfoot.length ) {
-			if ( ! position.visible || windowTop + position.windowHeight >= position.tfootBottom + this.c.footerOffset ) {
-				footerMode = 'in-place';
-			}
-			else if ( position.windowHeight + windowTop > position.tbodyTop + position.tfootHeight + this.c.footerOffset ) {
-				footerMode = 'in';
-			}
-			else {
-				footerMode = 'above';
-			}
+		// This is where it gets interesting. We want to continue scrolling
+		// without requiring a mouse move, so we need an interval to be
+		// triggered. The interval should continue until it is no longer needed,
+		// but it must also use the latest scroll commands (for example consider
+		// that the mouse might move from scrolling up to scrolling left, all
+		// with the same interval running. We use the `scroll` object to "pass"
+		// this information to the interval. Can't use local variables as they
+		// wouldn't be the ones that are used by an already existing interval!
+		if ( windowVert || dtVert ) {
+			scroll.windowVert = windowVert;
+			scroll.dtVert = dtVert;
+			runInterval = true;
+		}
+		else if ( this.s.scrollInterval ) {
+			// Don't need to scroll - remove any existing timer
+			clearInterval( this.s.scrollInterval );
+			this.s.scrollInterval = null;
+		}
 
-			if ( forceChange || footerMode !== this.s.footerMode ) {
-				this._modeChange( footerMode, 'footer', forceChange );
-			}
+		// If we need to run the interval to scroll and there is no existing
+		// interval (if there is an existing one, it will continue to run)
+		if ( ! this.s.scrollInterval && runInterval ) {
+			this.s.scrollInterval = setInterval( function () {
+				// Don't need to worry about setting scroll <0 or beyond the
+				// scroll bound as the browser will just reject that.
+				if ( scroll.windowVert ) {
+					document.body.scrollTop += scroll.windowVert;
+				}
 
-			this._horizontal( 'footer', windowLeft );
+				// DataTables scrolling
+				if ( scroll.dtVert ) {
+					var scroller = that.dom.dtScroll[0];
+
+					if ( scroll.dtVert ) {
+						scroller.scrollTop += scroll.dtVert;
+					}
+				}
+			}, 20 );
 		}
 	}
 } );
 
 
-/**
- * Version
- * @type {String}
- * @static
- */
-FixedHeader.version = "3.1.5";
 
 /**
- * Defaults
- * @type {Object}
+ * RowReorder default settings for initialisation
+ *
+ * @namespace
+ * @name RowReorder.defaults
  * @static
  */
-FixedHeader.defaults = {
-	header: true,
-	footer: false,
-	headerOffset: 0,
-	footerOffset: 0
+RowReorder.defaults = {
+	/**
+	 * Data point in the host row's data source object for where to get and set
+	 * the data to reorder. This will normally also be the sorting column.
+	 *
+	 * @type {Number}
+	 */
+	dataSrc: 0,
+
+	/**
+	 * Editor instance that will be used to perform the update
+	 *
+	 * @type {DataTable.Editor}
+	 */
+	editor: null,
+
+	/**
+	 * Enable / disable RowReorder's user interaction
+	 * @type {Boolean}
+	 */
+	enable: true,
+
+	/**
+	 * Form options to pass to Editor when submitting a change in the row order.
+	 * See the Editor `from-options` object for details of the options
+	 * available.
+	 * @type {Object}
+	 */
+	formOptions: {},
+
+	/**
+	 * Drag handle selector. This defines the element that when dragged will
+	 * reorder a row.
+	 *
+	 * @type {String}
+	 */
+	selector: 'td:first-child',
+
+	/**
+	 * Optionally lock the dragged row's x-position. This can be `true` to
+	 * fix the position match the host table's, `false` to allow free movement
+	 * of the row, or a number to define an offset from the host table.
+	 *
+	 * @type {Boolean|number}
+	 */
+	snapX: false,
+
+	/**
+	 * Update the table's data on drop
+	 *
+	 * @type {Boolean}
+	 */
+	update: true,
+
+	/**
+	 * Selector for children of the drag handle selector that mouseDown events
+	 * will be passed through to and drag will not activate
+	 *
+	 * @type {String}
+	 */
+	excludedChildren: 'a'
 };
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * DataTables interfaces
+/*
+ * API
  */
+var Api = $.fn.dataTable.Api;
 
-// Attach for constructor access
-$.fn.dataTable.FixedHeader = FixedHeader;
-$.fn.DataTable.FixedHeader = FixedHeader;
+// Doesn't do anything - work around for a bug in DT... Not documented
+Api.register( 'rowReorder()', function () {
+	return this;
+} );
+
+Api.register( 'rowReorder.enable()', function ( toggle ) {
+	if ( toggle === undefined ) {
+		toggle = true;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		if ( ctx.rowreorder ) {
+			ctx.rowreorder.c.enable = toggle;
+		}
+	} );
+} );
+
+Api.register( 'rowReorder.disable()', function () {
+	return this.iterator( 'table', function ( ctx ) {
+		if ( ctx.rowreorder ) {
+			ctx.rowreorder.c.enable = false;
+		}
+	} );
+} );
 
 
-// DataTables creation - check if the FixedHeader option has been defined on the
-// table and if so, initialise
-$(document).on( 'init.dt.dtfh', function (e, settings, json) {
+/**
+ * Version information
+ *
+ * @name RowReorder.version
+ * @static
+ */
+RowReorder.version = '1.2.5';
+
+
+$.fn.dataTable.RowReorder = RowReorder;
+$.fn.DataTable.RowReorder = RowReorder;
+
+// Attach a listener to the document which listens for DataTables initialisation
+// events so we can automatically initialise
+$(document).on( 'init.dt.dtr', function (e, settings, json) {
 	if ( e.namespace !== 'dt' ) {
 		return;
 	}
 
-	var init = settings.oInit.fixedHeader;
-	var defaults = DataTable.defaults.fixedHeader;
+	var init = settings.oInit.rowReorder;
+	var defaults = DataTable.defaults.rowReorder;
 
-	if ( (init || defaults) && ! settings._fixedHeader ) {
-		var opts = $.extend( {}, defaults, init );
+	if ( init || defaults ) {
+		var opts = $.extend( {}, init, defaults );
 
 		if ( init !== false ) {
-			new FixedHeader( settings, opts );
+			new RowReorder( settings, opts  );
 		}
 	}
 } );
 
-// DataTables API methods
-DataTable.Api.register( 'fixedHeader()', function () {} );
 
-DataTable.Api.register( 'fixedHeader.adjust()', function () {
-	return this.iterator( 'table', function ( ctx ) {
-		var fh = ctx._fixedHeader;
-
-		if ( fh ) {
-			fh.update();
-		}
-	} );
-} );
-
-DataTable.Api.register( 'fixedHeader.enable()', function ( flag ) {
-	return this.iterator( 'table', function ( ctx ) {
-		var fh = ctx._fixedHeader;
-
-		flag = ( flag !== undefined ? flag : true );
-		if ( fh && flag !== fh.s.enable ) {
-			fh.enable( flag );
-		}
-	} );
-} );
-
-DataTable.Api.register( 'fixedHeader.disable()', function ( ) {
-	return this.iterator( 'table', function ( ctx ) {
-		var fh = ctx._fixedHeader;
-
-		if ( fh && fh.s.enable ) {
-			fh.enable( false );
-		}
-	} );
-} );
-
-$.each( ['header', 'footer'], function ( i, el ) {
-	DataTable.Api.register( 'fixedHeader.'+el+'Offset()', function ( offset ) {
-		var ctx = this.context;
-
-		if ( offset === undefined ) {
-			return ctx.length && ctx[0]._fixedHeader ?
-				ctx[0]._fixedHeader[el +'Offset']() :
-				undefined;
-		}
-
-		return this.iterator( 'table', function ( ctx ) {
-			var fh = ctx._fixedHeader;
-
-			if ( fh ) {
-				fh[ el +'Offset' ]( offset );
-			}
-		} );
-	} );
-} );
-
-
-return FixedHeader;
+return RowReorder;
 }));
 
 
 /***/ }),
-/* 248 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(249);
+var content = __webpack_require__(253);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -94640,14 +95609,14 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(11)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../css-loader/index.js!./fixedHeader.bootstrap4.css", function() {
-			var newContent = require("!!../../css-loader/index.js!./fixedHeader.bootstrap4.css");
+		module.hot.accept("!!../../css-loader/index.js!./rowReorder.bootstrap4.css", function() {
+			var newContent = require("!!../../css-loader/index.js!./rowReorder.bootstrap4.css");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -94657,7 +95626,7 @@ if(false) {
 }
 
 /***/ }),
-/* 249 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(5)(false);
@@ -94665,7 +95634,7 @@ exports = module.exports = __webpack_require__(5)(false);
 
 
 // module
-exports.push([module.i, "table.dataTable.fixedHeader-floating,\ntable.dataTable.fixedHeader-locked {\n  background-color: white;\n  margin-top: 0 !important;\n  margin-bottom: 0 !important;\n}\n\ntable.dataTable.fixedHeader-floating {\n  position: fixed !important;\n}\n\ntable.dataTable.fixedHeader-locked {\n  position: absolute !important;\n}\n\n@media print {\n  table.fixedHeader-floating {\n    display: none;\n  }\n}\n", ""]);
+exports.push([module.i, "table.dt-rowReorder-float {\n  position: absolute !important;\n  opacity: 0.8;\n  table-layout: fixed;\n  outline: 2px solid #0275d8;\n  outline-offset: -2px;\n  z-index: 2001;\n}\n\ntr.dt-rowReorder-moving {\n  outline: 2px solid #888888;\n  outline-offset: -2px;\n}\n\nbody.dt-rowReorder-noOverflow {\n  overflow-x: hidden;\n}\n\ntable.dataTable td.reorder {\n  text-align: center;\n  cursor: move;\n}\n", ""]);
 
 // exports
 

@@ -21,6 +21,7 @@ try {
     require('datatables.net-buttons/js/dataTables.buttons');
     require('datatables.net-select-bs4');
     require('datatables.net-fixedheader-bs4');
+    require('datatables.net-rowreorder-bs4');
 } catch (e) {}
 
 /**

@@ -133,8 +133,16 @@
                         }
                     },
                     fixedHeader:true,
-                    stateSave:true
+//                    stateSave:true,
+                    rowReorder: true,
+                    columnDefs: [
+                        { targets: [1], visible: false},
+                        { targets: '_all', visible: true },
+                        { targets: [0], className:'reorder'}
+                    ]
                 });
+                //隐藏第二列
+//                table.columns( [1] ).visible( false );
                 this.initDataTableButtons(table);
                 this.initDataTableSelect(table);
             },
@@ -145,7 +153,6 @@
                         {
                             extend:'collection',
                             text:'导出',
-                            postfixButtons: [ 'colvisRestore' ],
                             buttons: [
                                 {
                                     text:'cs',
@@ -164,23 +171,51 @@
                                 },
                             ]
                         },
-                        'pdf',
-                        'excel',
+                        {
+                            extend:'pdf',
+                            download: 'open',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend:'excel',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
                         'selectAll',
                         'selectNone',
                         {
-                            extend: 'colvis',
-                            columns: ':gt(0)'
+                            text:'选择当前页',
+                            action: function ( e, dt, node, config ){
+                                dt.rows({page:'current'}).select()
+                            }
+
                         },
-                        { extend:'print', text:'<i class="fa fa-print"></i>',attr:{title:'打印全部或选中数据',id: 'copyButton'},modifier: {
-                            selected: true
-                        },key:{ key:'p',ctrlKey:true } },
+                        'colvis',
+                        {
+                            extend:'print',
+                            text:'<i class="fa fa-print"></i>',
+                            attr:{
+                                title:'打印全部或选中数据',
+                                id: 'copyButton'
+                            },
+                            key:{
+                                key:'p',
+                                ctrlKey:true
+                            },
+                            //控制不打印隐藏列，即只打印显示列
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
                     ]
                 });
                 //将自动生成的按钮放到指定的位置
 //                table.buttons().container().appendTo($('.dataTableButtons'));
                 table.buttons().container().appendTo($('.dataTables_length>label'));
-                table.columns( [1] ).visible( false );
+
             },
             initDataTableSelect(table) {
                 table.select.style('os');
@@ -278,7 +313,7 @@
                     this.searchedData.push(single)
                 }
 //                console.log(filteredData);
-                console.log(this.searchData);
+                console.log(this.searchedData);
             }
         }
     }
