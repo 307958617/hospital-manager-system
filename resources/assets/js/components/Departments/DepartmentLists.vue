@@ -45,10 +45,9 @@
         <div class="card dataTable">
             <div class="card-body">
                 <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
-                <div class="btn-group-sm pull-right dataTableButtons">
-                    <button class="btn btn-danger" @click="delt()">删除</button>
-                    <button class="btn btn-primary" @click="selectAll()">全选</button>
-                    <button class="btn btn-outline-dark" @click="unSelect()">不选</button>
+                <div class="pull-right btn-group dataTableButtons">
+                    <!--<button class="btn btn-sm btn-danger" @click="delt()">删除</button>&nbsp;-->
+                    <button class="btn btn-sm btn-success" @click="addDepartment()">新增科室 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
                 </div>
                 <br><br>
                 <table id="dataTable" class="table table-bordered">
@@ -77,7 +76,6 @@
                 </table>
             </div>
         </div>
-        <div class="output">ss</div>
     </div>
 </template>
 
@@ -126,11 +124,6 @@
                         "select": {
                             rows:" , %d 条记录被选中"
                         },
-                        buttons: {
-                            selectAll: "全选",
-                            selectNone: "全不选",
-                            colvis: '控制列'
-                        }
                     },
                     fixedHeader:true,
 //                    stateSave:true,
@@ -147,59 +140,49 @@
                 this.initDataTableSelect(table);
             },
             initDataTableButtons(table) {
+//              第一个按钮组
                 new $.fn.dataTable.Buttons( table, {
+                    name:'first',
                     buttons: [
-                        'copy',
+                        {
+                            extend:'colvis',
+                            className:'btn-outline-primary btn-sm',
+                            text:'<i class="fa fa-eye"></i>'
+                        },
                         {
                             extend:'collection',
-                            text:'导出',
+                            text:'选择',
+                            className:'btn-outline-primary btn-sm',
                             buttons: [
                                 {
-                                    text:'cs',
-                                    action: function (e,dt,node,config) {
-                                        alert(dt.rows('.selected').data().length)
+                                    text:'选择当前页',
+                                    action: function ( e, dt, node, config ){
+                                        dt.rows({page:'current'}).select()
                                     }
+
                                 },
                                 {
-                                    text: 'Copy 2',
-                                    action: function ( e, dt, node, config ) {
-                                        // Copy an array based DataTables' data to another element
-                                        $('.output').html( dt.rows('.selected').data().map( function (row) {
-                                            return row.join(' | ' );
-                                        } ).join('<br>'));
-                                    }
+                                    extend:'selectAll',
+                                    text:'全 选'
+                                },
+                                {
+                                    extend:'selectNone',
+                                    text:'全不选'
                                 },
                             ]
                         },
                         {
-                            extend:'pdf',
-                            download: 'open',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
+                            extend:'copy',
+                            text:'<i class="fa fa-files-o" aria-hidden="true"></i>',
+                            titleAttr:'复制全部或选中数据',
+                            className:'btn-outline-primary btn-sm'
                         },
-                        {
-                            extend:'excel',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
-                        },
-                        'selectAll',
-                        'selectNone',
-                        {
-                            text:'选择当前页',
-                            action: function ( e, dt, node, config ){
-                                dt.rows({page:'current'}).select()
-                            }
-
-                        },
-                        'colvis',
                         {
                             extend:'print',
                             text:'<i class="fa fa-print"></i>',
+                            className:'btn-outline-primary btn-sm',
                             attr:{
                                 title:'打印全部或选中数据',
-                                id: 'copyButton'
                             },
                             key:{
                                 key:'p',
@@ -212,10 +195,38 @@
                         },
                     ]
                 });
+//              第二个按钮组
+                new $.fn.dataTable.Buttons( table, {
+                    name:'second',
+                    buttons:[
+                        {
+                            extend:'excel',
+                            text:'<i class="fa fa-file-excel-o"></i>',
+                            titleAttr:'导出EXCEL',
+                            className:'btn-outline-primary btn-sm',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend:'pdf',
+                            text:'<i class="fa fa-file-pdf-o"></i>',
+                            titleAttr:'导出PDF',
+                            className:'btn-outline-primary btn-sm',
+                            download: 'open',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                    ]
+                });
                 //将自动生成的按钮放到指定的位置
-//                table.buttons().container().appendTo($('.dataTableButtons'));
-                table.buttons().container().appendTo($('.dataTables_length>label'));
+                table.buttons( ['first'], null ).containers().appendTo( '.dataTables_length>label' );
+                table.buttons( ['second'], null ).containers().appendTo( '.dataTableButtons' );
 
+//              重新设置按钮的显示格式
+                $('.dataTables_length>label>select').removeClass().addClass('btn btn-sm btn-primary');
+                $('.dataTables_length>label>div').removeClass('btn-group');
             },
             initDataTableSelect(table) {
                 table.select.style('os');
@@ -325,4 +336,5 @@
     .row .card-body .btn{width: 30%;}
     .card-body>.datepicker>input {height: 27px;width:157px;font-size: 12px;padding-left: 2px}
     tr.selected{background-color: #B0BED9}
+    .dt-buttons{display: inline}
 </style>
