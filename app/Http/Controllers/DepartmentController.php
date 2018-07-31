@@ -19,7 +19,7 @@ class DepartmentController extends Controller
         if($filters) {
             $departments = Department::select(['id','name','created_at'])->where($filters)->get();
         }else {
-            $departments = Department::select(['id','name','created_at'])->get();
+            $departments = Department::select(['id','name','created_at','parent_id'])->get();
         }
         return response()->json(['data'=> $departments,'fil'=>$filters]);
     }

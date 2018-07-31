@@ -117,6 +117,7 @@
             },
             reloadOptions() {
                 const r = $('.dd').nestable('serialize');
+                console.log(r);
                 this.treeselectLists = r;
             },
             addClass: function(li)

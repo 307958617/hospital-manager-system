@@ -72068,7 +72068,8 @@ DataTable.ext.buttons.pdfHtml5 = {
 				message: {}
 			},
 			defaultStyle: {
-				fontSize: 10
+				fontSize: 10,
+				font:'st'
 			}
 		};
 
@@ -72099,6 +72100,27 @@ DataTable.ext.buttons.pdfHtml5 = {
 		if ( config.customize ) {
 			config.customize( doc, config, dt );
 		}
+
+        _pdfMake().fonts = {
+            Roboto: {
+                normal: 'Roboto-Regular.ttf',
+                bold: 'Roboto-Medium.ttf',
+                italics: 'Roboto-Italic.ttf',
+                bolditalics: 'Roboto-Italic.ttf'
+            },
+            st: {
+                normal: 'simfang.ttf',
+                bold: 'simfang.ttf',
+                italics: 'simfang.ttf',
+                bolditalics: 'simfang.ttf',
+            },
+            //    微软雅黑: {
+            //     normal: '微软雅黑.ttf',
+            //     bold: '微软雅黑.ttf',
+            //     italics: '微软雅黑.ttf',
+            //     bolditalics: '微软雅黑.ttf',
+            // }
+        };
 
 		var pdf = _pdfMake().createPdf( doc );
 
@@ -89083,6 +89105,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         },
         reloadOptions: function reloadOptions() {
             var r = $('.dd').nestable('serialize');
+            console.log(r);
             this.treeselectLists = r;
         },
 
@@ -92980,8 +93003,32 @@ exports.push([module.i, "\n.card-body{padding: 5px;\n}\n.card-header{padding: 6p
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__ = __webpack_require__(230);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_moment__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__DepartmentModel_vue__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__DepartmentModel_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__DepartmentModel_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect__ = __webpack_require__(212);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__riophae_vue_treeselect_dist_vue_treeselect_css__ = __webpack_require__(223);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__riophae_vue_treeselect_dist_vue_treeselect_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__riophae_vue_treeselect_dist_vue_treeselect_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_moment__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_moment___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_moment__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -93064,23 +93111,43 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 
+
+
+//引入vue-treeselect
+
+//引入vue-treeselect的样式
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     components: {
-        VueDatepickerLocal: __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__["a" /* default */]
+        VueDatepickerLocal: __WEBPACK_IMPORTED_MODULE_0_vue_datepicker_local__["a" /* default */],
+        'department-model': __WEBPACK_IMPORTED_MODULE_1__DepartmentModel_vue___default.a, //引入DepartmentModel
+        'treeselect': __WEBPACK_IMPORTED_MODULE_2__riophae_vue_treeselect___default.a
     },
     name: 'dataTable',
     data: function data() {
         return {
+            showEditDepartment: false,
             departments: [],
             searchedData: [],
             search: {
                 name: '',
                 startTime: '',
                 endTime: ''
-            }
+            },
 
+            treeselectLists: [],
+            //增加上级科室id属性
+            pid: null,
+            //增加新增科室名称属性
+            departmentName: '',
+            //注意，这里必须要用自定义，不然显示不出来的
+            normalizer: function normalizer(node) {
+                return {
+                    id: node.id, //指定id是什么字段
+                    label: node.name //指定label是用的什么字段，即显示什么字段出来
+                };
+            }
         };
     },
     mounted: function mounted() {
@@ -93223,6 +93290,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             var table = $('#dataTable').DataTable();
             table.rows({ selected: true }).remove().draw(false);
         },
+        addDepartment: function addDepartment() {
+            this.showEditDepartment = true;
+        },
+        saveDepartment: function saveDepartment() {
+            console.log(this.pid);
+            console.log(this.departmentName);
+        },
+
 
         //            这个方法只适合单独查询某条记录有用，不能多条件查询
         //            searchName() {
@@ -93242,13 +93317,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             $.fn.dataTable.ext.search.pop();
             //                table.column(2).search(time).draw();
             //              下面是查询字段格式化
-            var startTime = __WEBPACK_IMPORTED_MODULE_1_moment___default()(this.search.startTime).valueOf();
-            var endTime = __WEBPACK_IMPORTED_MODULE_1_moment___default()(this.search.endTime).valueOf();
+            var startTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(this.search.startTime).valueOf();
+            var endTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(this.search.endTime).valueOf();
             var name = this.search.name;
             //              下面时查找方法用于显示到当前表
             $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
                 //                      设置实际需要获得到的字段
-                var needTime = __WEBPACK_IMPORTED_MODULE_1_moment___default()(data[2]).valueOf();
+                var needTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(data[2]).valueOf();
                 var needName = data[1];
                 //                        console.log(data[1] + time);
                 if (isNaN(startTime) && isNaN(endTime) && needName.indexOf(name) !== -1 || isNaN(startTime) && needTime <= endTime && needName.indexOf(name) !== -1 || startTime <= needTime && isNaN(endTime) && needName.indexOf(name) !== -1 || startTime <= needTime && needTime <= endTime && needName.indexOf(name) !== -1) {
@@ -93261,7 +93336,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             //              用filter获取查询后的结果
             var filteredData = table.rows().data().filter(function (value, index) {
                 //                  设置实际需要获得到的字段
-                var needTime = __WEBPACK_IMPORTED_MODULE_1_moment___default()(value[2]).valueOf();
+                var needTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(value[2]).valueOf();
                 var needName = value[1];
                 if (isNaN(startTime) && isNaN(endTime) && needName.indexOf(name) !== -1 || isNaN(startTime) && needTime <= endTime && needName.indexOf(name) !== -1 || startTime <= needTime && isNaN(endTime) && needName.indexOf(name) !== -1 || startTime <= needTime && needTime <= endTime && needName.indexOf(name) !== -1) {
                     return true;
@@ -93282,6 +93357,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }
             //                console.log(filteredData);
             console.log(this.searchedData);
+        },
+        reloadOptions: function reloadOptions() {
+            var _this2 = this;
+
+            axios.get('/department/get').then(function (res) {
+                console.log(res.data.data);
+                _this2.treeselectLists = res.data.data;
+            }).catch(function (error) {
+                throw error;
+            });
         }
     }
 });
@@ -94935,151 +95020,256 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "container" }, [
-    _c("div", { staticClass: "row" }, [
-      _vm._m(0),
-      _vm._v(" "),
-      _c("div", { staticClass: "col-lg-2" }, [
-        _c("div", { staticClass: "card text-center" }, [
-          _vm._m(1),
-          _vm._v(" "),
-          _c("div", { staticClass: "card-body" }, [
-            _c("div", { staticClass: "input-group-sm" }, [
-              _c("input", {
-                directives: [
-                  {
-                    name: "model",
-                    rawName: "v-model",
-                    value: _vm.search.name,
-                    expression: "search.name"
+  return _c(
+    "div",
+    { staticClass: "container" },
+    [
+      _c("div", { staticClass: "row" }, [
+        _vm._m(0),
+        _vm._v(" "),
+        _c("div", { staticClass: "col-lg-2" }, [
+          _c("div", { staticClass: "card text-center" }, [
+            _vm._m(1),
+            _vm._v(" "),
+            _c("div", { staticClass: "card-body" }, [
+              _c("div", { staticClass: "input-group-sm" }, [
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.search.name,
+                      expression: "search.name"
+                    }
+                  ],
+                  staticClass: "form-control",
+                  attrs: { type: "text" },
+                  domProps: { value: _vm.search.name },
+                  on: {
+                    input: [
+                      function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.$set(_vm.search, "name", $event.target.value)
+                      },
+                      _vm.searchAndFilterData
+                    ]
                   }
-                ],
-                staticClass: "form-control",
-                attrs: { type: "text" },
-                domProps: { value: _vm.search.name },
-                on: {
-                  input: [
-                    function($event) {
-                      if ($event.target.composing) {
-                        return
-                      }
-                      _vm.$set(_vm.search, "name", $event.target.value)
-                    },
-                    _vm.searchAndFilterData
-                  ]
-                }
-              })
+                })
+              ])
             ])
           ])
-        ])
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "col-lg-4" }, [
+          _c("div", { staticClass: "card text-center" }, [
+            _vm._m(2),
+            _vm._v(" "),
+            _c(
+              "div",
+              { staticClass: "card-body" },
+              [
+                _c("vue-datepicker-local", {
+                  attrs: { clearable: "", format: "YYYY-MM-DD HH:mm:ss" },
+                  on: { input: _vm.searchAndFilterData },
+                  model: {
+                    value: _vm.search.startTime,
+                    callback: function($$v) {
+                      _vm.$set(_vm.search, "startTime", $$v)
+                    },
+                    expression: "search.startTime"
+                  }
+                }),
+                _vm._v("--\n                    "),
+                _c("vue-datepicker-local", {
+                  attrs: { clearable: "", format: "YYYY-MM-DD HH:mm:ss" },
+                  on: { input: _vm.searchAndFilterData },
+                  model: {
+                    value: _vm.search.endTime,
+                    callback: function($$v) {
+                      _vm.$set(_vm.search, "endTime", $$v)
+                    },
+                    expression: "search.endTime"
+                  }
+                })
+              ],
+              1
+            )
+          ])
+        ]),
+        _vm._v(" "),
+        _vm._m(3)
       ]),
       _vm._v(" "),
-      _c("div", { staticClass: "col-lg-4" }, [
-        _c("div", { staticClass: "card text-center" }, [
-          _vm._m(2),
+      _c("br"),
+      _vm._v(" "),
+      _c("div", { staticClass: "card dataTable" }, [
+        _c("div", { staticClass: "card-body" }, [
+          _vm._m(4),
+          _vm._v(" "),
+          _c("div", { staticClass: "pull-right btn-group dataTableButtons" }, [
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-sm btn-danger",
+                on: {
+                  click: function($event) {
+                    _vm.delt()
+                  }
+                }
+              },
+              [_vm._v("删除所选")]
+            ),
+            _vm._v(" \n                "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-sm btn-success",
+                on: {
+                  click: function($event) {
+                    _vm.addDepartment()
+                  }
+                }
+              },
+              [
+                _vm._v("新增科室 "),
+                _c("i", {
+                  staticClass: "fa fa-plus",
+                  attrs: { "aria-hidden": "true" }
+                })
+              ]
+            ),
+            _vm._v(" \n            ")
+          ]),
+          _vm._v(" "),
+          _c("br"),
+          _c("br"),
           _vm._v(" "),
           _c(
-            "div",
-            { staticClass: "card-body" },
+            "table",
+            { staticClass: "table table-bordered", attrs: { id: "dataTable" } },
             [
-              _c("vue-datepicker-local", {
-                attrs: { clearable: "", format: "YYYY-MM-DD HH:mm:ss" },
-                on: { input: _vm.searchAndFilterData },
-                model: {
-                  value: _vm.search.startTime,
-                  callback: function($$v) {
-                    _vm.$set(_vm.search, "startTime", $$v)
-                  },
-                  expression: "search.startTime"
-                }
-              }),
-              _vm._v("--\n                    "),
-              _c("vue-datepicker-local", {
-                attrs: { clearable: "", format: "YYYY-MM-DD HH:mm:ss" },
-                on: { input: _vm.searchAndFilterData },
-                model: {
-                  value: _vm.search.endTime,
-                  callback: function($$v) {
-                    _vm.$set(_vm.search, "endTime", $$v)
-                  },
-                  expression: "search.endTime"
-                }
-              })
-            ],
-            1
+              _vm._m(5),
+              _vm._v(" "),
+              _vm._m(6),
+              _vm._v(" "),
+              _c(
+                "tbody",
+                _vm._l(_vm.departments, function(department) {
+                  return _c(
+                    "tr",
+                    {
+                      on: {
+                        click: function($event) {
+                          _vm.selectDepartment(department, $event)
+                        }
+                      }
+                    },
+                    [
+                      _c("td", [_vm._v(_vm._s(department.id))]),
+                      _vm._v(" "),
+                      _c("td", [_vm._v(_vm._s(department.name))]),
+                      _vm._v(" "),
+                      _c("td", [_vm._v(_vm._s(department.created_at))])
+                    ]
+                  )
+                })
+              )
+            ]
           )
         ])
       ]),
       _vm._v(" "),
-      _vm._m(3)
-    ]),
-    _vm._v(" "),
-    _c("br"),
-    _vm._v(" "),
-    _c("div", { staticClass: "card dataTable" }, [
-      _c("div", { staticClass: "card-body" }, [
-        _vm._m(4),
-        _vm._v(" "),
-        _c("div", { staticClass: "pull-right btn-group dataTableButtons" }, [
-          _c(
-            "button",
-            {
-              staticClass: "btn btn-sm btn-success",
-              on: {
-                click: function($event) {
-                  _vm.addDepartment()
-                }
-              }
-            },
-            [
-              _vm._v("新增科室 "),
-              _c("i", {
-                staticClass: "fa fa-plus",
-                attrs: { "aria-hidden": "true" }
-              })
-            ]
-          ),
-          _vm._v(" \n            ")
-        ]),
-        _vm._v(" "),
-        _c("br"),
-        _c("br"),
-        _vm._v(" "),
-        _c(
-          "table",
-          { staticClass: "table table-bordered", attrs: { id: "dataTable" } },
-          [
-            _vm._m(5),
+      _vm.showEditDepartment
+        ? _c("department-model", [
+            _c("h3", { attrs: { slot: "header" }, slot: "header" }, [
+              _vm._v("增加科室")
+            ]),
             _vm._v(" "),
-            _vm._m(6),
+            _c("div", { attrs: { slot: "body" }, slot: "body" }, [
+              _c(
+                "div",
+                { staticClass: "form-group" },
+                [
+                  _c("label", [_vm._v("选择上级科室:")]),
+                  _vm._v(" "),
+                  _c("treeselect", {
+                    attrs: {
+                      placeholder: "选择上级科室,不选默认为顶级科室",
+                      normalizer: _vm.normalizer,
+                      options: _vm.treeselectLists
+                    },
+                    on: { open: _vm.reloadOptions },
+                    model: {
+                      value: _vm.pid,
+                      callback: function($$v) {
+                        _vm.pid = $$v
+                      },
+                      expression: "pid"
+                    }
+                  })
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c("div", { staticClass: "form-group" }, [
+                _c("label", [_vm._v("设置科室名称:")]),
+                _vm._v(" "),
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.departmentName,
+                      expression: "departmentName"
+                    }
+                  ],
+                  staticClass: "form-control",
+                  attrs: { type: "text" },
+                  domProps: { value: _vm.departmentName },
+                  on: {
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.departmentName = $event.target.value
+                    }
+                  }
+                })
+              ])
+            ]),
             _vm._v(" "),
             _c(
-              "tbody",
-              _vm._l(_vm.departments, function(department) {
-                return _c(
-                  "tr",
-                  {
-                    on: {
-                      click: function($event) {
-                        _vm.selectDepartment(department, $event)
-                      }
-                    }
-                  },
-                  [
-                    _c("td", [_vm._v(_vm._s(department.id))]),
-                    _vm._v(" "),
-                    _c("td", [_vm._v(_vm._s(department.name))]),
-                    _vm._v(" "),
-                    _c("td", [_vm._v(_vm._s(department.created_at))])
-                  ]
-                )
-              })
+              "button",
+              {
+                staticClass: "btn btn-sm btn-success",
+                attrs: { slot: "footer" },
+                on: { click: _vm.saveDepartment },
+                slot: "footer"
+              },
+              [_vm._v("保存")]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-sm btn-default",
+                attrs: { slot: "footer" },
+                on: {
+                  click: function($event) {
+                    _vm.showEditDepartment = false
+                  }
+                },
+                slot: "footer"
+              },
+              [_vm._v("取消")]
             )
-          ]
-        )
-      ])
-    ])
-  ])
+          ])
+        : _vm._e()
+    ],
+    1
+  )
 }
 var staticRenderFns = [
   function() {

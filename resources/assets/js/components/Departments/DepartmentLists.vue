@@ -46,7 +46,7 @@
             <div class="card-body">
                 <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
                 <div class="pull-right btn-group dataTableButtons">
-                    <!--<button class="btn btn-sm btn-danger" @click="delt()">删除</button>&nbsp;-->
+                    <button class="btn btn-sm btn-danger" @click="delt()">删除所选</button>&nbsp;
                     <button class="btn btn-sm btn-success" @click="addDepartment()">新增科室 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
                 </div>
                 <br><br>
@@ -76,19 +76,45 @@
                 </table>
             </div>
         </div>
+
+
+        <department-model v-if="showEditDepartment">
+            <h3 slot="header">增加科室</h3>
+            <div slot="body">
+                <div class="form-group">
+                    <label>选择上级科室:</label>
+                    <treeselect @open="reloadOptions" v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="treeselectLists"></treeselect>
+                </div>
+                <div class="form-group">
+                    <label>设置科室名称:</label>
+                    <input v-model="departmentName" type="text" class="form-control">
+                </div>
+            </div>
+            <button @click="saveDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <!--实现点击取消按钮，隐藏模态框-->
+            <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
+        </department-model>
     </div>
 </template>
 
 <script>
     import VueDatepickerLocal from 'vue-datepicker-local'
+    import DepartmentModel from './DepartmentModel.vue'
+    //引入vue-treeselect
+    import Treeselect from '@riophae/vue-treeselect'
+    //引入vue-treeselect的样式
+    import '@riophae/vue-treeselect/dist/vue-treeselect.css'
     import moment from 'moment'
     export default {
         components:{
-            VueDatepickerLocal
+            VueDatepickerLocal,
+            'department-model':DepartmentModel,  //引入DepartmentModel
+            'treeselect':Treeselect
         },
         name:'dataTable',
         data() {
             return {
+                showEditDepartment:false,
                 departments:[],
                 searchedData:[],
                 search:{
@@ -97,6 +123,19 @@
                     endTime:''
                 },
 
+
+                treeselectLists:[],
+                //增加上级科室id属性
+                pid:null,
+                //增加新增科室名称属性
+                departmentName:'',
+                //注意，这里必须要用自定义，不然显示不出来的
+                normalizer(node) {
+                    return {
+                        id: node.id,//指定id是什么字段
+                        label: node.name,//指定label是用的什么字段，即显示什么字段出来
+                    }
+                },
               }
         },
         mounted() {
@@ -132,7 +171,7 @@
                         { targets: [1], visible: false},
                         { targets: '_all', visible: true },
                         { targets: [0], className:'reorder'}
-                    ]
+                    ],
                 });
                 //隐藏第二列
 //                table.columns( [1] ).visible( false );
@@ -252,6 +291,16 @@
                 table.rows({selected:true}).remove().draw( false );
 
             },
+
+            addDepartment() {
+                this.showEditDepartment = true
+            },
+            saveDepartment() {
+                console.log(this.pid);
+                console.log(this.departmentName)
+            },
+
+
 //            这个方法只适合单独查询某条记录有用，不能多条件查询
 //            searchName() {
 //                let table = $('#dataTable').DataTable();
@@ -325,7 +374,15 @@
                 }
 //                console.log(filteredData);
                 console.log(this.searchedData);
-            }
+            },
+            reloadOptions() {
+                axios.get('/department/get').then(res=> {
+                    console.log(res.data.data);
+                    this.treeselectLists = res.data.data;
+                }).catch(error=> {
+                    throw error
+                });
+            },
         }
     }
 </script>
