@@ -47,15 +47,16 @@
                 <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
                 <div class="pull-right btn-group dataTableButtons">
                     <button class="btn btn-sm btn-danger" @click="delSelected()">删除所选</button>&nbsp;
-                    <button class="btn btn-sm btn-success" @click="addDepartment()">新增科室 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
+                    <button class="btn btn-sm btn-success" @click="showAddModel()">新增科室 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
                 </div>
                 <br><br>
                 <table id="dataTable" class="table table-bordered">
                     <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Created_At</th>
+                        <th class="exportable">ID</th>
+                        <th class="exportable">Name</th>
+                        <th class="exportable">Created_At</th>
+                        <th>操作</th>
                     </tr>
                     </thead>
                     <tfoot>
@@ -63,6 +64,7 @@
                         <th>ID</th>
                         <th>Name</th>
                         <th>Created_At</th>
+                        <th>操作</th>
                     </tr>
                     </tfoot>
 
@@ -71,6 +73,7 @@
                         <td>{{ department.id }}</td>
                         <td>{{ department.name }}</td>
                         <td>{{ department.created_at }}</td>
+                        <td><button @click="delOne($event)" class="btn btn-sm btn-danger">删除</button> <button @click="showEditModel($event)" class="btn btn-sm btn-success">修改</button></td>
                     </tr>
                     </tbody>
                 </table>
@@ -78,7 +81,7 @@
         </div>
 
 
-        <department-model v-if="showEditDepartment">
+        <department-model v-if="showAddDepartment">
             <h3 slot="header">增加科室</h3>
             <div slot="body">
                 <div class="form-group">
@@ -91,6 +94,19 @@
                 </div>
             </div>
             <button @click="saveDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <!--实现点击取消按钮，隐藏模态框-->
+            <button class="btn btn-sm btn-default" slot="footer" @click="showAddDepartment=false">取消</button>
+        </department-model>
+
+        <department-model v-if="showEditDepartment">
+            <h3 slot="header">修改科室信息</h3>
+            <div slot="body">
+                <div class="form-group">
+                    <label>设置科室名称:</label>
+                    <input v-model="departmentName" type="text" class="form-control">
+                </div>
+            </div>
+            <button @click="editDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
         </department-model>
@@ -114,6 +130,7 @@
         name:'dataTable',
         data() {
             return {
+                showAddDepartment:false,
                 showEditDepartment:false,
                 departments:[],
                 searchedData:[],
@@ -170,7 +187,7 @@
                     columnDefs: [
                         { targets: [1], visible: false},
                         { targets: '_all', visible: true },
-                        { targets: [0], className:'reorder'}
+                        { targets: [0], className:'reorder'},
                     ],
                 });
                 //隐藏第二列
@@ -229,7 +246,7 @@
                             },
                             //控制不打印隐藏列，即只打印显示列
                             exportOptions: {
-                                columns: ':visible'
+                                columns: ':visible.exportable'
                             }
                         },
                     ]
@@ -244,7 +261,7 @@
                             titleAttr:'导出EXCEL',
                             className:'btn-outline-primary btn-sm',
                             exportOptions: {
-                                columns: ':visible'
+                                columns: ':visible.exportable'
                             }
                         },
                         {
@@ -254,7 +271,7 @@
                             className:'btn-outline-primary btn-sm',
                             download: 'open',
                             exportOptions: {
-                                columns: ':visible'
+                                columns: ':visible.exportable'
                             }
                         },
                     ]
@@ -276,7 +293,7 @@
             },
             selectDepartment(department,ee) {
                 let table = $('#dataTable').DataTable();
-//                console.log(ee.currentTarget);
+//                console.log(ee.target);
                 $(ee.currentTarget).toggleClass('selected');
 
                 table.on( 'select', function ( e, dt, type, ix ) {  //监听选择事件
@@ -285,6 +302,26 @@
 //                        dt.rows(ix).deselect();
 //                    }
                 });
+            },
+            delOne(e) {
+                let table = $('#dataTable').DataTable();
+                //获取当前点击按钮所在行的数据
+                let data = table.row($(e.target.closest('tr')).get(0)).data();
+                axios.post('/department/delete',{id:data[0]}).then(res=> {
+                    console.log('删除成功');
+                    table.row($(e.target.closest('tr')).get(0)).remove().draw( false )
+                })
+            },
+            showEditModel(e) {
+                let table = $('#dataTable').DataTable();
+                //获取当前点击按钮所在行的数据
+                let data = table.row($(e.target.closest('tr')).get(0)).data();
+                this.departmentName = data[1];
+                this.showEditDepartment = true;
+            },
+            editDepartment() {
+                console.log(this.pid);
+                console.log(this.departmentName);
             },
             delSelected() {
                 let table = $('#dataTable').DataTable();
@@ -299,16 +336,21 @@
                 })
             },
 
-            addDepartment() {
-                this.showEditDepartment = true
+            showAddModel() {
+                this.pid = null;
+                this.departmentName = '';
+                this.showAddDepartment = true
             },
             saveDepartment() {
                 axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
                     console.log(res.data);
+                    this.pid = null;
                     this.departmentName ='';
                     let table = $('#dataTable').DataTable();
-                    table.row.add([res.data.id,res.data.name,res.data.created_at]).draw()
-
+                    let newDepartment = {id:res.data.id,name:res.data.name,created_at:res.data.created_at,parent_id:res.data.parent_id};
+                    this.departments.push(newDepartment);
+                    console.log(this.departments)
+//                    table.row.add([res.data.id,res.data.name,res.data.created_at,'<button class="btn btn-sm btn-danger">删除</button> <button class="btn btn-sm btn-success">修改</button>']).draw()
                 })
             },
 
