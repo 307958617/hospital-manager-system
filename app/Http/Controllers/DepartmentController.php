@@ -45,6 +45,8 @@ class DepartmentController extends Controller
             $node->save();
         }
         $node->save();
+
+        return $node;
     }
     //编辑科室然后保存到数据库
     public function edit(Request $request)
@@ -65,6 +67,12 @@ class DepartmentController extends Controller
         $id = $request->get('id');
         $node = Department::find($id);
         $node->delete();
+    }
+
+    public function deleteSelected(Request $request)
+    {
+        $ids = $request->get('ids');
+        Department::destroy($ids);
     }
 
     //将分类以树结构显示出来

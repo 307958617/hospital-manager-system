@@ -93286,16 +93286,30 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 //                    }
             });
         },
-        delt: function delt() {
+        delSelected: function delSelected() {
             var table = $('#dataTable').DataTable();
-            table.rows({ selected: true }).remove().draw(false);
+            var data = table.rows({ selected: true }).data();
+            var ids = [];
+            data.map(function (d) {
+                ids.push(parseInt(d[0]));
+            });
+            axios.post('/department/deleteSelected', { ids: ids }).then(function (res) {
+                console.log('删除成功');
+                table.rows({ selected: true }).remove().draw(false);
+            });
         },
         addDepartment: function addDepartment() {
             this.showEditDepartment = true;
         },
         saveDepartment: function saveDepartment() {
-            console.log(this.pid);
-            console.log(this.departmentName);
+            var _this2 = this;
+
+            axios.post('/department/add', { pid: this.pid, name: this.departmentName }).then(function (res) {
+                console.log(res.data);
+                _this2.departmentName = '';
+                var table = $('#dataTable').DataTable();
+                table.row.add([res.data.id, res.data.name, res.data.created_at]).draw();
+            });
         },
 
 
@@ -93359,11 +93373,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             console.log(this.searchedData);
         },
         reloadOptions: function reloadOptions() {
-            var _this2 = this;
+            var _this3 = this;
 
             axios.get('/department/get').then(function (res) {
                 console.log(res.data.data);
-                _this2.treeselectLists = res.data.data;
+                _this3.treeselectLists = res.data.data;
             }).catch(function (error) {
                 throw error;
             });
@@ -95115,7 +95129,7 @@ var render = function() {
                 staticClass: "btn btn-sm btn-danger",
                 on: {
                   click: function($event) {
-                    _vm.delt()
+                    _vm.delSelected()
                   }
                 }
               },

@@ -46,7 +46,7 @@
             <div class="card-body">
                 <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
                 <div class="pull-right btn-group dataTableButtons">
-                    <button class="btn btn-sm btn-danger" @click="delt()">删除所选</button>&nbsp;
+                    <button class="btn btn-sm btn-danger" @click="delSelected()">删除所选</button>&nbsp;
                     <button class="btn btn-sm btn-success" @click="addDepartment()">新增科室 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
                 </div>
                 <br><br>
@@ -286,18 +286,30 @@
 //                    }
                 });
             },
-            delt() {
+            delSelected() {
                 let table = $('#dataTable').DataTable();
-                table.rows({selected:true}).remove().draw( false );
-
+                let data = table.rows({selected:true}).data();
+                let ids = [];
+                data.map(d=> {
+                    ids.push(parseInt(d[0]))
+                });
+                axios.post('/department/deleteSelected',{ids:ids}).then(res=> {
+                    console.log('删除成功');
+                    table.rows({selected:true}).remove().draw( false );
+                })
             },
 
             addDepartment() {
                 this.showEditDepartment = true
             },
             saveDepartment() {
-                console.log(this.pid);
-                console.log(this.departmentName)
+                axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
+                    console.log(res.data);
+                    this.departmentName ='';
+                    let table = $('#dataTable').DataTable();
+                    table.row.add([res.data.id,res.data.name,res.data.created_at]).draw()
+
+                })
             },
 
 

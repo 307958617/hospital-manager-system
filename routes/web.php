@@ -27,3 +27,4 @@ Route::post('/department/change', 'DepartmentController@change')->name('departme
 Route::post('/department/add', 'DepartmentController@add')->name('department.add');
 Route::post('/department/edit', 'DepartmentController@edit')->name('department.edit');
 Route::post('/department/delete', 'DepartmentController@delete')->name('department.delete');
+Route::post('/department/deleteSelected', 'DepartmentController@deleteSelected')->name('department.deleteSelected');
