@@ -74688,10 +74688,10 @@ DataTable.ext.buttons.pdfHtml5 = {
                 bolditalics: 'Roboto-Italic.ttf'
             },
             st: {
-                normal: 'simfang.ttf',
-                bold: 'simfang.ttf',
-                italics: 'simfang.ttf',
-                bolditalics: 'simfang.ttf',
+                normal: 'FZYTK.TTF',
+                bold: 'FZYTK.TTF',
+                italics: 'FZYTK.TTF',
+                bolditalics: 'FZYTK.TTF',
             },
             //    微软雅黑: {
             //     normal: '微软雅黑.ttf',
@@ -74701,7 +74701,7 @@ DataTable.ext.buttons.pdfHtml5 = {
             // }
         };
 
-		var pdf = _pdfMake().createPdf( doc );
+        var pdf = _pdfMake().createPdf( doc );
 
 		if ( config.download === 'open' && ! _isDuffSafari() ) {
 			pdf.open();
@@ -93290,34 +93290,31 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         getDepartments: function getDepartments() {
             return axios.get('/department/org/get');
         },
-        selectDepartment: function selectDepartment(department, ee) {
+        selectDepartment: function selectDepartment(ee) {
             var table = $('#dataTable').DataTable();
-            //                console.log(ee.target);
-            $(ee.currentTarget).toggleClass('selected');
+            var buttonClass = $(ee.target).get(0).className;
+            var data = table.row($(ee.target.closest('tr')).get(0)).data();
+            if (buttonClass.indexOf('del') !== -1) {
+                console.log('点击了删除按钮');
+                axios.post('/department/delete', { id: data[0] }).then(function (res) {
+                    console.log('删除成功');
+                    table.row($(ee.target.closest('tr')).get(0)).remove().draw(false);
+                });
+            }
+            if (buttonClass.indexOf('edit') !== -1) {
+                console.log('点击了编辑按钮');
+                //                  显示编辑窗口，并获取当前点击行的数据
+                this.departmentName = data[1];
+                this.showEditDepartment = true;
+            }
 
-            table.on('select', function (e, dt, type, ix) {
-                //监听选择事件
-                var selected = dt.rows({ selected: true });
-                //                    if ( selected.count() > 5 ) {      //限制选择的个数
-                //                        dt.rows(ix).deselect();
-                //                    }
-            });
-        },
-        delOne: function delOne(e) {
-            var table = $('#dataTable').DataTable();
-            //获取当前点击按钮所在行的数据
-            var data = table.row($(e.target.closest('tr')).get(0)).data();
-            axios.post('/department/delete', { id: data[0] }).then(function (res) {
-                console.log('删除成功');
-                table.row($(e.target.closest('tr')).get(0)).remove().draw(false);
-            });
-        },
-        showEditModel: function showEditModel(e) {
-            var table = $('#dataTable').DataTable();
-            //获取当前点击按钮所在行的数据
-            var data = table.row($(e.target.closest('tr')).get(0)).data();
-            this.departmentName = data[1];
-            this.showEditDepartment = true;
+            $(ee.currentTarget).toggleClass('selected');
+            //                table.on( 'select', function ( e, dt, type, ix ) {  //监听选择事件
+            //                    let selected = dt.rows({selected:true});
+            //                    if ( selected.count() > 5 ) {      //限制选择的个数
+            //                        dt.rows(ix).deselect();
+            //                    }
+            //                });
         },
         editDepartment: function editDepartment() {
             console.log(this.pid);
@@ -93348,10 +93345,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 _this2.pid = null;
                 _this2.departmentName = '';
                 var table = $('#dataTable').DataTable();
-                var newDepartment = { id: res.data.id, name: res.data.name, created_at: res.data.created_at, parent_id: res.data.parent_id };
-                _this2.departments.push(newDepartment);
-                console.log(_this2.departments);
-                //                    table.row.add([res.data.id,res.data.name,res.data.created_at,'<button class="btn btn-sm btn-danger">删除</button> <button class="btn btn-sm btn-success">修改</button>']).draw()
+                table.row.add([res.data.id, res.data.name, res.data.created_at, '<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true);
             });
         },
 
@@ -95213,52 +95207,23 @@ var render = function() {
               _vm._v(" "),
               _c(
                 "tbody",
+                {
+                  on: {
+                    click: function($event) {
+                      _vm.selectDepartment($event)
+                    }
+                  }
+                },
                 _vm._l(_vm.departments, function(department) {
-                  return _c(
-                    "tr",
-                    {
-                      on: {
-                        click: function($event) {
-                          _vm.selectDepartment(department, $event)
-                        }
-                      }
-                    },
-                    [
-                      _c("td", [_vm._v(_vm._s(department.id))]),
-                      _vm._v(" "),
-                      _c("td", [_vm._v(_vm._s(department.name))]),
-                      _vm._v(" "),
-                      _c("td", [_vm._v(_vm._s(department.created_at))]),
-                      _vm._v(" "),
-                      _c("td", [
-                        _c(
-                          "button",
-                          {
-                            staticClass: "btn btn-sm btn-danger",
-                            on: {
-                              click: function($event) {
-                                _vm.delOne($event)
-                              }
-                            }
-                          },
-                          [_vm._v("删除")]
-                        ),
-                        _vm._v(" "),
-                        _c(
-                          "button",
-                          {
-                            staticClass: "btn btn-sm btn-success",
-                            on: {
-                              click: function($event) {
-                                _vm.showEditModel($event)
-                              }
-                            }
-                          },
-                          [_vm._v("修改")]
-                        )
-                      ])
-                    ]
-                  )
+                  return _c("tr", [
+                    _c("td", [_vm._v(_vm._s(department.id))]),
+                    _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(department.name))]),
+                    _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(department.created_at))]),
+                    _vm._v(" "),
+                    _vm._m(7, true)
+                  ])
                 })
               )
             ]
@@ -95546,6 +95511,20 @@ var staticRenderFns = [
         _c("th", [_vm._v("Created_At")]),
         _vm._v(" "),
         _c("th", [_vm._v("操作")])
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("td", [
+      _c("button", { staticClass: "del btn btn-sm btn-danger" }, [
+        _vm._v("删除")
+      ]),
+      _vm._v(" "),
+      _c("button", { staticClass: "edit btn btn-sm btn-success" }, [
+        _vm._v("修改")
       ])
     ])
   }

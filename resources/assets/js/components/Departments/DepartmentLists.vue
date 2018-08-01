@@ -67,13 +67,13 @@
                         <th>操作</th>
                     </tr>
                     </tfoot>
-
-                    <tbody>
-                    <tr v-for="department in departments" @click="selectDepartment(department,$event)">
+                    <!--这里需要特别注意！！！，@click事件必须放到tbody上面，如果放到tr上，那么新增加的行的点击事件将不会被触发-->
+                    <tbody @click="selectDepartment($event)">
+                    <tr v-for="department in departments">
                         <td>{{ department.id }}</td>
                         <td>{{ department.name }}</td>
                         <td>{{ department.created_at }}</td>
-                        <td><button @click="delOne($event)" class="btn btn-sm btn-danger">删除</button> <button @click="showEditModel($event)" class="btn btn-sm btn-success">修改</button></td>
+                        <td><button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button></td>
                     </tr>
                     </tbody>
                 </table>
@@ -291,33 +291,32 @@
             getDepartments() {
                return axios.get('/department/org/get')
             },
-            selectDepartment(department,ee) {
+            selectDepartment(ee) {
                 let table = $('#dataTable').DataTable();
-//                console.log(ee.target);
-                $(ee.currentTarget).toggleClass('selected');
+                let buttonClass = $(ee.target).get(0).className;
+                let data = table.row($(ee.target.closest('tr')).get(0)).data();
+                if(buttonClass.indexOf('del') !== -1) {
+                    console.log('点击了删除按钮');
+                    axios.post('/department/delete',{id:data[0]}).then(res=> {
+                        console.log('删除成功');
+                        table.row($(ee.target.closest('tr')).get(0)).remove().draw( false )
+                    })
+                }
+                if(buttonClass.indexOf('edit') !== -1) {
+                    console.log('点击了编辑按钮');
+//                  显示编辑窗口，并获取当前点击行的数据
+                    this.departmentName = data[1];
+                    this.showEditDepartment = true;
+                }
 
-                table.on( 'select', function ( e, dt, type, ix ) {  //监听选择事件
-                    let selected = dt.rows({selected:true});
+
+                $(ee.currentTarget).toggleClass('selected');
+//                table.on( 'select', function ( e, dt, type, ix ) {  //监听选择事件
+//                    let selected = dt.rows({selected:true});
 //                    if ( selected.count() > 5 ) {      //限制选择的个数
 //                        dt.rows(ix).deselect();
 //                    }
-                });
-            },
-            delOne(e) {
-                let table = $('#dataTable').DataTable();
-                //获取当前点击按钮所在行的数据
-                let data = table.row($(e.target.closest('tr')).get(0)).data();
-                axios.post('/department/delete',{id:data[0]}).then(res=> {
-                    console.log('删除成功');
-                    table.row($(e.target.closest('tr')).get(0)).remove().draw( false )
-                })
-            },
-            showEditModel(e) {
-                let table = $('#dataTable').DataTable();
-                //获取当前点击按钮所在行的数据
-                let data = table.row($(e.target.closest('tr')).get(0)).data();
-                this.departmentName = data[1];
-                this.showEditDepartment = true;
+//                });
             },
             editDepartment() {
                 console.log(this.pid);
@@ -347,10 +346,7 @@
                     this.pid = null;
                     this.departmentName ='';
                     let table = $('#dataTable').DataTable();
-                    let newDepartment = {id:res.data.id,name:res.data.name,created_at:res.data.created_at,parent_id:res.data.parent_id};
-                    this.departments.push(newDepartment);
-                    console.log(this.departments)
-//                    table.row.add([res.data.id,res.data.name,res.data.created_at,'<button class="btn btn-sm btn-danger">删除</button> <button class="btn btn-sm btn-success">修改</button>']).draw()
+                    table.row.add([res.data.id,res.data.name,res.data.created_at,'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true)
                 })
             },
 
