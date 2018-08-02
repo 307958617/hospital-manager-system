@@ -51,13 +51,13 @@ class DepartmentController extends Controller
     //编辑科室然后保存到数据库
     public function edit(Request $request)
     {
-        $pid = $request->get('pid');
+//        $pid = $request->get('pid');
         $name = $request->get('name');
         $id = $request->get('id');
 
         $node = Department::find($id);
 
-        $node->parent_id = $pid;
+//        $node->parent_id = $pid;
         $node->name = $name;
         $node->save();
     }

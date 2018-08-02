@@ -103,10 +103,10 @@
             <div slot="body">
                 <div class="form-group">
                     <label>设置科室名称:</label>
-                    <input v-model="departmentName" type="text" class="form-control">
+                    <input id="editName" v-model="departmentName" type="text" class="form-control">
                 </div>
             </div>
-            <button @click="editDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <button class="saveEdit btn btn-sm btn-success" slot="footer">保存</button>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
         </department-model>
@@ -163,7 +163,7 @@
                 }).then(() => {
                     // execute the call to render the table, now that you have the data you need
                     this.initDataTable();
-                    this.searchedData = this.departments
+                    this.searchedData = this.departments;
                 })
             });
         },
@@ -307,8 +307,18 @@
 //                  显示编辑窗口，并获取当前点击行的数据
                     this.departmentName = data[1];
                     this.showEditDepartment = true;
-                }
 
+                    $(document).ready(function(){
+                        $("button.saveEdit").click(function(){
+                            let newName = $('input#editName')[0].value;
+                            data[1] = newName;
+                            axios.post('/department/edit',{name:data[1],id:data[0]}).then((res)=>{
+                                console.log('修改成功');
+                                table.row($(ee.target.closest('tr')).get(0)).data(data).draw();
+                            });
+                        });
+                    });
+                }
 
                 $(ee.currentTarget).toggleClass('selected');
 //                table.on( 'select', function ( e, dt, type, ix ) {  //监听选择事件
@@ -317,10 +327,6 @@
 //                        dt.rows(ix).deselect();
 //                    }
 //                });
-            },
-            editDepartment() {
-                console.log(this.pid);
-                console.log(this.departmentName);
             },
             delSelected() {
                 let table = $('#dataTable').DataTable();

@@ -74701,7 +74701,7 @@ DataTable.ext.buttons.pdfHtml5 = {
             // }
         };
 
-        var pdf = _pdfMake().createPdf( doc );
+		var pdf = _pdfMake().createPdf( doc );
 
 		if ( config.download === 'open' && ! _isDuffSafari() ) {
 			pdf.open();
@@ -93306,6 +93306,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 //                  显示编辑窗口，并获取当前点击行的数据
                 this.departmentName = data[1];
                 this.showEditDepartment = true;
+
+                $(document).ready(function () {
+                    $("button.saveEdit").click(function () {
+                        var newName = $('input#editName')[0].value;
+                        data[1] = newName;
+                        axios.post('/department/edit', { name: data[1], id: data[0] }).then(function (res) {
+                            console.log('修改成功');
+                            table.row($(ee.target.closest('tr')).get(0)).data(data).draw();
+                        });
+                    });
+                });
             }
 
             $(ee.currentTarget).toggleClass('selected');
@@ -93315,10 +93326,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             //                        dt.rows(ix).deselect();
             //                    }
             //                });
-        },
-        editDepartment: function editDepartment() {
-            console.log(this.pid);
-            console.log(this.departmentName);
         },
         delSelected: function delSelected() {
             var table = $('#dataTable').DataTable();
@@ -95338,7 +95345,7 @@ var render = function() {
                     }
                   ],
                   staticClass: "form-control",
-                  attrs: { type: "text" },
+                  attrs: { id: "editName", type: "text" },
                   domProps: { value: _vm.departmentName },
                   on: {
                     input: function($event) {
@@ -95355,9 +95362,8 @@ var render = function() {
             _c(
               "button",
               {
-                staticClass: "btn btn-sm btn-success",
+                staticClass: "saveEdit btn btn-sm btn-success",
                 attrs: { slot: "footer" },
-                on: { click: _vm.editDepartment },
                 slot: "footer"
               },
               [_vm._v("保存")]
