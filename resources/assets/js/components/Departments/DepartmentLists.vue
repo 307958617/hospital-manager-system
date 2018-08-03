@@ -106,10 +106,12 @@
                     <input id="editName" v-model="departmentName" type="text" class="form-control">
                 </div>
             </div>
-            <button class="saveEdit btn btn-sm btn-success" slot="footer">保存</button>
+            <button @click="saveEdit" class="saveEdit btn btn-sm btn-success" slot="footer">保存</button>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
         </department-model>
+
+        <vue-snotify></vue-snotify>
     </div>
 </template>
 
@@ -139,6 +141,7 @@
                     startTime: '',
                     endTime:''
                 },
+                selectedRow:{},
 
 
                 treeselectLists:[],
@@ -294,30 +297,30 @@
             selectDepartment(ee) {
                 let table = $('#dataTable').DataTable();
                 let buttonClass = $(ee.target).get(0).className;
-                let data = table.row($(ee.target.closest('tr')).get(0)).data();
+                let row = table.row($(ee.target.closest('tr')).get(0));
+                let data = row.data();
+                this.selectedRow = row;
                 if(buttonClass.indexOf('del') !== -1) {
                     console.log('点击了删除按钮');
-                    axios.post('/department/delete',{id:data[0]}).then(res=> {
-                        console.log('删除成功');
-                        table.row($(ee.target.closest('tr')).get(0)).remove().draw( false )
-                    })
+                    this.$snotify.error('你真的要删除 '+data[1]+' 吗？', '删除确认', {
+                        position:'centerCenter',
+                        buttons: [
+                            {text: 'Yes', action: (toast) => {
+                                axios.post('/department/delete',{id:data[0]}).then(res=> {
+                                    this.$snotify.success('删除成功');
+                                    table.row(row).remove().draw( false )
+                                });
+                                this.$snotify.remove(toast.id);
+                            }, bold: false},
+                            {text: 'No', action: (toast) => {this.$snotify.remove(toast.id);}},
+                        ]
+                    });
                 }
                 if(buttonClass.indexOf('edit') !== -1) {
                     console.log('点击了编辑按钮');
 //                  显示编辑窗口，并获取当前点击行的数据
                     this.departmentName = data[1];
                     this.showEditDepartment = true;
-
-                    $(document).ready(function(){
-                        $("button.saveEdit").click(function(){
-                            let newName = $('input#editName')[0].value;
-                            data[1] = newName;
-                            axios.post('/department/edit',{name:data[1],id:data[0]}).then((res)=>{
-                                console.log('修改成功');
-                                table.row($(ee.target.closest('tr')).get(0)).data(data).draw();
-                            });
-                        });
-                    });
                 }
 
                 $(ee.currentTarget).toggleClass('selected');
@@ -328,6 +331,20 @@
 //                    }
 //                });
             },
+
+            saveEdit() {
+                let table = $('#dataTable').DataTable();
+                let newName = $('input#editName')[0].value;
+                let data = this.selectedRow.data();
+                data[1] = newName;
+                axios.post('/department/edit',{name:data[1],id:data[0]}).then((res)=>{
+                    console.log('修改成功');
+                    this.showEditDepartment = false;
+                    this.$snotify.success('修改成功！');
+                    table.row(this.selectedRow).data(data).draw();
+                });
+            },
+
             delSelected() {
                 let table = $('#dataTable').DataTable();
                 let data = table.rows({selected:true}).data();
