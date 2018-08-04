@@ -53,6 +53,7 @@
                 <table id="dataTable" class="table table-bordered">
                     <thead>
                     <tr>
+                        <th></th>
                         <th class="exportable">ID</th>
                         <th class="exportable">Name</th>
                         <th class="exportable">Created_At</th>
@@ -61,6 +62,7 @@
                     </thead>
                     <tfoot>
                     <tr>
+                        <th></th>
                         <th>ID</th>
                         <th>Name</th>
                         <th>Created_At</th>
@@ -70,6 +72,7 @@
                     <!--这里需要特别注意！！！，@click事件必须放到tbody上面，如果放到tr上，那么新增加的行的点击事件将不会被触发-->
                     <tbody @click="selectDepartment($event)">
                     <tr v-for="department in departments">
+                        <td></td>
                         <td>{{ department.id }}</td>
                         <td>{{ department.name }}</td>
                         <td>{{ department.created_at }}</td>
@@ -186,12 +189,12 @@
                     },
                     fixedHeader:true,
 //                    stateSave:true,
-                    rowReorder: true,
+                    rowReorder: false,
                     columnDefs: [
-                        { targets: [1], visible: false},
-                        { targets: '_all', visible: true },
-                        { targets: [0], className:'reorder'},
+                        { targets: [0], className: 'details-control',orderable:false},
+                        { targets: -1, orderable:false},
                     ],
+                    order: [[1, 'asc']]
                 });
                 //隐藏第二列
 //                table.columns( [1] ).visible( false );
@@ -297,16 +300,17 @@
             selectDepartment(ee) {
                 let table = $('#dataTable').DataTable();
                 let buttonClass = $(ee.target).get(0).className;
+                let tr = $(ee.target.closest('tr'));
                 let row = table.row($(ee.target.closest('tr')).get(0));
                 let data = row.data();
                 this.selectedRow = row;
                 if(buttonClass.indexOf('del') !== -1) {
                     console.log('点击了删除按钮');
-                    this.$snotify.error('你真的要删除 '+data[1]+' 吗？', '删除确认', {
+                    this.$snotify.error('你真的要删除 '+data[2]+' 吗？', '删除确认', {
                         position:'centerCenter',
                         buttons: [
                             {text: 'Yes', action: (toast) => {
-                                axios.post('/department/delete',{id:data[0]}).then(res=> {
+                                axios.post('/department/delete',{id:data[1]}).then(res=> {
                                     this.$snotify.success('删除成功');
                                     table.row(row).remove().draw( false )
                                 });
@@ -319,8 +323,22 @@
                 if(buttonClass.indexOf('edit') !== -1) {
                     console.log('点击了编辑按钮');
 //                  显示编辑窗口，并获取当前点击行的数据
-                    this.departmentName = data[1];
+                    this.departmentName = data[2];
                     this.showEditDepartment = true;
+                }
+
+                if(buttonClass.indexOf('details-control') !== -1) {
+                    console.log('展开子项目');
+                    if ( row.child.isShown() ) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        row.child( this.format(data) ).show();
+                        tr.addClass('shown');
+                    }
                 }
 
                 $(ee.currentTarget).toggleClass('selected');
@@ -332,12 +350,30 @@
 //                });
             },
 
+            format ( d ) {
+            // `d` is the original data object for the row
+            return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+                        '<tr>'+
+                        '<td>姓名:</td>'+
+                        '<td>'+d[2]+'</td>'+
+                        '</tr>'+
+                        '<tr>'+
+                        '<td>年龄:</td>'+
+                        '<td>'+d[1]+'</td>'+
+                        '</tr>'+
+                        '<tr>'+
+                        '<td>额外信息:</td>'+
+                        '<td>And any further details here (images etc)...</td>'+
+                        '</tr>'+
+                    '</table>';
+            },
+
             saveEdit() {
                 let table = $('#dataTable').DataTable();
                 let newName = $('input#editName')[0].value;
                 let data = this.selectedRow.data();
-                data[1] = newName;
-                axios.post('/department/edit',{name:data[1],id:data[0]}).then((res)=>{
+                data[2] = newName;
+                axios.post('/department/edit',{name:data[2],id:data[1]}).then((res)=>{
                     console.log('修改成功');
                     this.showEditDepartment = false;
                     this.$snotify.success('修改成功！');
@@ -350,7 +386,7 @@
                 let data = table.rows({selected:true}).data();
                 let ids = [];
                 data.map(d=> {
-                    ids.push(parseInt(d[0]))
+                    ids.push(parseInt(d[1]))
                 });
                 axios.post('/department/deleteSelected',{ids:ids}).then(res=> {
                     console.log('删除成功');
@@ -369,7 +405,7 @@
                     this.pid = null;
                     this.departmentName ='';
                     let table = $('#dataTable').DataTable();
-                    table.row.add([res.data.id,res.data.name,res.data.created_at,'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true)
+                    table.row.add(['',res.data.id,res.data.name,res.data.created_at,'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true)
                 })
             },
 
@@ -399,8 +435,8 @@
                 $.fn.dataTable.ext.search.push(
                     function (settings,data,dataIndex) {
 //                      设置实际需要获得到的字段
-                        let needTime = moment(data[2]).valueOf();
-                        let needName = data[1];
+                        let needTime = moment(data[3]).valueOf();
+                        let needName = data[2];
 //                        console.log(data[1] + time);
                         if (
                                 ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
@@ -420,8 +456,8 @@
 //              用filter获取查询后的结果
                 let filteredData = table.rows().data().filter(function(value,index) {
 //                  设置实际需要获得到的字段
-                    let needTime = moment(value[2]).valueOf();
-                    let needName = value[1];
+                    let needTime = moment(value[3]).valueOf();
+                    let needName = value[2];
                     if (
                         ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
                         ( isNaN( startTime ) && needTime <= endTime && (needName.indexOf(name) !== -1) ) ||
@@ -438,9 +474,9 @@
                 let length = filteredData.length;
                 this.searchedData = [];
                 for (let i=0;i < length;i++) {
-                    let id = filteredData[i][0];
-                    let name = filteredData[i][1];
-                    let created_at = filteredData[i][2];
+                    let id = filteredData[i][1];
+                    let name = filteredData[i][2];
+                    let created_at = filteredData[i][3];
                     let single = {id:id,name:name,created_at:created_at};
 //                    console.log(single);
                     this.searchedData.push(single)
@@ -467,4 +503,11 @@
     .card-body>.datepicker>input {height: 27px;width:157px;font-size: 12px;padding-left: 2px}
     tr.selected{background-color: #B0BED9}
     .dt-buttons{display: inline}
+    td.details-control {
+        background: url('details_open.png') no-repeat center center;
+        cursor: pointer;
+    }
+    tr.shown td.details-control {
+        background: url('details_close.png') no-repeat center center;
+    }
 </style>
