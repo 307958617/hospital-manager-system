@@ -18,13 +18,17 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
-Route::get('/department/org', 'DepartmentController@show_org')->name('show_org');
-Route::get('/department/org/get', 'DepartmentController@get_org')->name('get_org');
-Route::get('/department/departments', 'DepartmentController@show_departments')->name('show_departments');
-Route::get('/department/users', 'DepartmentController@show_users')->name('show_users');
-Route::get('/department/get', 'DepartmentController@get')->name('department.get');
-Route::post('/department/change', 'DepartmentController@change')->name('department.change');
-Route::post('/department/add', 'DepartmentController@add')->name('department.add');
-Route::post('/department/edit', 'DepartmentController@edit')->name('department.edit');
-Route::post('/department/delete', 'DepartmentController@delete')->name('department.delete');
-Route::post('/department/deleteSelected', 'DepartmentController@deleteSelected')->name('department.deleteSelected');
+
+Route::get('/dep_user/org', 'DepartmentController@show_org')->name('show_org');
+Route::get('/dep_user/org/get', 'DepartmentController@get_org')->name('get_org');
+
+Route::get('/dep_user/departments', 'DepartmentController@show_departments')->name('show_departments');
+Route::get('/dep_user/departments/get', 'DepartmentController@get')->name('departments.get');
+Route::post('/dep_user/departments/change', 'DepartmentController@change')->name('departments.change');
+Route::post('/dep_user/departments/add', 'DepartmentController@add')->name('departments.add');
+Route::post('/dep_user/departments/edit', 'DepartmentController@edit')->name('departments.edit');
+Route::post('/dep_user/departments/delete', 'DepartmentController@delete')->name('departments.delete');
+Route::post('/dep_user/departments/deleteSelected', 'DepartmentController@deleteSelected')->name('departments.deleteSelected');
+
+Route::get('/dep_user/users', 'UserController@show_users')->name('show_users');
+Route::get('/dep_user/users/get', 'UserController@get')->name('users.get');

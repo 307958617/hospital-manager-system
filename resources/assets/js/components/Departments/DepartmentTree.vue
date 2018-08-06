@@ -37,7 +37,7 @@
     //引入nestable.js
     import nestable from './nestable'
     //引入DepartmentModel
-    import DepartmentModel from './DepartmentModel.vue'
+    import DepartmentModel from '../Model.vue'
     export default {
         props: ['Department'],
         components:{

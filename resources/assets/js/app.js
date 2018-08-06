@@ -29,11 +29,10 @@ import 'vue-snotify/styles/material.css'
 
 Vue.component('department-component', require('./components/Departments/DepartmentComponent.vue'));
 Vue.component('department-tree', require('./components/Departments/DepartmentTree.vue'));
-Vue.component('department-model', require('./components/Departments/DepartmentModel.vue'));
+Vue.component('model', require('./components/Model.vue'));
 Vue.component('department-lists', require('./components/Departments/DepartmentLists.vue'));
-Vue.component('department-users', require('./components/Departments/DepartmentUsers.vue'));
-Vue.component('my-detail-row', require('./components/Departments/DetailRow.vue'));
-Vue.component('filter-bar', require('./components/Departments/FilterBar.vue'));
+
+Vue.component('user-lists', require('./components/Users/UserLists.vue'));
 
 
 const app = new Vue({

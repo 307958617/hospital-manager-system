@@ -3,20 +3,20 @@
         <div class="row">
             <div class="col-lg-3">
                 <div class="card text-center">
-                    <div class="card-header "><h4>Active</h4></div>
+                    <div class="card-header "><h4>Name</h4></div>
                     <div class="card-body">
-                        <button class="btn btn-sm btn-outline-success"><i class="fa fa-check" aria-hidden="true"></i></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-danger"><i class="fa fa-times" aria-hidden="true"></i></button>&nbsp;
-                        <button class="btn btn-sm btn-outline-warning "><i class="fa fa-power-off" aria-hidden="true"></i></button>&nbsp;
+                        <div class="input-group-sm">
+                            <input type="text" v-model="search.name" class="form-control" @input="searchAndFilterData">
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-2">
                 <div class="card text-center">
-                    <div class="card-header "><h4>Name</h4></div>
+                    <div class="card-header "><h4>Email</h4></div>
                     <div class="card-body">
                         <div class="input-group-sm">
-                            <input type="text" v-model="search.name" class="form-control" @input="searchAndFilterData">
+                            <input type="text" v-model="search.email" class="form-control" @input="searchAndFilterData">
                         </div>
                     </div>
                 </div>
@@ -42,12 +42,13 @@
             </div>
         </div>
         <br>
+
         <div class="card dataTable">
             <div class="card-body">
-                <div class="text pull-left grey"><h2><i class="fa fa-h-square"></i> 部门管理</h2></div>
+                <div class="text pull-left grey"><h2><i class="fa fa-user-circle-o" aria-hidden="true"></i> 人员管理</h2></div>
                 <div class="pull-right btn-group dataTableButtons">
                     <button class="btn btn-sm btn-danger" @click="delSelected()">删除所选</button>&nbsp;
-                    <button class="btn btn-sm btn-success" @click="showAddModel()">新增科室 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
+                    <button class="btn btn-sm btn-success" @click="showAddModel()">新增人员 <i class="fa fa-plus" aria-hidden="true"></i></button>&nbsp;
                 </div>
                 <br><br>
                 <table id="dataTable" class="table table-bordered">
@@ -55,27 +56,33 @@
                     <tr>
                         <th></th>
                         <th class="exportable">ID</th>
-                        <th class="exportable">Name</th>
-                        <th class="exportable">Created_At</th>
+                        <th class="exportable">姓  名</th>
+                        <th class="exportable">Email</th>
+                        <th class="exportable">所在部门</th>
+                        <th class="exportable">创建时间</th>
                         <th>操作</th>
                     </tr>
                     </thead>
                     <tfoot>
                     <tr>
                         <th></th>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Created_At</th>
+                        <th class="exportable">ID</th>
+                        <th class="exportable">姓  名</th>
+                        <th class="exportable">Email</th>
+                        <th class="exportable">所在部门</th>
+                        <th class="exportable">创建时间</th>
                         <th>操作</th>
                     </tr>
                     </tfoot>
                     <!--这里需要特别注意！！！，@click事件必须放到tbody上面，如果放到tr上，那么新增加的行的点击事件将不会被触发-->
-                    <tbody @click="selectDepartment($event)">
-                    <tr v-for="department in departments">
+                    <tbody @click="selectUser($event)">
+                    <tr v-for="user in users">
                         <td></td>
-                        <td>{{ department.id }}</td>
-                        <td>{{ department.name }}</td>
-                        <td>{{ department.created_at }}</td>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.departments }}</td>
+                        <td>{{ user.created_at }}</td>
                         <td><button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button></td>
                     </tr>
                     </tbody>
@@ -83,36 +90,44 @@
             </div>
         </div>
 
-
-        <department-model v-if="showAddDepartment">
-            <h3 slot="header">增加科室</h3>
+        <user-model v-if="showAddUserModel">
+            <h3 slot="header">增加人员</h3>
             <div slot="body">
                 <div class="form-group">
-                    <label>选择上级科室:</label>
-                    <treeselect @open="reloadOptions" v-model="pid" placeholder="选择上级科室,不选默认为顶级科室" :normalizer="normalizer" :options="treeselectLists"></treeselect>
+                    <label>选择所在科室:</label>
+                    <treeselect @open="reloadOptions" v-model="departmentId" placeholder="选择所在科室,不选则暂不设置科室" :normalizer="normalizer" :options="treeselectLists"></treeselect>
                 </div>
                 <div class="form-group">
-                    <label>设置科室名称:</label>
-                    <input v-model="departmentName" type="text" class="form-control" @keyup.enter="saveDepartment()">
+                    <label>设置人员姓名:</label>
+                    <input v-model="userName" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>设置人员邮箱:</label>
+                    <input v-model="userEmail" type="text" class="form-control" @keyup.enter="saveUser()">
                 </div>
             </div>
-            <button @click="saveDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <button @click="saveUser()" class="btn btn-sm btn-success" slot="footer">保存</button>
             <!--实现点击取消按钮，隐藏模态框-->
-            <button class="btn btn-sm btn-default" slot="footer" @click="showAddDepartment=false">取消</button>
-        </department-model>
+            <button class="btn btn-sm btn-default" slot="footer" @click="showAddUserModel=false">取消</button>
+        </user-model>
 
-        <department-model v-if="showEditDepartment">
-            <h3 slot="header">修改科室信息</h3>
+        <user-model v-if="showEditUserModel">
+            <h3 slot="header">修改人员信息</h3>
             <div slot="body">
                 <div class="form-group">
-                    <label>设置科室名称:</label>
-                    <input id="editName" v-model="departmentName" type="text" class="form-control">
+                    <label>设置人员姓名:</label>
+                    <input id="editName" v-model="userName" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>设置人员邮箱:</label>
+                    <input v-model="userEmail" type="text" class="form-control" @keyup.enter="saveEdit()">
                 </div>
             </div>
             <button @click="saveEdit" class="saveEdit btn btn-sm btn-success" slot="footer">保存</button>
             <!--实现点击取消按钮，隐藏模态框-->
-            <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
-        </department-model>
+            <button class="btn btn-sm btn-default" slot="footer" @click="showEditUserModel=false">取消</button>
+        </user-model>
+
 
         <vue-snotify></vue-snotify>
     </div>
@@ -120,61 +135,57 @@
 
 <script>
     import VueDatepickerLocal from 'vue-datepicker-local'
-    import DepartmentModel from '../Model.vue'
-    //引入vue-treeselect
+    import UserModel from '../Model.vue'
     import Treeselect from '@riophae/vue-treeselect'
-    //引入vue-treeselect的样式
     import '@riophae/vue-treeselect/dist/vue-treeselect.css'
     import moment from 'moment'
+
     export default {
         components:{
             VueDatepickerLocal,
-            'department-model':DepartmentModel,  //引入DepartmentModel
+            'user-model':UserModel,
             'treeselect':Treeselect
         },
-        name:'dataTable',
         data() {
             return {
-                showAddDepartment:false,
-                showEditDepartment:false,
-                departments:[],
+                showAddUserModel:false,
+                showEditUserModel:false,
+                users:[],
                 searchedData:[],
                 search:{
                     name:'',
+                    email:'',
                     startTime: '',
                     endTime:''
                 },
-                selectedRow:{},
-
 
                 treeselectLists:[],
-                //增加上级科室id属性
-                pid:null,
-                //增加新增科室名称属性
-                departmentName:'',
-                //注意，这里必须要用自定义，不然显示不出来的
+                departmentId:null,
+                userName:'',
+                userEmail:'',
                 normalizer(node) {
                     return {
                         id: node.id,//指定id是什么字段
                         label: node.name,//指定label是用的什么字段，即显示什么字段出来
                     }
                 },
-              }
+            }
         },
         mounted() {
             this.$nextTick(function() {
-                this.getDepartments().then((response) => {
+                this.getUsers().then((response) => {
                     // do what you need to do
-                    this.departments = response.data.data
+                    this.users = response.data.data
                 }).then(() => {
                     // execute the call to render the table, now that you have the data you need
                     this.initDataTable();
-                    this.searchedData = this.departments;
+                    this.searchedData = this.users;
                 })
             });
         },
         methods: {
             initDataTable() {
+                console.log(this.users);
                 let table = $('#dataTable').DataTable({
                     language: {
                         "sLengthMenu": "_MENU_",
@@ -193,6 +204,7 @@
                     columnDefs: [
                         { targets: [0], className: 'details-control',orderable:false},
                         { targets: -1, orderable:false},
+                        { targets: [4], visible:false},
                     ],
                     order: [[1, 'asc']]
                 });
@@ -294,10 +306,7 @@
                 table.select.style('os');
                 table.select.items('row');
             },
-            getDepartments() {
-               return axios.get('/dep_user/org/get')
-            },
-            selectDepartment(ee) {
+            selectUser(ee) {
                 let table = $('#dataTable').DataTable();
                 let buttonClass = $(ee.target).get(0).className;
                 let tr = $(ee.target.closest('tr'));
@@ -311,7 +320,7 @@
                         buttons: [
                             {text: 'Yes', action: (toast) => {
                                 axios.post('/dep_user/departments/delete',{id:data[1]}).then(res=> {
-                                    this.$snotify.success('删除科室成功');
+                                    this.$snotify.success('删除人员成功');
                                     table.row(row).remove().draw( false )
                                 });
                                 this.$snotify.remove(toast.id);
@@ -323,8 +332,9 @@
                 if(buttonClass.indexOf('edit') !== -1) {
                     console.log('点击了编辑按钮');
 //                  显示编辑窗口，并获取当前点击行的数据
-                    this.departmentName = data[2];
-                    this.showEditDepartment = true;
+                    this.userName = data[2];
+                    this.userEmail = data[3];
+                    this.showEditUserModel = true;
                 }
 
                 if(buttonClass.indexOf('details-control') !== -1) {
@@ -349,91 +359,36 @@
 //                    }
 //                });
             },
-
             format ( d ) {
-            // `d` is the original data object for the row
-            return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
-                        '<tr>'+
-                        '<td>姓名:</td>'+
-                        '<td>'+d[2]+'</td>'+
-                        '</tr>'+
-                        '<tr>'+
-                        '<td>ID:</td>'+
-                        '<td>'+d[1]+'</td>'+
-                        '</tr>'+
-                        '<tr>'+
-                        '<td>额外信息:</td>'+
-                        '<td>And any further details here (images etc)...</td>'+
-                        '</tr>'+
-                    '</table>';
+                let td = '';
+                for(let i=0;i<JSON.parse(d[4]).length;i++) {
+                    td += '<td>' + JSON.parse(d[4])[i].name + '</td>'
+                }
+                if(JSON.parse(d[4]).length > 0) {
+                    // `d` is the original data object for the row
+                    return '<table class="table table-bordered" style="margin-bottom: 0px">'+
+                        '<tr>' +
+                        '<td class="table-primary" style="width: 10px">所在科室</td>' +
+                        td +
+                        '</tr>' +
+                        '</table>';
+                }else {
+                    return '<table class="table table-bordered" style="margin-bottom: 0px">'+
+                        '<tr>' +
+                        '<td class="table-primary" style="width: 10px">所在科室</td>' +
+                        '<td>暂无...</td>' +
+                        '</tr>' +
+                        '</table>';
+                }
+
+                // `d` is the original data object for the row
+                return '<table class="table table-bordered" style="margin-bottom: 0px">'+
+                            '<tr>' +
+                                '<td>所在科室</td>' +
+                                td +
+                            '</tr>' +
+                        '</table>';
             },
-
-            saveEdit() {
-                let table = $('#dataTable').DataTable();
-                let newName = $('input#editName')[0].value;
-                let data = this.selectedRow.data();
-                data[2] = newName;
-                axios.post('/dep_user/departments/edit',{name:data[2],id:data[1]}).then((res)=>{
-                    console.log('修改科室成功');
-                    this.showEditDepartment = false;
-                    this.$snotify.success('修改成功！');
-                    table.row(this.selectedRow).data(data).draw();
-                });
-            },
-
-            delSelected() {
-                let table = $('#dataTable').DataTable();
-                let data = table.rows({selected:true}).data();
-                let ids = [];
-                data.map(d=> {
-                    ids.push(parseInt(d[1]))
-                });
-                this.$snotify.error('你真的要删除这么多科室吗？', '删除确认', {
-                    position:'centerCenter',
-                    buttons: [
-                        {text: 'Yes', action: (toast) => {
-                            axios.post('/dep_user/departments/deleteSelected',{ids:ids}).then(res=> {
-                                console.log('删除科室成功！');
-                                this.$snotify.success('删除科室成功!');
-                                table.rows({selected:true}).remove().draw( false );
-                            });
-                            this.$snotify.remove(toast.id);
-                        }, bold: false},
-                        {text: 'No', action: (toast) => {this.$snotify.remove(toast.id);}},
-                    ]
-                });
-            },
-
-            showAddModel() {
-                this.pid = null;
-                this.departmentName = '';
-                this.showAddDepartment = true
-            },
-            saveDepartment() {
-                axios.post('/dep_user/departments/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
-                    console.log(res.data);
-                    this.$snotify.success('增加科室成功！');
-                    this.pid = null;
-                    this.departmentName ='';
-                    let table = $('#dataTable').DataTable();
-                    table.row.add(['',res.data.id,res.data.name,res.data.created_at,'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true)
-                })
-            },
-
-
-//            这个方法只适合单独查询某条记录有用，不能多条件查询
-//            searchName() {
-//                let table = $('#dataTable').DataTable();
-//                let name = this.search.name;
-//                table.column(1).search(name).draw();
-//                let filteredName = table.rows().data().filter(function(value,index) {
-//                    if(value[1].indexOf(name) !== -1) {
-//                        return true
-//                    }
-//                });
-//                this.getSearchData(filteredName);
-//            },
-
             searchAndFilterData() {
                 let table = $('#dataTable').DataTable();
                 $.fn.dataTable.ext.search.pop();
@@ -442,19 +397,20 @@
                 let startTime = moment(this.search.startTime).valueOf();
                 let endTime = moment(this.search.endTime).valueOf();
                 let name = this.search.name;
+                let email = this.search.email;
 //              下面时查找方法用于显示到当前表
                 $.fn.dataTable.ext.search.push(
                     function (settings,data,dataIndex) {
 //                      设置实际需要获得到的字段
-                        let needTime = moment(data[3]).valueOf();
+                        let needTime = moment(data[4]).valueOf();
                         let needName = data[2];
+                        let needEmail = data[3];
 //                        console.log(data[1] + time);
                         if (
-                                ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
-                                ( isNaN( startTime ) && needTime <= endTime && (needName.indexOf(name) !== -1) ) ||
-                                ( startTime <= needTime   && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
-                                ( startTime <= needTime   && needTime <= endTime && (needName.indexOf(name) !== -1) )
-
+                            ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) && (needEmail.indexOf(email) !== -1) ) ||
+                            ( isNaN( startTime ) && needTime <= endTime && (needName.indexOf(name) !== -1) && (needEmail.indexOf(email) !== -1) ) ||
+                            ( startTime <= needTime   && isNaN( endTime ) && (needName.indexOf(name) !== -1) && (needEmail.indexOf(email) !== -1) ) ||
+                            ( startTime <= needTime   && needTime <= endTime && (needName.indexOf(name) !== -1) && (needEmail.indexOf(email) !== -1) )
                         )
                         {
                             return true;
@@ -494,6 +450,25 @@
                 }
 //                console.log(filteredData);
                 console.log(this.searchedData);
+            },
+            getUsers() {
+                return axios.get('/dep_user/users/get')
+            },
+            saveUser() {
+                console.log(this.departmentId);
+                console.log(this.userName);
+                console.log(this.userEmail)
+            },
+            saveEdit() {
+                console.log(this.departmentId);
+                console.log(this.userName);
+                console.log(this.userEmail)
+            },
+            showAddModel() {
+                this.departmentId = null;
+                this.userName = '';
+                this.userEmail = '';
+                this.showAddUserModel = true
             },
             reloadOptions() {
                 axios.get('/dep_user/departments/get').then(res=> {

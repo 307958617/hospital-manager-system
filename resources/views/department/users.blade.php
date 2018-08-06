@@ -5,7 +5,11 @@
 @endsection
 
 @section('content')
-<div class="container">
-    <department-users></department-users>
-</div>
+    <div class="container">
+        <user-lists></user-lists>
+    </div>
+@endsection
+
+@section('js')
+
 @endsection

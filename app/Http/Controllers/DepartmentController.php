@@ -29,10 +29,6 @@ class DepartmentController extends Controller
         return view('department/departments');
     }
 
-    public function show_users()
-    {
-        return view('department/users');
-    }
     //新增科室保存到数据库
     public function add(Request $request)
     {
