@@ -81,7 +81,7 @@
         },
         methods: {
             getDepartments() {
-                axios.get('/department/get').then(res=> {
+                axios.get('/dep_user/departments/get').then(res=> {
                     console.log(res.data.data);
                     this.Departments = res.data.data;
                 }).catch(error=> {
@@ -99,13 +99,13 @@
             //保存修改后的树结构到数据库
             saveChange() {
                 const r = $('.dd').nestable('serialize');
-                axios.post('/department/change',{'tree':r}).then((res)=>{
+                axios.post('/dep_user/departments/change',{'tree':r}).then((res)=>{
                     console.log('调整科室布局成功');
                 });
             },
             //保存添加的科室到数据库
             addDepartment() {
-                axios.post('/department/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
+                axios.post('/dep_user/departments/add',{pid:this.pid,name:this.departmentName}).then((res)=>{
                     console.log(res.data.data);
                     this.departmentName ='';
                     //注意下面的拼接写法很重要哦！

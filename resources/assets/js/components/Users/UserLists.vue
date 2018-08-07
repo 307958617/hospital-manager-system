@@ -55,10 +55,10 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th class="exportable">ID</th>
+                        <th class="exportable notIncolvis">ID</th>
                         <th class="exportable">姓  名</th>
                         <th class="exportable">Email</th>
-                        <th class="exportable">所在部门</th>
+                        <th class="notIncolvis">所在部门</th>
                         <th class="exportable">创建时间</th>
                         <th>操作</th>
                     </tr>
@@ -66,10 +66,10 @@
                     <tfoot>
                     <tr>
                         <th></th>
-                        <th class="exportable">ID</th>
+                        <th class="exportable notIncolvis">ID</th>
                         <th class="exportable">姓  名</th>
                         <th class="exportable">Email</th>
-                        <th class="exportable">所在部门</th>
+                        <th class="notIncolvis">所在部门</th>
                         <th class="exportable">创建时间</th>
                         <th>操作</th>
                     </tr>
@@ -102,11 +102,19 @@
                     <input v-model="userName" type="text" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label>设置人员邮箱:</label>
-                    <input v-model="userEmail" type="text" class="form-control" @keyup.enter="saveUser()">
+                    <label>设置登陆邮箱:</label>
+                    <input v-model="userEmail" type="text" class="form-control" @blur.prevent="checkEmail($event)">
+                </div>
+                <div class="form-group">
+                    <label>设置登陆密码:</label>
+                    <input v-model="userPassword" type="password" class="form-control" @keyup.enter="saveUser()">
+                </div>
+                <div class="form-group">
+                    <label>密码确认:</label>
+                    <input v-model="confirmPassword" type="password" class="form-control" @input="checkPassword($event)" @keyup.enter="saveUser()">
                 </div>
             </div>
-            <button @click="saveUser()" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <a href="#" id="saveUser" @click="saveUser()" class="btn btn-sm btn-success" slot="footer">保存</a>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showAddUserModel=false">取消</button>
         </user-model>
@@ -115,12 +123,24 @@
             <h3 slot="header">修改人员信息</h3>
             <div slot="body">
                 <div class="form-group">
-                    <label>设置人员姓名:</label>
+                    <label>修改人员姓名:</label>
                     <input id="editName" v-model="userName" type="text" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label>设置人员邮箱:</label>
-                    <input v-model="userEmail" type="text" class="form-control" @keyup.enter="saveEdit()">
+                    <label>修改人员邮箱:</label>
+                    <input v-model="userEmail" type="text" class="form-control" @blur.prevent="checkEmail($event)">
+                </div>
+                <div class="form-group">
+                    <label>原登陆密码:</label>
+                    <input v-model="userPassword" type="password" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>新登陆密码:</label>
+                    <input v-model="newPassword" type="password" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>新密码确认:</label>
+                    <input v-model="confirmPassword" type="password" class="form-control" @keyup.enter="saveEdit()">
                 </div>
             </div>
             <button @click="saveEdit" class="saveEdit btn btn-sm btn-success" slot="footer">保存</button>
@@ -163,6 +183,9 @@
                 departmentId:null,
                 userName:'',
                 userEmail:'',
+                userPassword:'',
+                newPassword:'',
+                confirmPassword:'',
                 normalizer(node) {
                     return {
                         id: node.id,//指定id是什么字段
@@ -221,7 +244,8 @@
                         {
                             extend:'colvis',
                             className:'btn-outline-primary btn-sm',
-                            text:'<i class="fa fa-eye"></i>'
+                            text:'<i class="fa fa-eye"></i>',
+                            columns:':not(".notIncolvis")'
                         },
                         {
                             extend:'collection',
@@ -366,28 +390,20 @@
                 }
                 if(JSON.parse(d[4]).length > 0) {
                     // `d` is the original data object for the row
-                    return '<table class="table table-bordered" style="margin-bottom: 0px">'+
+                    return '<table class="table table-bordered" style="margin-bottom: 0px;">'+
                         '<tr>' +
                         '<td class="table-primary" style="width: 10px">所在科室</td>' +
                         td +
                         '</tr>' +
                         '</table>';
                 }else {
-                    return '<table class="table table-bordered" style="margin-bottom: 0px">'+
+                    return '<table class="table table-bordered" style="margin-bottom: 0px;">'+
                         '<tr>' +
                         '<td class="table-primary" style="width: 10px">所在科室</td>' +
                         '<td>暂无...</td>' +
                         '</tr>' +
                         '</table>';
                 }
-
-                // `d` is the original data object for the row
-                return '<table class="table table-bordered" style="margin-bottom: 0px">'+
-                            '<tr>' +
-                                '<td>所在科室</td>' +
-                                td +
-                            '</tr>' +
-                        '</table>';
             },
             searchAndFilterData() {
                 let table = $('#dataTable').DataTable();
@@ -454,21 +470,51 @@
             getUsers() {
                 return axios.get('/dep_user/users/get')
             },
+            showAddModel() {
+                this.departmentId = null;
+                this.userName = '';
+                this.userEmail = '';
+                this.userPassword = '';
+                this.showAddUserModel = true
+            },
             saveUser() {
-                console.log(this.departmentId);
-                console.log(this.userName);
-                console.log(this.userEmail)
+                axios.post('/dep_user/users/add',{
+                    departmentId:this.departmentId,
+                    userName:this.userName,
+                    userEmail:this.userEmail,
+                    userPassword:this.userPassword,
+                }).then(res => {
+
+                });
+            },
+            checkEmail(e) {
+                let emails = [];
+                this.users.map(e=>{
+                    emails.push(e.email)
+                });
+
+                if (emails.indexOf(this.userEmail) !== -1) {
+                    $(e.target).val(this.userEmail + ' 已经存在,请重新输入');
+                    $(e.target).addClass('is-invalid');
+                    $('#saveUser').addClass('disabled');
+                }else {
+                    $(e.target).removeClass('is-invalid');
+                    $('#saveUser').removeClass('disabled')
+                }
+            },
+            checkPassword(e) {
+                if(this.userPassword !== this.confirmPassword) {
+                    $(e.target).addClass('is-invalid');
+                    $('#saveUser').addClass('disabled');
+                }else {
+                    $(e.target).removeClass('is-invalid');
+                    $('#saveUser').removeClass('disabled')
+                }
             },
             saveEdit() {
                 console.log(this.departmentId);
                 console.log(this.userName);
                 console.log(this.userEmail)
-            },
-            showAddModel() {
-                this.departmentId = null;
-                this.userName = '';
-                this.userEmail = '';
-                this.showAddUserModel = true
             },
             reloadOptions() {
                 axios.get('/dep_user/departments/get').then(res=> {

@@ -69,7 +69,7 @@
             },
             //增加编辑部门的方法
             editDepartment() {
-                axios.post('/department/edit',{pid:this.pid,name:this.departmentName,id:this.Department.id}).then((res)=>{
+                axios.post('/dep_user/departments/edit',{pid:this.pid,name:this.departmentName,id:this.Department.id}).then((res)=>{
                     console.log('修改成功');
                     this.showEditDepartment = false;
                     //调用父组件的方法，实现添加新分类后马上显示出来，但是不要忘记到父组件里面添加这个方法@getDepartments="getDepartments"
@@ -79,7 +79,7 @@
             },
             //增加删除部门的方法
             delDepartment() {
-                axios.post('/department/delete',{id:this.Department.id}).then((res)=>{
+                axios.post('/dep_user/departments/delete',{id:this.Department.id}).then((res)=>{
                     console.log('删除成功');
                     const li = $('li[data-id='+this.pid+']');
                     this.delClass(li);

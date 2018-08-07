@@ -17,4 +17,19 @@ class UserController extends Controller
         $users = User::with('departments')->select(['id','name','email','created_at'])->get();
         return response()->json(['data'=> $users]);
     }
+
+    public function add(Request $request)
+    {
+        $pid = $request->get('pid');
+        $name = $request->get('name');
+
+        $node = new Department(['name'=>$name,'order'=>0]);
+        if($pid) {
+            $node->parent_id = $pid;
+            $node->save();
+        }
+        $node->save();
+
+        return $node;
+    }
 }
