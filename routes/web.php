@@ -33,3 +33,8 @@ Route::post('/dep_user/departments/deleteSelected', 'DepartmentController@delete
 Route::get('/dep_user/users', 'UserController@show_users')->name('show_users');
 Route::get('/dep_user/users/get', 'UserController@get')->name('users.get');
 Route::post('/dep_user/users/add', 'UserController@add')->name('users.add');
+Route::post('/dep_user/users/edit', 'UserController@edit')->name('users.edit');
+Route::post('/dep_user/users/delete', 'UserController@delete')->name('users.delete');
+Route::post('/dep_user/users/checkPassword', 'UserController@checkPassword')->name('users.checkPassword');
+Route::post('/dep_user/users/deleteSelected', 'UserController@deleteSelected')->name('users.deleteSelected');
+

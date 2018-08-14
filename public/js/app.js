@@ -93258,6 +93258,20 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 //引入nestable.js
 
@@ -93273,6 +93287,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             pid: null,
             //判断编辑科室的模态框是否显示，默认不显示
             showEditDepartment: false,
+            showAddUserToDepartment: false,
             //增加新增科室名称属性
             departmentName: ''
             //注意，这里必须要用自定义，不然显示不出来的
@@ -93606,6 +93621,16 @@ var render = function() {
         _vm._v(" "),
         _c("span", { staticClass: "pull-right" }, [
           _c("i", {
+            staticClass: "fa fa-user-plus",
+            attrs: { "aria-hidden": "true" },
+            on: {
+              click: function($event) {
+                _vm.showAddUserToDepartment = true
+              }
+            }
+          }),
+          _vm._v(" \n            "),
+          _c("i", {
             staticClass: "fa fa-pencil-square-o",
             attrs: { "aria-hidden": "true" },
             on: {
@@ -93614,7 +93639,7 @@ var render = function() {
               }
             }
           }),
-          _vm._v(" "),
+          _vm._v(" \n            "),
           _c("i", {
             staticClass: "fa fa-trash-o",
             attrs: { "aria-hidden": "true" },
@@ -93695,6 +93720,68 @@ var render = function() {
                 on: {
                   click: function($event) {
                     _vm.showEditDepartment = false
+                  }
+                },
+                slot: "footer"
+              },
+              [_vm._v("取消")]
+            )
+          ])
+        : _vm._e(),
+      _vm._v(" "),
+      _vm.showAddUserToDepartment
+        ? _c("department-model", [
+            _c("h3", { attrs: { slot: "header" }, slot: "header" }, [
+              _vm._v("添加人员到" + _vm._s(_vm.departmentName))
+            ]),
+            _vm._v(" "),
+            _c("div", { attrs: { slot: "body" }, slot: "body" }, [
+              _c("div", { staticClass: "form-group" }, [
+                _c("label", [_vm._v("设置科室名称:")]),
+                _vm._v(" "),
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.departmentName,
+                      expression: "departmentName"
+                    }
+                  ],
+                  staticClass: "form-control",
+                  attrs: { type: "text" },
+                  domProps: { value: _vm.departmentName },
+                  on: {
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.departmentName = $event.target.value
+                    }
+                  }
+                })
+              ])
+            ]),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-sm btn-success",
+                attrs: { slot: "footer" },
+                on: { click: _vm.editDepartment },
+                slot: "footer"
+              },
+              [_vm._v("保存")]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-sm btn-default",
+                attrs: { slot: "footer" },
+                on: {
+                  click: function($event) {
+                    _vm.showAddUserToDepartment = false
                   }
                 },
                 slot: "footer"
@@ -94648,6 +94735,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
 
 
 
@@ -94722,7 +94812,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 fixedHeader: true,
                 //                    stateSave:true,
                 rowReorder: false,
-                columnDefs: [{ targets: [0], className: 'details-control', orderable: false }, { targets: -1, orderable: false }],
+                columnDefs: [{ targets: [0], className: 'details-control', orderable: false }, { targets: -1, orderable: false }, { targets: [4], visible: false }],
                 order: [[1, 'asc']]
             });
             //隐藏第二列
@@ -94737,7 +94827,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 buttons: [{
                     extend: 'colvis',
                     className: 'btn-outline-primary btn-sm',
-                    text: '<i class="fa fa-eye"></i>'
+                    text: '<i class="fa fa-eye"></i>',
+                    columns: ':not(".notIncolvis")'
                 }, {
                     extend: 'collection',
                     text: '选择',
@@ -94868,7 +94959,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         },
         format: function format(d) {
             // `d` is the original data object for the row
-            return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">' + '<tr>' + '<td>姓名:</td>' + '<td>' + d[2] + '</td>' + '</tr>' + '<tr>' + '<td>ID:</td>' + '<td>' + d[1] + '</td>' + '</tr>' + '<tr>' + '<td>额外信息:</td>' + '<td>And any further details here (images etc)...</td>' + '</tr>' + '</table>';
+            var td = '';
+            for (var i = 0; i < JSON.parse(d[4]).length; i++) {
+                td += '<td>' + JSON.parse(d[4])[i].name + '</td>';
+            }
+            if (JSON.parse(d[4]).length > 0) {
+                // `d` is the original data object for the row
+                return '<table class="table table-bordered" style="margin-bottom: 0px;">' + '<tr>' + '<td class="table-primary" style="width: 10px">科室人员</td>' + td + '</tr>' + '</table>';
+            } else {
+                return '<table class="table table-bordered" style="margin-bottom: 0px;">' + '<tr>' + '<td class="table-primary" style="width: 10px">科室人员</td>' + '<td>暂无...</td>' + '</tr>' + '</table>';
+            }
         },
         saveEdit: function saveEdit() {
             var _this3 = this;
@@ -94921,7 +95021,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 _this5.pid = null;
                 _this5.departmentName = '';
                 var table = $('#dataTable').DataTable();
-                table.row.add(['', res.data.id, res.data.name, res.data.created_at, '<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true);
+                table.row.add(['', res.data.id, res.data.name, res.data.created_at, JSON.stringify(res.data.users), '<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true);
             });
         },
 
@@ -96782,6 +96882,8 @@ var render = function() {
                     _vm._v(" "),
                     _c("td", [_vm._v(_vm._s(department.created_at))]),
                     _vm._v(" "),
+                    _c("td", [_vm._v(_vm._s(department.users))]),
+                    _vm._v(" "),
                     _vm._m(7, true)
                   ])
                 })
@@ -97067,6 +97169,8 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", { staticClass: "exportable" }, [_vm._v("Created_At")]),
         _vm._v(" "),
+        _c("th", { staticClass: "notIncolvis" }, [_vm._v("Users")]),
+        _vm._v(" "),
         _c("th", [_vm._v("操作")])
       ])
     ])
@@ -97084,6 +97188,8 @@ var staticRenderFns = [
         _c("th", [_vm._v("Name")]),
         _vm._v(" "),
         _c("th", [_vm._v("Created_At")]),
+        _vm._v(" "),
+        _c("th", [_vm._v("Users")]),
         _vm._v(" "),
         _c("th", [_vm._v("操作")])
       ])
@@ -97393,6 +97499,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             showAddUserModel: false,
             showEditUserModel: false,
             users: [],
+            emails: [],
+            email: '',
             searchedData: [],
             search: {
                 name: '',
@@ -97401,12 +97509,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 endTime: ''
             },
 
+            selectedRow: {},
             treeselectLists: [],
             departmentId: null,
+            userId: null,
             userName: '',
             userEmail: '',
+            oldPassword: '',
             userPassword: '',
-            newPassword: '',
             confirmPassword: '',
             normalizer: function normalizer(node) {
                 return {
@@ -97553,8 +97663,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 this.$snotify.error('你真的要删除 ' + data[2] + ' 吗？', '删除确认', {
                     position: 'centerCenter',
                     buttons: [{ text: 'Yes', action: function action(toast) {
-                            axios.post('/dep_user/departments/delete', { id: data[1] }).then(function (res) {
+                            axios.post('/dep_user/users/delete', { id: data[1] }).then(function (res) {
                                 _this2.$snotify.success('删除人员成功');
+                                _this2.getUsers();
                                 table.row(row).remove().draw(false);
                             });
                             _this2.$snotify.remove(toast.id);
@@ -97566,8 +97677,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             if (buttonClass.indexOf('edit') !== -1) {
                 console.log('点击了编辑按钮');
                 //                  显示编辑窗口，并获取当前点击行的数据
+                this.userId = data[1];
                 this.userName = data[2];
                 this.userEmail = data[3];
+                this.email = data[3];
+                this.oldPassword = null;
                 this.showEditUserModel = true;
             }
 
@@ -97616,7 +97730,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             //              下面时查找方法用于显示到当前表
             $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
                 //                      设置实际需要获得到的字段
-                var needTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(data[4]).valueOf();
+                var needTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(data[5]).valueOf();
                 var needName = data[2];
                 var needEmail = data[3];
                 //                        console.log(data[1] + time);
@@ -97630,7 +97744,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             //              用filter获取查询后的结果
             var filteredData = table.rows().data().filter(function (value, index) {
                 //                  设置实际需要获得到的字段
-                var needTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(value[3]).valueOf();
+                var needTime = __WEBPACK_IMPORTED_MODULE_4_moment___default()(value[5]).valueOf();
                 var needName = value[2];
                 if (isNaN(startTime) && isNaN(endTime) && needName.indexOf(name) !== -1 || isNaN(startTime) && needTime <= endTime && needName.indexOf(name) !== -1 || startTime <= needTime && isNaN(endTime) && needName.indexOf(name) !== -1 || startTime <= needTime && needTime <= endTime && needName.indexOf(name) !== -1) {
                     return true;
@@ -97644,7 +97758,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             for (var i = 0; i < length; i++) {
                 var id = filteredData[i][1];
                 var name = filteredData[i][2];
-                var created_at = filteredData[i][3];
+                var created_at = filteredData[i][5];
                 var single = { id: id, name: name, created_at: created_at };
                 //                    console.log(single);
                 this.searchedData.push(single);
@@ -97660,51 +97774,127 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             this.userName = '';
             this.userEmail = '';
             this.userPassword = '';
+            this.email = null;
             this.showAddUserModel = true;
+            this.confirmPassword = '';
         },
         saveUser: function saveUser() {
+            var _this3 = this;
+
             axios.post('/dep_user/users/add', {
                 departmentId: this.departmentId,
                 userName: this.userName,
                 userEmail: this.userEmail,
                 userPassword: this.userPassword
-            }).then(function (res) {});
+            }).then(function (res) {
+                _this3.$snotify.success('增加人员成功！');
+                _this3.departmentId = null;
+                _this3.userName = '';
+                _this3.userEmail = '';
+                _this3.userPassword = '';
+                _this3.confirmPassword = '';
+                var table = $('#dataTable').DataTable();
+                table.row.add(['', res.data.id, res.data.name, res.data.email, JSON.stringify(res.data.departments), res.data.created_at, '<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true);
+                _this3.getUsers();
+            });
         },
         checkEmail: function checkEmail(e) {
-            var emails = [];
-            this.users.map(function (e) {
-                emails.push(e.email);
+            var _this4 = this;
+
+            this.emails = [];
+
+            var table = $('#dataTable').DataTable();
+
+            var data = table.rows().data();
+
+            data.map(function (u) {
+                _this4.emails.push(u[3]);
             });
 
-            if (emails.indexOf(this.userEmail) !== -1) {
+            console.log(this.emails);
+
+            if (this.email !== null) {
+                this.emails.splice(this.emails.indexOf(this.email), 1);
+            }
+
+            if (this.emails.indexOf(this.userEmail) !== -1) {
                 $(e.target).val(this.userEmail + ' 已经存在,请重新输入');
                 $(e.target).addClass('is-invalid');
-                $('#saveUser').addClass('disabled');
+                $('.saveUser').addClass('disabled');
             } else {
                 $(e.target).removeClass('is-invalid');
-                $('#saveUser').removeClass('disabled');
+                $('.saveUser').removeClass('disabled');
             }
         },
-        checkPassword: function checkPassword(e) {
+        checkConfirmPassword: function checkConfirmPassword(e) {
             if (this.userPassword !== this.confirmPassword) {
                 $(e.target).addClass('is-invalid');
-                $('#saveUser').addClass('disabled');
+                $('.saveUser').addClass('disabled');
             } else {
                 $(e.target).removeClass('is-invalid');
-                $('#saveUser').removeClass('disabled');
+                $('.saveUser').removeClass('disabled');
             }
         },
+        checkOldPassword: function checkOldPassword(e) {
+            axios.post('/dep_user/users/checkPassword', { id: this.userId, password: this.oldPassword }).then(function (res) {
+                console.log(res);
+                if (res.data === 'ok') {
+                    $(e.target).removeClass('is-invalid');
+                    $('.saveUser').removeClass('disabled');
+                    $('#newPassword').attr("disabled", false);
+                    $('#confirmPassword').attr("disabled", false);
+                } else {
+                    $('#newPassword').attr("disabled", true);
+                    $('#confirmPassword').attr("disabled", true);
+                    $(e.target).addClass('is-invalid');
+                    $('.saveUser').addClass('disabled');
+                }
+            });
+        },
+        delSelected: function delSelected() {
+            var _this5 = this;
+
+            var table = $('#dataTable').DataTable();
+            var data = table.rows({ selected: true }).data();
+            var ids = [];
+            data.map(function (d) {
+                ids.push(parseInt(d[1]));
+            });
+            this.$snotify.error('你真的要删除这些人员吗？', '删除确认', {
+                position: 'centerCenter',
+                buttons: [{ text: 'Yes', action: function action(toast) {
+                        axios.post('/dep_user/users/deleteSelected', { ids: ids }).then(function (res) {
+                            console.log('删除人员成功！');
+                            _this5.$snotify.success('删除人员成功!');
+                            _this5.getUsers();
+                            table.rows({ selected: true }).remove().draw(false);
+                        });
+                        _this5.$snotify.remove(toast.id);
+                    }, bold: false }, { text: 'No', action: function action(toast) {
+                        _this5.$snotify.remove(toast.id);
+                    } }]
+            });
+        },
         saveEdit: function saveEdit() {
-            console.log(this.departmentId);
-            console.log(this.userName);
-            console.log(this.userEmail);
+            var _this6 = this;
+
+            var table = $('#dataTable').DataTable();
+            var data = this.selectedRow.data();
+            data[2] = this.userName;
+            data[3] = this.userEmail;
+
+            axios.post('/dep_user/users/edit', { id: this.userId, name: this.userName, email: this.userEmail, password: this.userPassword }).then(function (res) {
+                _this6.$snotify.success('修改人员信息成功!');
+                _this6.showEditUserModel = false;
+                table.row(_this6.selectedRow).data(data).draw();
+            });
         },
         reloadOptions: function reloadOptions() {
-            var _this3 = this;
+            var _this7 = this;
 
             axios.get('/dep_user/departments/get').then(function (res) {
                 console.log(res.data.data);
-                _this3.treeselectLists = res.data.data;
+                _this7.treeselectLists = res.data.data;
             }).catch(function (error) {
                 throw error;
             });
@@ -97725,7 +97915,7 @@ var render = function() {
     { staticClass: "container" },
     [
       _c("div", { staticClass: "row" }, [
-        _c("div", { staticClass: "col-lg-3" }, [
+        _c("div", { staticClass: "col-lg-2" }, [
           _c("div", { staticClass: "card text-center" }, [
             _vm._m(0),
             _vm._v(" "),
@@ -97760,7 +97950,7 @@ var render = function() {
           ])
         ]),
         _vm._v(" "),
-        _c("div", { staticClass: "col-lg-2" }, [
+        _c("div", { staticClass: "col-lg-3" }, [
           _c("div", { staticClass: "card text-center" }, [
             _vm._m(1),
             _vm._v(" "),
@@ -98066,7 +98256,7 @@ var render = function() {
                         _vm.confirmPassword = $event.target.value
                       },
                       function($event) {
-                        _vm.checkPassword($event)
+                        _vm.checkConfirmPassword($event)
                       }
                     ],
                     keyup: function($event) {
@@ -98086,8 +98276,8 @@ var render = function() {
             _c(
               "a",
               {
-                staticClass: "btn btn-sm btn-success",
-                attrs: { slot: "footer", href: "#", id: "saveUser" },
+                staticClass: "saveUser btn btn-sm btn-success",
+                attrs: { slot: "footer", href: "#" },
                 on: {
                   click: function($event) {
                     _vm.saveUser()
@@ -98186,20 +98376,25 @@ var render = function() {
                     {
                       name: "model",
                       rawName: "v-model",
-                      value: _vm.userPassword,
-                      expression: "userPassword"
+                      value: _vm.oldPassword,
+                      expression: "oldPassword"
                     }
                   ],
                   staticClass: "form-control",
                   attrs: { type: "password" },
-                  domProps: { value: _vm.userPassword },
+                  domProps: { value: _vm.oldPassword },
                   on: {
-                    input: function($event) {
-                      if ($event.target.composing) {
-                        return
+                    input: [
+                      function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.oldPassword = $event.target.value
+                      },
+                      function($event) {
+                        _vm.checkOldPassword($event)
                       }
-                      _vm.userPassword = $event.target.value
-                    }
+                    ]
                   }
                 })
               ]),
@@ -98212,19 +98407,19 @@ var render = function() {
                     {
                       name: "model",
                       rawName: "v-model",
-                      value: _vm.newPassword,
-                      expression: "newPassword"
+                      value: _vm.userPassword,
+                      expression: "userPassword"
                     }
                   ],
                   staticClass: "form-control",
-                  attrs: { type: "password" },
-                  domProps: { value: _vm.newPassword },
+                  attrs: { id: "newPassword", type: "password", disabled: "" },
+                  domProps: { value: _vm.userPassword },
                   on: {
                     input: function($event) {
                       if ($event.target.composing) {
                         return
                       }
-                      _vm.newPassword = $event.target.value
+                      _vm.userPassword = $event.target.value
                     }
                   }
                 })
@@ -98243,34 +98438,34 @@ var render = function() {
                     }
                   ],
                   staticClass: "form-control",
-                  attrs: { type: "password" },
+                  attrs: {
+                    id: "confirmPassword",
+                    type: "password",
+                    disabled: ""
+                  },
                   domProps: { value: _vm.confirmPassword },
                   on: {
-                    keyup: function($event) {
-                      if (
-                        !("button" in $event) &&
-                        _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
-                      ) {
-                        return null
+                    input: [
+                      function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.confirmPassword = $event.target.value
+                      },
+                      function($event) {
+                        _vm.checkConfirmPassword($event)
                       }
-                      _vm.saveEdit()
-                    },
-                    input: function($event) {
-                      if ($event.target.composing) {
-                        return
-                      }
-                      _vm.confirmPassword = $event.target.value
-                    }
+                    ]
                   }
                 })
               ])
             ]),
             _vm._v(" "),
             _c(
-              "button",
+              "a",
               {
-                staticClass: "saveEdit btn btn-sm btn-success",
-                attrs: { slot: "footer" },
+                staticClass: "saveUser btn btn-sm btn-success",
+                attrs: { slot: "footer", href: "#" },
                 on: { click: _vm.saveEdit },
                 slot: "footer"
               },

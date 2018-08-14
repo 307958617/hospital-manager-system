@@ -7,7 +7,8 @@
             {{ Department.name }}
         <!--增加编辑和删除按钮，引入font-awesome-->
             <span class="pull-right">
-                <i @click="showEditDepartment=true" class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                <i @click="showAddUserToDepartment=true" class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;
+                <i @click="showEditDepartment=true" class="fa fa-pencil-square-o" aria-hidden="true"></i>&nbsp;
                 <i @click="delDepartment" class="fa fa-trash-o" aria-hidden="true"></i>
             </span>
         </div>
@@ -30,6 +31,19 @@
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showEditDepartment=false">取消</button>
         </department-model>
+
+        <department-model v-if="showAddUserToDepartment">
+            <h3 slot="header">添加人员到{{ departmentName }}</h3>
+            <div slot="body">
+                <div class="form-group">
+                    <label>设置科室名称:</label>
+                    <input v-model="departmentName" type="text" class="form-control">
+                </div>
+            </div>
+            <button @click="editDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <!--实现点击取消按钮，隐藏模态框-->
+            <button class="btn btn-sm btn-default" slot="footer" @click="showAddUserToDepartment=false">取消</button>
+        </department-model>
     </li>
 </template>
 
@@ -48,6 +62,7 @@
                 pid:null,
                 //判断编辑科室的模态框是否显示，默认不显示
                 showEditDepartment:false,
+                showAddUserToDepartment:false,
                 //增加新增科室名称属性
                 departmentName:'',
                 //注意，这里必须要用自定义，不然显示不出来的

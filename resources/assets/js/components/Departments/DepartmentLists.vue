@@ -57,6 +57,7 @@
                         <th class="exportable">ID</th>
                         <th class="exportable">Name</th>
                         <th class="exportable">Created_At</th>
+                        <th class="notIncolvis">Users</th>
                         <th>操作</th>
                     </tr>
                     </thead>
@@ -66,6 +67,7 @@
                         <th>ID</th>
                         <th>Name</th>
                         <th>Created_At</th>
+                        <th>Users</th>
                         <th>操作</th>
                     </tr>
                     </tfoot>
@@ -76,6 +78,7 @@
                         <td>{{ department.id }}</td>
                         <td>{{ department.name }}</td>
                         <td>{{ department.created_at }}</td>
+                        <td>{{ department.users }}</td>
                         <td><button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button></td>
                     </tr>
                     </tbody>
@@ -165,7 +168,7 @@
             this.$nextTick(function() {
                 this.getDepartments().then((response) => {
                     // do what you need to do
-                    this.departments = response.data.data
+                    this.departments = response.data.data;
                 }).then(() => {
                     // execute the call to render the table, now that you have the data you need
                     this.initDataTable();
@@ -193,6 +196,7 @@
                     columnDefs: [
                         { targets: [0], className: 'details-control',orderable:false},
                         { targets: -1, orderable:false},
+                        { targets: [4], visible:false},
                     ],
                     order: [[1, 'asc']]
                 });
@@ -209,7 +213,8 @@
                         {
                             extend:'colvis',
                             className:'btn-outline-primary btn-sm',
-                            text:'<i class="fa fa-eye"></i>'
+                            text:'<i class="fa fa-eye"></i>',
+                            columns:':not(".notIncolvis")'
                         },
                         {
                             extend:'collection',
@@ -352,20 +357,26 @@
 
             format ( d ) {
             // `d` is the original data object for the row
-            return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
-                        '<tr>'+
-                        '<td>姓名:</td>'+
-                        '<td>'+d[2]+'</td>'+
-                        '</tr>'+
-                        '<tr>'+
-                        '<td>ID:</td>'+
-                        '<td>'+d[1]+'</td>'+
-                        '</tr>'+
-                        '<tr>'+
-                        '<td>额外信息:</td>'+
-                        '<td>And any further details here (images etc)...</td>'+
-                        '</tr>'+
-                    '</table>';
+                let td = '';
+                for(let i=0;i<JSON.parse(d[4]).length;i++) {
+                    td += '<td>' + JSON.parse(d[4])[i].name + '</td>'
+                }
+                if(JSON.parse(d[4]).length > 0) {
+                    // `d` is the original data object for the row
+                    return '<table class="table table-bordered" style="margin-bottom: 0px;">'+
+                        '<tr>' +
+                        '<td class="table-primary" style="width: 10px">科室人员</td>' +
+                        td +
+                        '</tr>' +
+                        '</table>';
+                }else {
+                    return '<table class="table table-bordered" style="margin-bottom: 0px;">'+
+                        '<tr>' +
+                        '<td class="table-primary" style="width: 10px">科室人员</td>' +
+                        '<td>暂无...</td>' +
+                        '</tr>' +
+                        '</table>';
+                }
             },
 
             saveEdit() {
@@ -416,7 +427,7 @@
                     this.pid = null;
                     this.departmentName ='';
                     let table = $('#dataTable').DataTable();
-                    table.row.add(['',res.data.id,res.data.name,res.data.created_at,'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true)
+                    table.row.add(['',res.data.id,res.data.name,res.data.created_at,JSON.stringify(res.data.users),'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true)
                 })
             },
 

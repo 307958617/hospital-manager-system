@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <div class="row">
-            <div class="col-lg-3">
+            <div class="col-lg-2">
                 <div class="card text-center">
                     <div class="card-header "><h4>Name</h4></div>
                     <div class="card-body">
@@ -11,7 +11,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2">
+            <div class="col-lg-3">
                 <div class="card text-center">
                     <div class="card-header "><h4>Email</h4></div>
                     <div class="card-body">
@@ -111,10 +111,10 @@
                 </div>
                 <div class="form-group">
                     <label>密码确认:</label>
-                    <input v-model="confirmPassword" type="password" class="form-control" @input="checkPassword($event)" @keyup.enter="saveUser()">
+                    <input v-model="confirmPassword" type="password" class="form-control" @input="checkConfirmPassword($event)" @keyup.enter="saveUser()">
                 </div>
             </div>
-            <a href="#" id="saveUser" @click="saveUser()" class="btn btn-sm btn-success" slot="footer">保存</a>
+            <a href="#" @click="saveUser()" class="saveUser btn btn-sm btn-success" slot="footer">保存</a>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showAddUserModel=false">取消</button>
         </user-model>
@@ -132,18 +132,18 @@
                 </div>
                 <div class="form-group">
                     <label>原登陆密码:</label>
-                    <input v-model="userPassword" type="password" class="form-control">
+                    <input v-model="oldPassword" type="password" class="form-control" @input="checkOldPassword($event)">
                 </div>
                 <div class="form-group">
                     <label>新登陆密码:</label>
-                    <input v-model="newPassword" type="password" class="form-control">
+                    <input id="newPassword" v-model="userPassword" type="password" class="form-control" disabled>
                 </div>
                 <div class="form-group">
                     <label>新密码确认:</label>
-                    <input v-model="confirmPassword" type="password" class="form-control" @keyup.enter="saveEdit()">
+                    <input id="confirmPassword" v-model="confirmPassword" type="password" class="form-control" disabled @input="checkConfirmPassword($event)">
                 </div>
             </div>
-            <button @click="saveEdit" class="saveEdit btn btn-sm btn-success" slot="footer">保存</button>
+            <a href="#" @click="saveEdit" class="saveUser btn btn-sm btn-success" slot="footer">保存</a>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showEditUserModel=false">取消</button>
         </user-model>
@@ -171,6 +171,8 @@
                 showAddUserModel:false,
                 showEditUserModel:false,
                 users:[],
+                emails:[],
+                email:'',
                 searchedData:[],
                 search:{
                     name:'',
@@ -179,12 +181,14 @@
                     endTime:''
                 },
 
+                selectedRow:{},
                 treeselectLists:[],
                 departmentId:null,
+                userId:null,
                 userName:'',
                 userEmail:'',
+                oldPassword:'',
                 userPassword:'',
-                newPassword:'',
                 confirmPassword:'',
                 normalizer(node) {
                     return {
@@ -343,8 +347,9 @@
                         position:'centerCenter',
                         buttons: [
                             {text: 'Yes', action: (toast) => {
-                                axios.post('/dep_user/departments/delete',{id:data[1]}).then(res=> {
+                                axios.post('/dep_user/users/delete',{id:data[1]}).then(res=> {
                                     this.$snotify.success('删除人员成功');
+                                    this.getUsers();
                                     table.row(row).remove().draw( false )
                                 });
                                 this.$snotify.remove(toast.id);
@@ -356,8 +361,11 @@
                 if(buttonClass.indexOf('edit') !== -1) {
                     console.log('点击了编辑按钮');
 //                  显示编辑窗口，并获取当前点击行的数据
+                    this.userId = data[1];
                     this.userName = data[2];
                     this.userEmail = data[3];
+                    this.email = data[3];
+                    this.oldPassword = null;
                     this.showEditUserModel = true;
                 }
 
@@ -418,7 +426,7 @@
                 $.fn.dataTable.ext.search.push(
                     function (settings,data,dataIndex) {
 //                      设置实际需要获得到的字段
-                        let needTime = moment(data[4]).valueOf();
+                        let needTime = moment(data[5]).valueOf();
                         let needName = data[2];
                         let needEmail = data[3];
 //                        console.log(data[1] + time);
@@ -439,7 +447,7 @@
 //              用filter获取查询后的结果
                 let filteredData = table.rows().data().filter(function(value,index) {
 //                  设置实际需要获得到的字段
-                    let needTime = moment(value[3]).valueOf();
+                    let needTime = moment(value[5]).valueOf();
                     let needName = value[2];
                     if (
                         ( isNaN( startTime ) && isNaN( endTime ) && (needName.indexOf(name) !== -1) ) ||
@@ -459,7 +467,7 @@
                 for (let i=0;i < length;i++) {
                     let id = filteredData[i][1];
                     let name = filteredData[i][2];
-                    let created_at = filteredData[i][3];
+                    let created_at = filteredData[i][5];
                     let single = {id:id,name:name,created_at:created_at};
 //                    console.log(single);
                     this.searchedData.push(single)
@@ -475,7 +483,9 @@
                 this.userName = '';
                 this.userEmail = '';
                 this.userPassword = '';
-                this.showAddUserModel = true
+                this.email = null;
+                this.showAddUserModel = true;
+                this.confirmPassword ='';
             },
             saveUser() {
                 axios.post('/dep_user/users/add',{
@@ -484,37 +494,102 @@
                     userEmail:this.userEmail,
                     userPassword:this.userPassword,
                 }).then(res => {
-
+                    this.$snotify.success('增加人员成功！');
+                    this.departmentId = null;
+                    this.userName ='';
+                    this.userEmail ='';
+                    this.userPassword ='';
+                    this.confirmPassword ='';
+                    let table = $('#dataTable').DataTable();
+                    table.row.add(['',res.data.id,res.data.name,res.data.email,JSON.stringify(res.data.departments),res.data.created_at,'<button class="del btn btn-sm btn-danger">删除</button> <button class="edit btn btn-sm btn-success">修改</button>']).draw(true);
+                    this.getUsers();
                 });
             },
             checkEmail(e) {
-                let emails = [];
-                this.users.map(e=>{
-                    emails.push(e.email)
+                this.emails = [];
+
+                let table = $('#dataTable').DataTable();
+
+                let data = table.rows().data();
+
+                data.map(u=>{
+                    this.emails.push(u[3])
                 });
 
-                if (emails.indexOf(this.userEmail) !== -1) {
+                console.log(this.emails);
+
+                if(this.email !== null) {
+                    this.emails.splice(this.emails.indexOf(this.email),1);
+                }
+
+                if (this.emails.indexOf(this.userEmail) !== -1) {
                     $(e.target).val(this.userEmail + ' 已经存在,请重新输入');
                     $(e.target).addClass('is-invalid');
-                    $('#saveUser').addClass('disabled');
+                    $('.saveUser').addClass('disabled');
                 }else {
                     $(e.target).removeClass('is-invalid');
-                    $('#saveUser').removeClass('disabled')
+                    $('.saveUser').removeClass('disabled')
                 }
             },
-            checkPassword(e) {
+            checkConfirmPassword(e) {
                 if(this.userPassword !== this.confirmPassword) {
                     $(e.target).addClass('is-invalid');
-                    $('#saveUser').addClass('disabled');
+                    $('.saveUser').addClass('disabled');
                 }else {
                     $(e.target).removeClass('is-invalid');
-                    $('#saveUser').removeClass('disabled')
+                    $('.saveUser').removeClass('disabled')
                 }
             },
+            checkOldPassword(e) {
+                axios.post('/dep_user/users/checkPassword',{id:this.userId,password:this.oldPassword}).then(res=> {
+                    console.log(res);
+                    if(res.data === 'ok') {
+                        $(e.target).removeClass('is-invalid');
+                        $('.saveUser').removeClass('disabled');
+                        $('#newPassword').attr("disabled",false);
+                        $('#confirmPassword').attr("disabled",false);
+                    }else {
+                        $('#newPassword').attr("disabled",true);
+                        $('#confirmPassword').attr("disabled",true);
+                        $(e.target).addClass('is-invalid');
+                        $('.saveUser').addClass('disabled')
+                    }
+                })
+            },
+            delSelected() {
+                let table = $('#dataTable').DataTable();
+                let data = table.rows({selected:true}).data();
+                let ids = [];
+                data.map(d=> {
+                    ids.push(parseInt(d[1]))
+                });
+                this.$snotify.error('你真的要删除这些人员吗？', '删除确认', {
+                    position:'centerCenter',
+                    buttons: [
+                        {text: 'Yes', action: (toast) => {
+                            axios.post('/dep_user/users/deleteSelected',{ids:ids}).then(res=> {
+                                console.log('删除人员成功！');
+                                this.$snotify.success('删除人员成功!');
+                                this.getUsers();
+                                table.rows({selected:true}).remove().draw( false );
+                            });
+                            this.$snotify.remove(toast.id);
+                        }, bold: false},
+                        {text: 'No', action: (toast) => {this.$snotify.remove(toast.id);}},
+                    ]
+                });
+            },
             saveEdit() {
-                console.log(this.departmentId);
-                console.log(this.userName);
-                console.log(this.userEmail)
+                let table = $('#dataTable').DataTable();
+                let data = this.selectedRow.data();
+                data[2] = this.userName;
+                data[3] = this.userEmail;
+
+                axios.post('/dep_user/users/edit',{id:this.userId,name:this.userName,email:this.userEmail,password:this.userPassword}).then(res=> {
+                    this.$snotify.success('修改人员信息成功!');
+                    this.showEditUserModel = false;
+                    table.row(this.selectedRow).data(data).draw();
+                });
             },
             reloadOptions() {
                 axios.get('/dep_user/departments/get').then(res=> {

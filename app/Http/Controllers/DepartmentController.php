@@ -19,7 +19,7 @@ class DepartmentController extends Controller
         if($filters) {
             $departments = Department::select(['id','name','created_at'])->where($filters)->get();
         }else {
-            $departments = Department::select(['id','name','created_at','parent_id'])->get();
+            $departments = Department::with('users')->select(['id','name','created_at','parent_id'])->get();
         }
         return response()->json(['data'=> $departments,'fil'=>$filters]);
     }
@@ -42,6 +42,8 @@ class DepartmentController extends Controller
         }
         $node->save();
 
+        $node = Department::with('users')->find($node->id);
+
         return $node;
     }
     //编辑科室然后保存到数据库
@@ -62,12 +64,17 @@ class DepartmentController extends Controller
     {
         $id = $request->get('id');
         $node = Department::find($id);
+        $node->users()->detach();
         $node->delete();
     }
 
     public function deleteSelected(Request $request)
     {
         $ids = $request->get('ids');
+        foreach ($ids as $id) {
+            $dep = Department::find($id);
+            $dep->users()->detach();
+        }
         Department::destroy($ids);
     }
 
