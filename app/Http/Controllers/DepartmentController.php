@@ -24,6 +24,22 @@ class DepartmentController extends Controller
         return response()->json(['data'=> $departments,'fil'=>$filters]);
     }
 
+    public function getDepartmentUsers(Request $request)
+    {
+        $id = $request->get('id');
+        $department = Department::with('users')->find($id);
+        return response()->json(['data'=>$department]);
+    }
+
+    public function saveUserToDepartment(Request $request)
+    {
+        $id = $request->get('id');
+        $userLists = $request->get('userLists');
+        $department = Department::find($id);
+        $department->users()->detach();
+        $department->users()->attach($userLists);
+    }
+
     public function show_departments()
     {
         return view('department/departments');

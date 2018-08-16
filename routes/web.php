@@ -21,6 +21,8 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('/dep_user/org', 'DepartmentController@show_org')->name('show_org');
 Route::get('/dep_user/org/get', 'DepartmentController@get_org')->name('get_org');
+Route::post('/dep_user/org/getDepartmentUsers', 'DepartmentController@getDepartmentUsers')->name('getDepartmentUsers');
+Route::post('/dep_user/org/saveUserToDepartment', 'DepartmentController@saveUserToDepartment')->name('saveUserToDepartment');
 
 Route::get('/dep_user/departments', 'DepartmentController@show_departments')->name('show_departments');
 Route::get('/dep_user/departments/get', 'DepartmentController@get')->name('departments.get');

@@ -12,6 +12,10 @@ window.Vue = require('vue');
 import Snotify from 'vue-snotify'
 Vue.use(Snotify);
 
+import {Transfer} from 'element-ui'
+Vue.use(Transfer);
+import 'element-ui/lib/theme-chalk/index.css'
+
 // 引入font-awesome
 import 'font-awesome/css/font-awesome.min.css'
 // 下面是必须引入的dataTables的样式

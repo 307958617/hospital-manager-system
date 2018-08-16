@@ -7,7 +7,7 @@
             {{ Department.name }}
         <!--增加编辑和删除按钮，引入font-awesome-->
             <span class="pull-right">
-                <i @click="showAddUserToDepartment=true" class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;
+                <i @click="addUser" class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;
                 <i @click="showEditDepartment=true" class="fa fa-pencil-square-o" aria-hidden="true"></i>&nbsp;
                 <i @click="delDepartment" class="fa fa-trash-o" aria-hidden="true"></i>
             </span>
@@ -35,12 +35,18 @@
         <department-model v-if="showAddUserToDepartment">
             <h3 slot="header">添加人员到{{ departmentName }}</h3>
             <div slot="body">
-                <div class="form-group">
-                    <label>设置科室名称:</label>
-                    <input v-model="departmentName" type="text" class="form-control">
+                <div class="text-center">
+                    <el-transfer
+                            style="text-align: left; display: inline-block"
+                            v-model="departmentUsers"
+                            :data="allUsers"
+                            filterable
+                            :titles="['全院人员', departmentName+'人员']"
+                            @change="handleChange"
+                    ></el-transfer>
                 </div>
             </div>
-            <button @click="editDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
+            <button @click="saveUserToDepartment" class="btn btn-sm btn-success" slot="footer">保存</button>
             <!--实现点击取消按钮，隐藏模态框-->
             <button class="btn btn-sm btn-default" slot="footer" @click="showAddUserToDepartment=false">取消</button>
         </department-model>
@@ -59,12 +65,18 @@
         },
         data() {
             return {
+                allUsers: [],
+                departmentUsers: [],
+
+
+
                 pid:null,
                 //判断编辑科室的模态框是否显示，默认不显示
                 showEditDepartment:false,
                 showAddUserToDepartment:false,
                 //增加新增科室名称属性
                 departmentName:'',
+                departmentId:null,
                 //注意，这里必须要用自定义，不然显示不出来的
             }
         },
@@ -75,6 +87,7 @@
             //注意，这里需要申明一开始列表的状态时全部展开状态。
             this.expandAll();
             this.pid = this.Department.parent_id;
+            this.departmentId = this.Department.id;
             this.departmentName = this.Department.name;
         },
         methods: {
@@ -104,6 +117,41 @@
             //必须增加这个方法与父组件的名称一样这很重要，本组件递归调用才不会报错
             getDepartments() {
                 this.$emit('getDepartments')
+            },
+            getAllUsers() {
+                this.allUsers = [];
+                axios.get('/dep_user/users/get').then(res=>{
+                    res.data.data.map(u=>{
+                        this.allUsers.push({
+                            key:u.id,
+                            label:u.name,
+                            disabled:false
+                        })
+                    });
+                });
+            },
+            getDepartmentUsers() {
+                this.departmentUsers = [];
+                axios.post('/dep_user/org/getDepartmentUsers',{id:this.departmentId}).then(res=>{
+                    res.data.data.users.map(u=>{
+                        this.departmentUsers.push(u.id)
+                    })
+                });
+            },
+            addUser() {
+                this.showAddUserToDepartment=true;
+                this.getAllUsers();
+                this.getDepartmentUsers();
+            },
+            handleChange(value, direction, movedKeys) {
+                this.departmentUsers = value;
+                console.log(this.allUsers);
+                console.log(this.departmentUsers);
+            },
+            saveUserToDepartment() {
+                axios.post('/dep_user/org/saveUserToDepartment',{id:this.departmentId,userLists:this.departmentUsers}).then(res=>{
+                    console.log('成功保存')
+                })
             },
             delClass: function(li)
             {
